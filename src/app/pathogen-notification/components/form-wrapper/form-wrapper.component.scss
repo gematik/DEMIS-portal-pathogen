@@ -1,0 +1,107 @@
+$btn-color: #0f62fe;
+$container-max-width: 1140px;
+
+a {
+  text-decoration: none;
+}
+
+.container {
+  overflow-y: auto;
+  display: flex;
+  max-height: calc(100vh - 286px);
+  flex-direction: column;
+  height: 100vh;
+
+}
+
+formly-field {
+  overflow-y: auto;
+  max-height: 100%;
+  flex-grow: 1;
+  overflow-x: hidden !important;
+  margin-right: 30px;
+
+}
+
+.btn {
+  padding-right: 14px;
+  padding-left: 14px;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 36px;
+}
+
+.margin-left {
+  margin-left: 12px;
+}
+
+.margin-right {
+  margin-right: 12px;
+}
+
+.mat-tab-container {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.btn--shape {
+  border-radius: 0;
+}
+
+.btn--color {
+  border: 1px $btn-color solid;
+  background-color: transparent;
+  color: $btn-color !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.btn--color:hover {
+  background-color: #f1f4f4;
+}
+
+.btn--color:disabled {
+  background-color: #d0d0d0;
+  color: #a6a6a6 !important;
+  border: 1px solid #f9fcfc;
+
+  &:hover {
+    color: #272b2b42;
+  }
+}
+
+::ng-deep .mat-mdc-button {
+  .mdc-button__label {
+    letter-spacing: 0;
+  }
+
+  &:hover {
+    background-color: #f1f4f4;
+  }
+}
+
+mat-toolbar {
+  background: rgb(249, 252, 252);
+  justify-content: space-between;
+  max-width: 1140px;
+
+  mat-toolbar-row {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: hidden !important;
+}
+
+::ng-deep mat-tab-header {
+  visibility: hidden;
+  height: 1px;
+}
+
+.btn--forward {
+  margin-left: 10px;
+}

@@ -1,0 +1,17 @@
+@if (isLoading()) {
+  <div>
+    <mat-spinner class="loading-indicator"></mat-spinner>
+  </div>
+}
+
+<div>
+  <form (ngSubmit)="submit()" [formGroup]="form">
+    <formly-form
+      [fields]="fields"
+      [form]="form"
+      [model]="model"
+      [options]="options"
+    >
+    </formly-form>
+  </form>
+</div>

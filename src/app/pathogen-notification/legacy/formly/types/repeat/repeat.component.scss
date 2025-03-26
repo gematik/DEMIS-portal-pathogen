@@ -1,0 +1,35 @@
+@import "../../../../../../styles/demis-color-and-palettes";
+
+.bs-linebreak {
+  height: 10px;
+}
+
+button {
+  color: $color-demis-blue !important;
+  border-color: rgba(0, 3, 3, 0.12) !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+}
+
+.d-flex {
+  height: 50px
+}
+
+.col-sm-1 {
+  margin-top: 8px;
+  margin-left: -10px
+}
+
+.fat-icon {
+  font-size: 28px
+}
+
+.disabled-button {
+  pointer-events: none;
+}
+
+.disabled-icon {
+  opacity: 0.5;
+  background-color: #f5f5f5;
+  color: #a1a1a1
+}

@@ -1,0 +1,46 @@
+<mat-stepper
+  (selectionChange)="onStepChange($event)"
+  [selectedIndex]="currentStep"
+  id="stepper-form-test"
+  orientation="vertical"
+>
+  <mat-step
+    *ngFor="let step of steps; let i = index"
+    [completed]="step.formControl.touched && isTouchedAndValid(step)"
+    [hasError]="step.formControl.touched && !isTouchedAndValid(step)"
+    [aria-labelledby]="isEditable(i)"
+    label="{{ step.props.label }}"
+  >
+    <!-- Done (weird but its angular state "edit") -->
+    <ng-template matStepperIcon="edit" let-index="index">
+      <mat-icon [id]="'step-valid-' + getStepId(steps[index])">done</mat-icon>
+    </ng-template>
+
+    <!-- Error  -->
+    <ng-template matStepperIcon="error" let-index="index">
+      <mat-icon [id]="'step-invalid-' + getStepId(steps[index])">close</mat-icon>
+    </ng-template>
+
+    <!-- Active State/Default State-->
+    <ng-template
+      *ngIf="step?.fieldGroup?.length > 0"
+      let-index="index"
+      matStepperIcon="number"
+    >
+      <mat-icon
+        *ngIf="isTouchedAndValid(steps[index])"
+        [id]="'step-valid-' + getStepId(steps[index])"
+      >done
+      </mat-icon>
+      <mat-icon
+        *ngIf="steps[index].formControl.touched && !isTouchedAndValid(steps[index])"
+        [id]="'step-invalid-' + getStepId(steps[index])"
+      >close
+      </mat-icon>
+      <mat-icon
+        *ngIf="!steps[index].formControl.touched && !isTouchedAndValid(steps[index])"
+        [id]="'step-default-' + getStepId(steps[index])"
+      ></mat-icon>
+    </ng-template>
+  </mat-step>
+</mat-stepper>

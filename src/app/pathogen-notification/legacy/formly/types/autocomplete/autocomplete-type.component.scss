@@ -1,0 +1,17 @@
+input {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  font-weight: 400;
+  width: 100%;
+}
+
+::ng-deep .mat-form-field-appearance-outline.mat-form-field-disabled,
+::ng-deep .mat-form-field-outline {
+  opacity: 0;
+}
+
+#close-icon {
+  position: absolute; left: calc(100% - 30px); bottom: 2px;
+}

@@ -1,0 +1,63 @@
+@if (props['isDiagnostic']) {
+  <div class="d-flex flex-lg-row-reverse">
+    <div class="col-sm-2 d-flex align-items-top"></div>
+    <button
+      (click)="closeAllExistingPanelsAndOpenNewOneOnAdd(field)"
+      [id]="setAddButtonIdName(props['addText'])"
+      class="mt-2 mb-5 mr-5"
+      color="primary"
+      mat-stroked-button
+      type="button">
+      <mat-icon>add</mat-icon>
+      {{ props['addText'] }}
+    </button>
+  </div>
+}
+
+@for (field of field.fieldGroup; track field; let i = $index) {
+  <div class="row">
+    @if (props['additionalHeader']) {
+      <div class="col-md-12">
+        @if (field.parent.fieldGroup.length > 1) {
+          <h2>{{ props['additionalHeader'] + ' ' + (i + 1) }}</h2>
+        }
+      </div>
+    }
+    <formly-field [field]="field" [id]="setIdName('repeat-field', field, i, props['id'])"
+                  [class]="props['largeWidth'] ? props['largeWidth'] : 'col-sm-10'">>
+    </formly-field>
+    <div class="col-sm-1" id="repeat-remove">
+      @if (!isLonely(field, props['isContact']) || !props['keepLastItem']) {
+        <button
+          (click)="remove(i)"
+          [id]="setIdName('btn-delete', field, i, props['id'])"
+          color="primary"
+          data-cy="remove-button"
+          mat-icon-button
+          type="button"
+          [class]="field.fieldGroup[0].props['isClosed'] ? 'disabled-button':''"
+        >
+          <mat-icon
+            [class]="{'fat-icon': props['isDiagnostic'], 'disabled-icon':field.fieldGroup[0].props['isClosed'], '':'' }"
+          >delete
+          </mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+}
+
+@if (!props['isDiagnostic']) {
+  <div class="align-self-end">
+    <button
+      (click)="add()"
+      [id]="setAddButtonIdName(props['addText'])"
+      class="mt-2 mb-5 mr-5"
+      color="primary"
+      mat-stroked-button
+      type="button">
+      <mat-icon>add</mat-icon>
+      {{ props['addText'] }}
+    </button>
+  </div>
+}

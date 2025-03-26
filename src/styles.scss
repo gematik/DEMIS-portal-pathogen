@@ -1,0 +1,126 @@
+@use "node_modules/@angular/material" as mat;
+@import "styles/global/colors.scss";
+
+/* You can add global styles to this file, and also import other style files */
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+@import "styles/theme-demis";
+
+.theme-demis-light {
+  @include mat.all-component-themes($demis-notification-portal-theme)
+}
+
+mat-spinner {
+  margin: auto;
+  stroke: $color-demis-blue;
+}
+
+mat-radio-group {
+  display: flex;
+  flex-direction: column;
+  margin: 5px 0;
+}
+
+mat-radio-group {
+  flex-direction: row;
+}
+
+// Validation errors below the fields should be left aligned
+mat-error {
+  transform: translateX(-1.2em)
+}
+
+// information icon
+.material-icons.md-48 {
+  margin-top: 5px;
+  margin-right: 5px;
+  color: $color-demis-blue;
+}
+
+mat-panel-title {
+  margin-top: 5px;
+}
+
+html,
+body,
+span,
+div,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+button,
+label,
+input,
+textarea,
+select {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 95%
+}
+
+h2 {
+  padding-top: 15px;
+}
+
+// all radio groups should be aligned as row except for existsBsnr
+#existsBsnr {
+  flex-direction: column !important
+}
+
+#icon-success {
+  color: $success-green;
+  position: relative;
+  padding-right: 5px
+}
+
+#icon-error {
+  color: $failure-red;
+  position: relative;
+  top: 5px;
+  padding-right: 5px;
+}
+
+#accordion-wrapper {
+  transform:scaleX(99.8%)
+}
+
+.hidden-field,
+.oneTimeCode {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 0;
+  width: 25%;
+  z-index: -1;
+}
+
+.grayed-out-element {
+  opacity: 0.5;
+  background-color: #f5f5f5;
+  color: #a1a1a1
+}
+// Custom styles for the mdc-checkbox (unsets background-color, delets ruler, padding and hover-overlay)
+.mat-mdc-form-field-type-checkbox {
+  .mdc-text-field--filled {
+    background-color: unset !important;
+  }
+  .mat-mdc-text-field-wrapper {
+    padding: 0;
+    .mat-mdc-form-field-focus-overlay {
+      display: none;
+    }
+    .mdc-line-ripple {
+      display: none;
+    }
+    .mat-mdc-form-field-infix {
+      padding: 0 !important;
+      min-height: unset;
+    }
+  }
+}

@@ -1,0 +1,26 @@
+:host ::ng-deep {
+  .info-notification-text {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 20px;
+    margin-right: 15px;
+
+    span.message {
+      padding-top: 4px;
+    }
+  }
+}
+
+.loading-indicator {
+  max-width: 1140px;
+  display: flex;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+}
+

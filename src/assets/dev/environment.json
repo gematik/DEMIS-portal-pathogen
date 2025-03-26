@@ -1,0 +1,14 @@
+{
+  "featureFlags": {
+    "FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA": false
+  },
+  "gatewayPaths": {
+    "pathogen": "/api/ng/notification/pathogen"
+  },
+  "ngxLoggerConfig": {
+    "disableConsoleLogging": false,
+    "level": 1
+  },
+  "pathToGateway": "../gateway/notification",
+  "production": false
+}

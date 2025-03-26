@@ -1,0 +1,86 @@
+<app-side-navigation-wrapper
+  [currentStepHeadline]="field.fieldGroup[selectedIndex].props.label"
+  [currentStep]="selectedIndex"
+  [headline]="field.fieldGroup[selectedIndex].props.title"
+  [maxNumberOfSteps]="field.fieldGroup.length"
+  [model]="field.model"
+  [steps]="field.fieldGroup"
+  >
+  <mat-tab-group
+    [selectedIndex]="selectedIndex"
+    animationDuration="0000"
+    class="mat-tab-container"
+    >
+    @for (
+      tab of field.fieldGroup; track
+      tab; let last = $last; let first = $first) {
+      <mat-tab
+        [label]="tab.props.label"
+        >
+        <div class="container">
+          <formly-field [field]="tab"></formly-field>
+        </div>
+        <mat-toolbar>
+          <mat-toolbar-row>
+            <div>
+              <div style="display: flex">
+                <a
+                  fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}"
+                  routerLink="./"
+                  >
+                  @if (!first) {
+                    <button
+                      (click)="previousStep()"
+                      class="btn btn--color btn--shape"
+                      id="btn-nav-action-back"
+                      mat-button
+                      type="button"
+                      >
+                      <mat-icon
+                        class="margin-right"
+                        fontIcon="arrow_back"
+                      ></mat-icon>
+                      Zurück
+                    </button>
+                  }
+                </a>
+                <a
+                  fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}"
+                  routerLink="./"
+                  >
+                  @if (!last && checkPathogenSelection(model, field.fieldGroup[selectedIndex].props.label)) {
+                    <button
+                      (click)="nextStep(field.fieldGroup.length)"
+                      class="btn btn--color btn--shape btn--forward"
+                      id="btn-nav-action-next"
+                      mat-button
+                      type="button"
+                      >
+                      Weiter
+                      <mat-icon
+                        class="margin-left"
+                        fontIcon="arrow_forward"
+                      ></mat-icon>
+                    </button>
+                  }
+                </a>
+              </div>
+            </div>
+            <div>
+              <button
+                [disabled]="!form.valid"
+                class="btn btn--color btn--shape"
+                id="btn-send-notification"
+                mat-button
+                type="submit"
+                >
+                Senden
+                <mat-icon class="margin-left" fontIcon="send"></mat-icon>
+              </button>
+            </div>
+          </mat-toolbar-row>
+        </mat-toolbar>
+      </mat-tab>
+    }
+  </mat-tab-group>
+</app-side-navigation-wrapper>

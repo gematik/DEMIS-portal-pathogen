@@ -1,0 +1,64 @@
+.container-drawer {
+  width: 25vw;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: stretch;
+}
+
+::ng-deep .mat-step .mat-vertical-stepper-header {
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+::ng-deep .mat-step .mat-vertical-content-container {
+  display: none;
+}
+
+::ng-deep .mat-step .mat-step-label {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+::ng-deep .mat-step .mat-step-label.mat-step-label-selected {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+::ng-deep .mat-step .mat-step-header:hover {
+  background-color: transparent !important;
+}
+
+.main-content-container {
+  padding: 0 20px;
+}
+
+.main-content-stepper-headline-container {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px;
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.main-content-small-stepper {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 15px;
+  text-align: center;
+  font-size: 14px;
+  overflow: hidden;
+  border: 1px solid #000;
+  padding: 0.2rem 0.5rem;
+  color: #161616;
+}
+
+::ng-deep .mat-step-header[aria-labelledby="disabled_step"] {
+  pointer-events: none !important;
+  opacity: 0.5;
+}

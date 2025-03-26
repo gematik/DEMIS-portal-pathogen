@@ -1,0 +1,35 @@
+@import "../../../../styles/demis-color-and-palettes";
+
+.favorites-item {
+  display: flex;
+  align-items: center;
+}
+
+.favorites-button {
+  border-color: rgba(0, 3, 3, 0.12) !important;
+  border-radius: 0;
+  margin-right: 0;
+  white-space: pre-wrap !important;
+  min-width: 500px !important;
+  min-height: 50px;
+  margin-top: 15px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.favorites-button-text {
+  display: block;
+  color: $color-demis-blue;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.favorites-list-remove-button {
+  color: $color-demis-blue;
+  margin-top: 15px;
+  margin-left: -15px;
+}
