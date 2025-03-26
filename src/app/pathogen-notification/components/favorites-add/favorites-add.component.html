@@ -1,0 +1,32 @@
+<div class="add-favorites-container">
+  <div class="favorites-actions">
+    @if (!(isPathogenInFavorites()) && !isMaxNumberOfFavorites()) {
+      <mat-icon color="primary">favorite_border</mat-icon>
+      <a
+        (click)="addPathogenToFavorites()"
+        class="add-favorites-add-button"
+        role="button"
+      >An Favoriten anheften</a
+      >
+    }
+
+    @if (isPathogenInFavorites()) {
+      <mat-icon color="primary" id="remove-favorites">delete</mat-icon>
+      <a
+        (click)="removePathogenFromFavorites()"
+        class="add-favorites-remove-button"
+        role="button"
+      >Aus Favoriten entfernen</a
+      >
+    }
+
+    @if (isMaxNumberOfFavorites() && !isPathogenInFavorites()) {
+      <span
+        class="max-favorites-message"
+      >Maximale Anzahl an Favoriten ({{ maxFavorites }}) erreicht. Bitte löschen
+            Sie erst einen Favoriten im vorherigen Schritt, um diesen anlegen zu
+            können.</span
+      >
+    }
+  </div>
+</div>

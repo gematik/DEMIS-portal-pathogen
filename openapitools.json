@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "7.9.0",
+    "generators": {
+      "remote": {
+        "generatorName": "typescript-angular",
+        "output": "./src/api/notification",
+        "inputSpec": "https://raw.githubusercontent.com/gematik/DEMIS-notification-gateway/refs/heads/main/src/main/resources/spec/api-spec.yml",
+        "glob": "."
+      }
+    }
+  }
+}

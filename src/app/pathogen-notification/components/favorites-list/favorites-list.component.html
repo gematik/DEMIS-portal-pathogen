@@ -1,0 +1,48 @@
+<div>
+
+  <ng-template #favoritesTemplate>
+    <div class="favorites-div">
+      <h2>Favoriten</h2>
+      @for (item of favorites(); track item) {
+        <div class="row favorites-item">
+          <div class="col-md-auto">
+            <button
+              (click)="selectPathogenFromFavorites(item)"
+              class="favorites-button"
+              color="primary"
+              mat-stroked-button
+              type="button"
+            >
+              <span class="favorites-button-text">
+                {{ getDesignationValueIfAvailable(item) }}
+              </span>
+            </button>
+          </div>
+          <div class="col-md-auto align-self-center">
+            <button
+              (click)="removePathogenFromFavorites(item)"
+              class="favorites-list-remove-button"
+              color="primary"
+              data-cy="remove-button"
+              mat-icon-button
+              type="button"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </ng-template>
+
+  @if (favorites()?.length > 0) {
+    <div>
+      <ng-container *ngTemplateOutlet="favoritesTemplate"></ng-container>
+    </div>
+  } @else {
+    <div class="favorites-div">
+      <h2>Favoriten</h2>
+      <p>Noch keine Einträge zu Favoriten hinzugefügt.</p>
+    </div>
+  }
+</div>

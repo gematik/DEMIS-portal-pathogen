@@ -1,0 +1,25 @@
+<mat-drawer-container>
+  <mat-drawer class="container-drawer" mode="side" opened>
+    <div>
+      <app-side-navigation-stepper
+        [currentStep]="currentStep"
+        [steps]="steps"
+        [model]="model"
+      ></app-side-navigation-stepper>
+      <app-hexhexbutton (paste)="handleHexhexButtonClick()"></app-hexhexbutton>
+      <app-paste-box (paste)="handlePasteBoxClick()"></app-paste-box>
+    </div>
+  </mat-drawer>
+  <mat-drawer-content>
+    <mat-toolbar>{{ headline }}</mat-toolbar>
+    <div class="main-content-stepper-headline-container">
+      <h1>{{ currentStepHeadline }}</h1>
+      <div class="main-content-small-stepper">
+        Schritt {{ currentStep + 1 }} von {{ maxNumberOfSteps }}
+      </div>
+    </div>
+    <div class="main-content-container">
+      <ng-content></ng-content>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

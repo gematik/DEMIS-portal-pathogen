@@ -1,0 +1,27 @@
+@import "../../../../styles/demis-color-and-palettes";
+
+.add-favorites-container {
+  margin-bottom: 20px;
+}
+
+.favorites-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-favorites-add-button,
+.add-favorites-remove-button {
+  cursor: pointer;
+  color: $color-demis-blue;
+  margin-top: 15px;
+}
+
+.add-favorites-add-button:hover,
+.add-favorites-remove-button:hover {
+  text-decoration: underline;
+}
+
+#remove-favorites {
+  margin-top:13px;
+}

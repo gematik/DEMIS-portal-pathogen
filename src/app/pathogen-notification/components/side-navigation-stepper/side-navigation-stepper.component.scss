@@ -1,0 +1,49 @@
+::ng-deep .mat-step-icon {
+  background: transparent !important;
+  border: 1px solid #0f62fe; //for scucces state
+  font-size: 18px;
+  height: 16px !important;
+  width: 16px !important;
+}
+
+// Hides the numbers of the stepper
+::ng-deep .mat-step-icon-state-number {
+  border: 1px dashed #0f62fe; //for numbers idle state
+}
+
+// Hides the numbers of the stepper
+::ng-deep .mat-step-icon-state-number .mat-step-icon-content span {
+  display: none;
+}
+
+::ng-deep .mat-step-icon-content {
+  color: #0f62fe !important;
+}
+
+::ng-deep .mat-stepper-vertical {
+  margin-bottom: 20px;
+}
+
+::ng-deep .mat-step-icon-selected {
+  color: #0f62fe !important;
+}
+
+::ng-deep .mat-step-icon-state-done {
+  color: #0f62fe !important;
+}
+
+::ng-deep .mat-step-icon-state-edit {
+  color: #0f62fe !important;
+}
+
+::ng-deep .mat-step-icon-state-number {
+  color: #0f62fe !important;
+}
+
+::ng-deep .mat-step-label.mat-step-label-error {
+  color: #000000 !important;
+}
+
+::ng-deep .mat-step-icon.mat-step-icon-state-error {
+  border: 1px dashed #0f62fe !important;
+}
