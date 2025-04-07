@@ -41,15 +41,10 @@ interface Configuration {
 export class Environment {
   public headers: HttpHeaders;
   public local: boolean = false;
-  public pathToIgsService: string = 'PATH TO IGS SERVICE NOT DEFINED';
   public pathogenConfig: Configuration;
 
   constructor() {
-    this.headers = new HttpHeaders({
-      'app-key': 'bd2aca3d5b433868146e41f89ccbd1c7',
-      'Content-Type': 'application/json',
-      'x-real-ip': '123.123.123.123',
-    });
+    this.headers = new HttpHeaders({ 'Content-Type': 'application/json' });
   }
 
   public get pathToEnvironment() {
@@ -58,10 +53,6 @@ export class Environment {
 
   private get config(): Configuration {
     return this.pathogenConfig;
-  }
-
-  public get isLocal(): boolean {
-    return this.local;
   }
 
   public get isProduction(): boolean {
