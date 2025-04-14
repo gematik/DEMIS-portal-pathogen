@@ -1,15 +1,17 @@
 /*
- Copyright (c) 2025 gematik GmbH
- Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
- the European Commission - subsequent versions of the EUPL (the "Licence");
- You may not use this work except in compliance with the Licence.
-    You may obtain a copy of the Licence at:
-    https://joinup.ec.europa.eu/software/page/eupl
-        Unless required by applicable law or agreed to in writing, software
- distributed under the Licence is distributed on an "AS IS" basis,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the Licence for the specific language governing permissions and
- limitations under the Licence.
+    Copyright (c) 2025 gematik GmbH
+    Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
+    European Commission – subsequent versions of the EUPL (the "Licence").
+    You may not use this work except in compliance with the Licence.
+    You find a copy of the Licence in the "Licence" file or at
+    https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the Licence is distributed on an "AS IS" basis,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+    In case of changes by gematik find details in the "Readme" file.
+    See the Licence for the specific language governing permissions and limitations under the Licence.
+    *******
+    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
 import { FormlyFieldConfig } from '@ngx-formly/core';
@@ -19,6 +21,7 @@ import { FormlyConstants } from '../formly-constants';
 import {
   copyAddress,
   formlyInputField,
+  notifierFacilitySourceIsInvalid,
   updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled,
   updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled,
 } from './commons';
@@ -37,17 +40,19 @@ export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDi
           // recognizes any change in notifierFacility to make sure that the address is copied correctly
           hooks: {
             onInit: field => {
-              const root = field.parent.parent.fieldGroup;
-              return field.parent.parent.fieldGroup
+              const root = field.parent.parent;
+              return root.fieldGroup
                 .find(field => field.key === 'notifierFacility')
                 .options.fieldChanges.pipe(
                   tap(() => {
-                    const submittingFacilityModel = field.parent.parent.model.submittingFacility;
+                    const submittingFacilityModel = root.model.submittingFacility;
                     if (submittingFacilityModel.copyAddressCheckBox) {
                       const notifierFacilityModel = field.parent.model;
-                      const targetField = root.find(field => field.key === 'submittingFacility');
-                      copyAddress(notifierFacilityModel, targetField);
-                      targetField.fieldGroup.find(field => field.key === 'copyAddressCheckBox').formControl.enable();
+                      if (!notifierFacilitySourceIsInvalid(notifierFacilityModel, field)) {
+                        const targetField = root.fieldGroup.find(field => field.key === 'submittingFacility');
+                        copyAddress(notifierFacilityModel, targetField);
+                        targetField.fieldGroup.find(field => field.key === 'copyAddressCheckBox').formControl.enable();
+                      }
                     }
                   })
                 );

@@ -1,15 +1,17 @@
 /*
- Copyright (c) 2025 gematik GmbH
- Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
- the European Commission - subsequent versions of the EUPL (the "Licence");
- You may not use this work except in compliance with the Licence.
-    You may obtain a copy of the Licence at:
-    https://joinup.ec.europa.eu/software/page/eupl
-        Unless required by applicable law or agreed to in writing, software
- distributed under the Licence is distributed on an "AS IS" basis,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the Licence for the specific language governing permissions and
- limitations under the Licence.
+    Copyright (c) 2025 gematik GmbH
+    Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
+    European Commission – subsequent versions of the EUPL (the "Licence").
+    You may not use this work except in compliance with the Licence.
+    You find a copy of the Licence in the "Licence" file or at
+    https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the Licence is distributed on an "AS IS" basis,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+    In case of changes by gematik find details in the "Readme" file.
+    See the Licence for the specific language governing permissions and limitations under the Licence.
+    *******
+    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
@@ -20,6 +22,7 @@ import { MockedComponentFixture } from 'ng-mocks';
 import {
   getAutocomplete,
   getButton,
+  getCheckbox,
   getDialog,
   getInput,
   getRadioGroup,
@@ -57,6 +60,7 @@ import {
   CLIPBOARD_VALUE_INSTITUTION_NAME,
   CLIPBOARD_VALUE_STREET,
   CLIPBOARD_VALUE_ZIP,
+  FIELD_COPY_ADDRESS,
   FIELD_CURRENT_ADDRESS_CITY,
   FIELD_CURRENT_ADDRESS_COUNTRY,
   FIELD_CURRENT_ADDRESS_HOUSE_NUMBER,
@@ -204,6 +208,55 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         fixture.detectChanges();
 
         expect(await salutationSelect.getValueText()).toBe('Keine Anrede');
+      });
+    });
+
+    describe('test checkbox behavior', () => {
+      const mockClipboard = async (clipboardData: string) => {
+        const p = lastValueFrom(of(clipboardData));
+        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      };
+
+      const checkCheckboxAndAssertDisabled = async (checkboxSelector: string, inputSelector: string) => {
+        const checkbox = await getCheckbox(loader, checkboxSelector);
+        await checkbox.check();
+        expect(await checkbox.isChecked()).toBe(true);
+
+        const inputField = await getInput(loader, inputSelector);
+        expect(await inputField.isDisabled()).toBe(true);
+      };
+
+      it('should overwrite checkbox when entering clipboard data that includes submitter data', async () => {
+        await clickNextButton(fixture);
+        const submitter = TEST_FACILITY('submitter');
+        await checkCheckboxAndAssertDisabled(`#${FIELD_COPY_ADDRESS}`, submitter.institutionName.selector);
+
+        const clipboardString = createClipboardStringFromObject(submitter, 'URL ');
+        await mockClipboard(clipboardString.concat(clipboardString));
+        await (await getButton(loader, '#btn-fill-form')).click();
+        fixture.detectChanges();
+
+        const checkbox = await getCheckbox(loader, `#${FIELD_COPY_ADDRESS}`);
+        const inputField = await getInput(loader, submitter.institutionName.selector);
+
+        expect(await checkbox.isChecked()).toBe(false);
+        expect(await inputField.isDisabled()).toBe(false);
+        expect(await inputField.getValue()).toBe(submitter.institutionName.clipboardValue);
+      });
+
+      it('should not overwrite checkbox when clipboard data does not include submitter data', async () => {
+        await clickNextButton(fixture);
+        await checkCheckboxAndAssertDisabled(`#${FIELD_COPY_ADDRESS}`, TEST_FACILITY('submitter').institutionName.selector);
+
+        await mockClipboard('URL P.family=Schulz');
+        await (await getButton(loader, '#btn-fill-form')).click();
+        fixture.detectChanges();
+
+        const checkbox = await getCheckbox(loader, `#${FIELD_COPY_ADDRESS}`);
+        const inputField = await getInput(loader, TEST_FACILITY('submitter').institutionName.selector);
+
+        expect(await checkbox.isChecked()).toBe(true);
+        expect(await inputField.isDisabled()).toBe(true);
       });
     });
   });

@@ -1,15 +1,17 @@
 /*
- Copyright (c) 2025 gematik GmbH
- Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
- the European Commission - subsequent versions of the EUPL (the "Licence");
- You may not use this work except in compliance with the Licence.
-    You may obtain a copy of the Licence at:
-    https://joinup.ec.europa.eu/software/page/eupl
-        Unless required by applicable law or agreed to in writing, software
- distributed under the Licence is distributed on an "AS IS" basis,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the Licence for the specific language governing permissions and
- limitations under the Licence.
+    Copyright (c) 2025 gematik GmbH
+    Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
+    European Commission – subsequent versions of the EUPL (the "Licence").
+    You may not use this work except in compliance with the Licence.
+    You find a copy of the Licence in the "Licence" file or at
+    https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the Licence is distributed on an "AS IS" basis,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+    In case of changes by gematik find details in the "Readme" file.
+    See the Licence for the specific language governing permissions and limitations under the Licence.
+    *******
+    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
@@ -340,29 +342,50 @@ describe('Pathogen - Integration Tests', () => {
     });
 
     describe('Validation of empty mandatory field in notifierFacility when using copyAddressCheckBox', () => {
-      it('should throw error when street in notifier facility is empty', async () => {
-        const streetInput = await getInput(loader, `#${FIELD_NOTIFIER_FACILITY_ADDRESS_STREET}`);
-        await streetInput.setValue(VALUE_EMPTY);
-        await streetInput.blur();
-        expect(await streetInput.getValue()).toBe(VALUE_EMPTY);
+      const prepareMandatoryFieldEmpty = async (selector: string) => {
+        const input = await getInput(loader, selector);
+        await input.setValue(VALUE_EMPTY);
+        await input.blur();
+        expect(await input.getValue()).toBe(VALUE_EMPTY);
+      };
 
+      const assertCheckboxUnchecked = async (checkboxSelector: string) => {
+        const checkbox = await getCheckbox(loader, checkboxSelector);
+        expect(await checkbox.isChecked()).toBe(false);
+      };
+
+      it('should throw error when street in notifier facility is empty', async () => {
+        // preparation
+        await prepareMandatoryFieldEmpty(`#${FIELD_NOTIFIER_FACILITY_ADDRESS_STREET}`);
         await clickNextButton(fixture);
 
-        const checkbox = await getCheckbox(loader, `#${FIELD_COPY_ADDRESS}`);
-        await checkbox.check();
-        fixture.detectChanges();
-        await fixture.whenStable();
-        expect(await checkbox.isChecked()).toBe(false);
-
-        const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-        const dialog = await getDialog(documentRootLoader, '.mat-mdc-dialog-container');
-        const dialogText = await dialog.getText();
-        expect(dialogText).toContain('error Fehler bei der Auswahl Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.');
-
-        const noButton = await getButton(documentRootLoader, '#btn-conf-dialog-no');
+        //assertion
+        await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader, false);
+        const dialog = await getDialog(TestbedHarnessEnvironment.documentRootLoader(fixture), '.mat-mdc-dialog-container');
+        expect(await dialog.getText()).toContain('error Fehler bei der Auswahl Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.');
+        const noButton = await getButton(TestbedHarnessEnvironment.documentRootLoader(fixture), '#btn-conf-dialog-no');
         await noButton.click();
 
-        expect(await checkbox.isChecked()).toBe(false);
+        await assertCheckboxUnchecked(`#${FIELD_COPY_ADDRESS}`);
+      });
+
+      it('should not overwrite existing input fields when street in notifier facility is empty', async () => {
+        // preparation
+        await prepareMandatoryFieldEmpty(`#${FIELD_NOTIFIER_FACILITY_ADDRESS_STREET}`);
+        await clickNextButton(fixture);
+
+        const submitter = TEST_FACILITY('submitter');
+        const submittingFacilityAddressInput = await getInput(loader, submitter.institutionName.selector);
+        await submittingFacilityAddressInput.setValue(submitter.institutionName.value);
+        await submittingFacilityAddressInput.blur();
+
+        await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader, false);
+
+        //assertion
+        await assertCheckboxUnchecked(`#${FIELD_COPY_ADDRESS}`);
+        expect(await submittingFacilityAddressInput.getValue()).toBe(submitter.institutionName.value);
+        const submitterStreetInput = await getInput(loader, submitter.street.selector);
+        expect(await submitterStreetInput.getValue()).toBe(VALUE_EMPTY);
       });
     });
   });
