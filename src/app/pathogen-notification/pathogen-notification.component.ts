@@ -237,9 +237,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           currentAddressType === AddressType.SubmittingFacility &&
           (!address.street || !address.zip || !address.city || !address.houseNumber || !institutionName)
         ) {
-          this.errorDialogService.openErrorDialogAndClose(
-            'Fehler bei der Auswahl der Adresse',
-            'Bitte geben Sie die Daten für die Einsendende Person zunächst vollständig an.'
+          this.errorDialogService.showBasicClosableErrorDialog(
+            'Bitte geben Sie die Daten für die Einsendende Person zunächst vollständig an.',
+            'Fehler bei der Auswahl der Adresse'
           );
 
           setTimeout(() => {

@@ -38,6 +38,7 @@ import {
 import { environment } from '../../environments/environment';
 import {
   FIELD_COPY_ADDRESS,
+  FIELD_DEPARTMENTNAME,
   FIELD_EMAIL_2,
   FIELD_EMAIL_CY,
   FIELD_FIRST_NAME,
@@ -56,6 +57,7 @@ import {
   NOTIFIER_VALUE_INSTITUTION_NAME,
   NOTIFIER_VALUE_STREET,
   NOTIFIER_VALUE_ZIP,
+  SUBMITTING_VALUE_DEPARTMENT_NAME,
   VALUE_EMPTY,
 } from '../shared/test-constants';
 import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
@@ -113,6 +115,7 @@ describe('Pathogen - Integration Tests', () => {
         level: 1,
       },
       pathToGateway: '../gateway/notification',
+      pathToFuts: '../fhir-ui-data-model-translation',
       production: false,
     };
 
@@ -261,6 +264,15 @@ describe('Pathogen - Integration Tests', () => {
             expectedValue: FIELD_NOTIFIER_FACILITY_LASTNAME,
           },
         ]);
+      });
+
+      it('should not disable department name', async () => {
+        await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
+        const departmentNameInput = await getInput(loader, `#${FIELD_DEPARTMENTNAME}`);
+        expect(await departmentNameInput.isDisabled()).toBeFalse();
+        await departmentNameInput.setValue(SUBMITTING_VALUE_DEPARTMENT_NAME);
+        expect(await departmentNameInput.isDisabled()).toBeFalse();
+        expect(await departmentNameInput.getValue()).toBe(SUBMITTING_VALUE_DEPARTMENT_NAME);
       });
 
       it('should reset all values when checkbox is unchecked', async () => {

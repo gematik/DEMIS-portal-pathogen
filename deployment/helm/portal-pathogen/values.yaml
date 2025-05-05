@@ -15,15 +15,15 @@ required:
 # E.g.
 # customLabels:
 #   my-label: my-label-value
-customLabels: {}
+customLabels: { }
 
 # Extra labels for deployments
-deploymentLabels: {}
+deploymentLabels: { }
 
 # Extra Environment Variables to be defined
 # customEnvVars
 #   key: value
-customEnvVars: {}
+customEnvVars: { }
 # PORTAL_CSP_HOSTNAME: "https://auth.ingress.local/ https://portal.ingress.local/"
 
 
@@ -31,7 +31,7 @@ serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Annotations to add to the service account
-  annotations: {}
+  annotations: { }
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
@@ -39,17 +39,17 @@ serviceAccount:
 # The Pull Policy for the Image
 imagePullPolicy: IfNotPresent
 # Define Image Pull Secrets if using private registry
-imagePullSecrets: []
+imagePullSecrets: [ ]
 nameOverride: "portal-pathogen"
 fullnameOverride: "portal-pathogen"
 
-podLabels: {}
+podLabels: { }
 
 # Annotations for Workload
-annotations: {}
+annotations: { }
 
 # Annotations for Pods
-podAnnotations: {}
+podAnnotations: { }
 
 # Pod Security Context - applies to all containers in a Pod
 podSecurityContext:
@@ -109,9 +109,9 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
-nodeSelector: {}
+nodeSelector: { }
 
-tolerations: []
+tolerations: [ ]
 
 istio:
   enable: false
@@ -119,9 +119,10 @@ istio:
 config:
   production: false
   pathToGateway: ../gateway/notification
+  pathToFuts: ../fhir-ui-data-model-translation
   gatewayPaths:
     pathogen: /api/ng/notification/pathogen
-  featureFlags: {}
+  featureFlags: { }
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true

@@ -174,6 +174,9 @@ export const FIELD_NOTIFIER_FACILITY_LASTNAME = 'Melderson';
 export const FIELD_NOTIFIER_FACILITY_PHONENUMBER = '0182736912388889';
 export const FIELD_NOTIFIER_FACILITY_EMAILADDRESS = 'testerino@test.de';
 
+//submitting-facility values
+export const SUBMITTING_VALUE_DEPARTMENT_NAME = 'TEST Organisation Department 8A';
+
 //clipboard values
 export const CLIPBOARD_VALUE_COUNTRY_DE = 'DE';
 export const CLIPBOARD_VALUE_COUNTRY_KP = 'KP';

@@ -14,8 +14,8 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { MatAutocompleteTrigger, MatAutocomplete } from '@angular/material/autocomplete';
+import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { MatAutocomplete, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatInput } from '@angular/material/input';
 import { FieldTypeConfig, FormlyModule } from '@ngx-formly/core';
 import { FieldType } from '@ngx-formly/material';
@@ -57,6 +57,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   `,
   standalone: true,
   imports: [MatInput, MatAutocompleteTrigger, ReactiveFormsModule, FormlyModule, MatIconButton, MatSuffix, MatIcon, MatAutocomplete, MatOption, AsyncPipe],
+  encapsulation: ViewEncapsulation.None,
 })
 export class AutocompleteTypeComponent extends FieldType<FieldTypeConfig> implements OnInit, AfterViewInit {
   @ViewChild(MatInput) formFieldControl!: MatInput;

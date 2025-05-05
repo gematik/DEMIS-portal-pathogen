@@ -27,6 +27,8 @@ import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenFor
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
 import { addContact, ClipboardErrorTexts, ClipboardRules, FACILITY_RULES, initialModelForClipboard, PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { MessageDialogService } from '@gematik/demis-portal-core-library';
 
 @Injectable({
   providedIn: 'root',
@@ -41,7 +43,8 @@ export class ClipboardDataService {
   constructor(
     public dialog: MatDialog,
     protected logger: NGXLogger,
-    private notificationStorageService: PathogenNotificationStorageService
+    private notificationStorageService: PathogenNotificationStorageService,
+    private messageDialogService: MessageDialogService
   ) {}
 
   SUBMITTING_FACILITY_RULES: ClipboardRules = {
@@ -233,14 +236,38 @@ export class ClipboardDataService {
       return await navigator.clipboard.readText();
     } catch (err) {
       this.logger.error('Failed to read clipboard data: ', err);
-      this.openErrorDialog();
+      if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG) {
+        this.messageDialogService.showErrorDialogInsertDataFromClipboard();
+      } else {
+        this.dialog.open(
+          ErrorMessageDialogComponent,
+          ErrorMessageDialogComponent.getErrorDialogClose({
+            title: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_TITLE,
+            message: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE,
+            messageDetails: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE_DETAILS,
+            type: MessageType.WARNING,
+          })
+        );
+      }
       return '';
     }
   }
 
   validateClipboardData(clipboardData: string): void {
     if (!matchesRegExp(/^URL .*/, clipboardData)) {
-      this.openErrorDialog();
+      if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG) {
+        this.messageDialogService.showErrorDialogInsertDataFromClipboard();
+      } else {
+        this.dialog.open(
+          ErrorMessageDialogComponent,
+          ErrorMessageDialogComponent.getErrorDialogClose({
+            title: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_TITLE,
+            message: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE,
+            messageDetails: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE_DETAILS,
+            type: MessageType.WARNING,
+          })
+        );
+      }
       throw Error('invalid clipboard: it does not start with "URL "');
     }
   }
@@ -332,18 +359,6 @@ export class ClipboardDataService {
       delete model.pathogenForm.notifiedPerson.currentAddress?.additionalInfo;
     }
     return model;
-  }
-
-  private openErrorDialog(): void {
-    this.dialog.open(
-      ErrorMessageDialogComponent,
-      ErrorMessageDialogComponent.getErrorDialogClose({
-        title: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_TITLE,
-        message: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE,
-        messageDetails: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE_DETAILS,
-        type: MessageType.WARNING,
-      })
-    );
   }
 
   private async fillModelFromClipBoard(model: any, rules: ClipboardRules, keyValuePairs: string[][]): Promise<void> {

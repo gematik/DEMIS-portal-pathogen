@@ -34,6 +34,9 @@ import {
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
 
+/**
+ * Can be removed as soon as feature flag "FEATURE_FLAG_PORTAL_ERROR_DIALOG" is active on all stages
+ */
 @Component({
   selector: 'app-message-dialog',
   templateUrl: './error-message-dialog.component.html',

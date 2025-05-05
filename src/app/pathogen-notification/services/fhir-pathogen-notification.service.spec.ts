@@ -46,6 +46,7 @@ describe('FhirPathogenNotificationService', () => {
         level: 1,
       },
       pathToGateway: '../gateway/notification',
+      pathToFuts: '../fhir-ui-data-model-translation',
       production: false,
     };
   });
@@ -75,7 +76,7 @@ describe('FhirPathogenNotificationService', () => {
   it('should handle error when fetching diagnostics based on pathogen selection', () => {
     const pathogenCode = '12345';
     spyOn(logger, 'error');
-    spyOn(errorDialogService, 'openErrorDialogAndClose');
+    spyOn(errorDialogService, 'showBasicClosableErrorDialog');
 
     service.fetchDiagnosticsBasedOnPathogenSelection(pathogenCode).subscribe({
       error: err => {
@@ -83,11 +84,11 @@ describe('FhirPathogenNotificationService', () => {
       },
     });
 
-    const req = httpMock.expectOne(`/fhir-ui-data-model-translation/laboratory/federalState/pathogenData/${pathogenCode}`);
+    const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/federalState/pathogenData/${pathogenCode}`);
     req.flush('Error fetching diagnostic', { status: 500, statusText: 'Server Error' });
 
     expect(logger.error).toHaveBeenCalled();
-    expect(errorDialogService.openErrorDialogAndClose).toHaveBeenCalled();
+    expect(errorDialogService.showBasicClosableErrorDialog).toHaveBeenCalled();
   });
 
   it('should handle error when fetching pathogen code displays for federal state', () => {
@@ -101,7 +102,7 @@ describe('FhirPathogenNotificationService', () => {
       },
     });
 
-    const req = httpMock.expectOne(`/fhir-ui-data-model-translation/laboratory/federalState/${federalStateCode}`);
+    const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/federalState/${federalStateCode}`);
     req.flush('Error fetching pathogen code displays', { status: 500, statusText: 'Server Error' });
 
     expect(logger.error).toHaveBeenCalled();
@@ -118,7 +119,7 @@ describe('FhirPathogenNotificationService', () => {
       },
     });
 
-    const req = httpMock.expectOne('/fhir-ui-data-model-translation/laboratory/federalStates');
+    const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/federalStates`);
     req.flush('Error fetching federal state code displays', { status: 500, statusText: 'Server Error' });
 
     expect(logger.error).toHaveBeenCalled();
@@ -135,7 +136,7 @@ describe('FhirPathogenNotificationService', () => {
       },
     });
 
-    const req = httpMock.expectOne('/fhir-ui-data-model-translation/utils/countryCodes');
+    const req = httpMock.expectOne(`${environment.pathToFuts}/utils/countryCodes`);
     req.flush('Error fetching country code displays', { status: 500, statusText: 'Server Error' });
 
     expect(logger.error).toHaveBeenCalled();
@@ -158,6 +159,9 @@ describe('FhirPathogenNotificationService', () => {
           federalStateCodeDisplay: 'removeMe',
           pathogenDisplay: 'removeMeToo',
         },
+        submittingFacility: {
+          copyAddressCheckBox: true,
+        },
       },
     } as any;
 
@@ -174,6 +178,7 @@ describe('FhirPathogenNotificationService', () => {
           },
           reportStatus: NotificationLaboratoryCategory.ReportStatusEnum.Final,
         },
+        submittingFacility: {},
       },
     } as any;
 

@@ -5,78 +5,57 @@
   [maxNumberOfSteps]="field.fieldGroup.length"
   [model]="field.model"
   [steps]="field.fieldGroup"
-  >
+>
   <mat-tab-group
     [selectedIndex]="selectedIndex"
     animationDuration="0000"
     class="mat-tab-container"
-    >
-    @for (
-      tab of field.fieldGroup; track
+  >
+    @for (tab of field.fieldGroup; track
       tab; let last = $last; let first = $first) {
       <mat-tab
         [label]="tab.props.label"
-        >
+      >
         <div class="container">
           <formly-field [field]="tab"></formly-field>
         </div>
         <mat-toolbar>
           <mat-toolbar-row>
             <div>
-              <div style="display: flex">
-                <a
-                  fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}"
-                  routerLink="./"
-                  >
-                  @if (!first) {
-                    <button
-                      (click)="previousStep()"
-                      class="btn btn--color btn--shape"
-                      id="btn-nav-action-back"
-                      mat-button
-                      type="button"
-                      >
-                      <mat-icon
-                        class="margin-right"
-                        fontIcon="arrow_back"
-                      ></mat-icon>
-                      Zurück
-                    </button>
-                  }
-                </a>
-                <a
-                  fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}"
-                  routerLink="./"
-                  >
-                  @if (!last && checkPathogenSelection(model, field.fieldGroup[selectedIndex].props.label)) {
-                    <button
-                      (click)="nextStep(field.fieldGroup.length)"
-                      class="btn btn--color btn--shape btn--forward"
-                      id="btn-nav-action-next"
-                      mat-button
-                      type="button"
-                      >
-                      Weiter
-                      <mat-icon
-                        class="margin-left"
-                        fontIcon="arrow_forward"
-                      ></mat-icon>
-                    </button>
-                  }
-                </a>
-              </div>
+              <a fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}" routerLink="./">@if (!first) {
+                <button (click)="previousStep()" class="btn navigate--color style" id="btn-nav-action-back"
+                        mat-button type="button">
+                  <mat-icon class="btn__icon margin--right" fontIcon="arrow_back_ios"></mat-icon>
+                  Zurück
+                </button>
+              }
+              </a>
             </div>
             <div>
-              <button
-                [disabled]="!form.valid"
-                class="btn btn--color btn--shape"
-                id="btn-send-notification"
-                mat-button
-                type="submit"
-                >
-                Senden
-                <mat-icon class="margin-left" fontIcon="send"></mat-icon>
-              </button>
+              <div class="div display--flex">
+                <div>
+                  <a
+                    fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}"
+                    routerLink="./"
+                  >
+                    @if (!last && checkPathogenSelection(model, field.fieldGroup[selectedIndex].props.label)) {
+                      <button (click)="nextStep(field.fieldGroup.length)"
+                              class="btn navigate--color style forward" id="btn-nav-action-next"
+                              mat-button type="button">
+                        Weiter
+                        <mat-icon class="btn__icon margin-left" fontIcon="arrow_forward_ios" iconPositionEnd></mat-icon>
+                      </button>
+                    }
+                  </a>
+                </div>
+                <div class="div margin--left">
+                  <button [disabled]="!form.valid" class="btn style dark--color" id="btn-send-notification"
+                          mat-button type="submit">
+                    Abschicken
+                    <mat-icon class="btn__icon margin--left rotate" fontIcon="send" iconPositionEnd></mat-icon>
+                  </button>
+                </div>
+              </div>
             </div>
           </mat-toolbar-row>
         </mat-toolbar>

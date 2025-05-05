@@ -15,7 +15,7 @@
  */
 
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { MatIcon } from '@angular/material/icon';
@@ -28,6 +28,7 @@ import { MatStep, MatStepper, MatStepperIcon } from '@angular/material/stepper';
   styleUrls: ['./side-navigation-stepper.component.scss'],
   standalone: true,
   imports: [MatStepper, NgFor, MatStep, MatStepperIcon, MatIcon, NgIf],
+  encapsulation: ViewEncapsulation.None,
 })
 export class SideNavigationStepperComponent {
   @Input() steps: FormlyFieldConfig[] = [];

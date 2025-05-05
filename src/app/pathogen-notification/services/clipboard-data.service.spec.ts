@@ -22,9 +22,20 @@ import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 import { MockProvider } from 'ng-mocks';
 import { ActivatedRoute } from '@angular/router';
 import { overrides } from '../../../test/shared/test-setup-utils';
+import { MessageDialogService } from '@gematik/demis-portal-core-library';
+import { environment } from '../../../environments/environment';
 
 describe('ClipboardDataService', () => {
   let service: ClipboardDataService;
+  let showErrorDialogInsertDataFromClipboardSpy: jasmine.Spy;
+  beforeEach(async () => {
+    environment.pathogenConfig = {
+      ...environment.pathogenConfig,
+      featureFlags: {
+        FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
+      },
+    };
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -37,6 +48,7 @@ describe('ClipboardDataService', () => {
       providers: [ClipboardDataService, MockProvider(ActivatedRoute, overrides.activatedRoute)],
     });
     service = TestBed.inject(ClipboardDataService);
+    showErrorDialogInsertDataFromClipboardSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialogInsertDataFromClipboard');
   });
 
   describe('PERSON_RULES', () => {
@@ -84,13 +96,17 @@ describe('ClipboardDataService', () => {
       expect(problems).toEqual(["Error processing rule for key N.salutation: Error: Unknown value 'M'"]);
     });
 
-    it('should throw error and opens dialog for invalid clipboard data', () => {
-      const invalidClipboardData = 'Invalid data';
-      expect(() => service.validateClipboardData(invalidClipboardData)).toThrowError('invalid clipboard: it does not start with "URL "');
-    });
     it('should log an error and throw when value set is not found', () => {
       service.setPathogenData({} as PathogenData);
       expect(() => service.augmentCode('someCode', 'materials')).toThrowError('PT_4711_no-valueset: materials');
+    });
+  });
+
+  describe('should display error dialog', () => {
+    it('should throw error and opens dialog for invalid clipboard data', () => {
+      const invalidClipboardData = 'Invalid data';
+      expect(() => service.validateClipboardData(invalidClipboardData)).toThrowError('invalid clipboard: it does not start with "URL "');
+      expect(showErrorDialogInsertDataFromClipboardSpy).toHaveBeenCalled();
     });
   });
 });

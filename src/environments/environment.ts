@@ -38,6 +38,7 @@ interface Configuration {
   gatewayPaths: GatewayPaths;
   featureFlags: FeatureFlags;
   ngxLoggerConfig: NgxLoggerConfig;
+  pathToFuts: string;
 }
 
 export class Environment {
@@ -79,6 +80,10 @@ export class Environment {
 
   public get pathToPathogen(): string {
     return this.gatewayPaths?.pathogen;
+  }
+
+  public get pathToFuts(): string {
+    return this.config?.pathToFuts;
   }
 
   public get featureFlags(): FeatureFlags {

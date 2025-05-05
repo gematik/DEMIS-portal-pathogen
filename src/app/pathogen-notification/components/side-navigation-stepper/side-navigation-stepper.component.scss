@@ -1,49 +1,88 @@
-::ng-deep .mat-step-icon {
-  background: transparent !important;
-  border: 1px solid #0f62fe; //for scucces state
-  font-size: 18px;
-  height: 16px !important;
-  width: 16px !important;
-}
-
-// Hides the numbers of the stepper
-::ng-deep .mat-step-icon-state-number {
-  border: 1px dashed #0f62fe; //for numbers idle state
-}
-
-// Hides the numbers of the stepper
-::ng-deep .mat-step-icon-state-number .mat-step-icon-content span {
-  display: none;
-}
-
-::ng-deep .mat-step-icon-content {
-  color: #0f62fe !important;
-}
-
-::ng-deep .mat-stepper-vertical {
+.mat-stepper-vertical {
   margin-bottom: 20px;
 }
 
-::ng-deep .mat-step-icon-selected {
-  color: #0f62fe !important;
+[id^="step-invalid"] {
+  font-size: 24px !important;
+  height: 24px !important;
+  width: 24px !important;
 }
 
-::ng-deep .mat-step-icon-state-done {
-  color: #0f62fe !important;
+.mat-step-icon {
+  height: 20px !important;
+  width: 20px !important;
+
+  &.mat-step-icon-state-done {
+    color: var(--color-primary) !important;
+  }
+
+  &.mat-step-icon-state-number {
+    // NEWDESIGN
+    border: 1px dashed var(--color-primary) !important;
+    background: transparent !important;
+    color: var(--color-primary) !important;
+
+    // NEWDESIGN this hides the numbers
+    //&.mat-step-icon-state-number .mat-step-icon-content span {
+    //  display: none;
+    //}
+
+    &.mat-step-icon-selected {
+      border: 1px solid var(--color-primary) !important;
+      font-weight: 700 !important;
+
+      .mat-step-icon-content {
+        font-weight: 700 !important;
+      }
+    }
+
+    .mat-step-icon-content {
+      font-weight: 700;
+    }
+  }
+
+  &.mat-step-icon-state-error {
+    border: 1px solid var(--color-primary) !important;
+
+    .mat-step-icon-content {
+      color: var(--color-primary) !important;
+    }
+  }
 }
 
-::ng-deep .mat-step-icon-state-edit {
-  color: #0f62fe !important;
+.mat-step-label {
+  font-size: 14px !important;
+  font-weight: 400;
+  color: var(--color-primary) !important;
+
+  &.mat-step-label-active.mat-step-label-selected {
+    font-weight: 700;
+  }
 }
 
-::ng-deep .mat-step-icon-state-number {
-  color: #0f62fe !important;
+.mat-step-header[aria-labelledby="disabled_step"] {
+  pointer-events: none !important;
+
+  .mat-step-icon {
+    border: 1px solid var(--color-neutral-light) !important;
+  }
+
+  .mat-step-label .mat-step-text-label,
+  .mat-step-icon .mat-step-icon-content {
+    color: var(--color-neutral-light) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
-::ng-deep .mat-step-label.mat-step-label-error {
-  color: #000000 !important;
+// NEWDESIGN this changes the spacing between the steps
+.mat-step .mat-vertical-stepper-header {
+  padding: 5px;
+  margin-bottom: 15px;
 }
 
-::ng-deep .mat-step-icon.mat-step-icon-state-error {
-  border: 1px dashed #0f62fe !important;
+// NEWDESIGN this removes the stepper bar
+.mat-step .mat-vertical-content-container {
+  display: none;
 }

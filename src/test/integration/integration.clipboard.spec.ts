@@ -88,6 +88,7 @@ import { lastValueFrom, of } from 'rxjs';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { specimenDTO, TEST_FACILITY, TEST_NOTIFICATION_CATEGORY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
 import { buildMock, setupIntegrationTests } from './integration.base.spec';
+import { MessageDialogService } from '@gematik/demis-portal-core-library';
 
 describe('Pathogen - Clipboard Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -138,6 +139,27 @@ describe('Pathogen - Clipboard Integration Tests', () => {
     component = result.component;
     loader = result.loader;
     fixture.detectChanges();
+  });
+
+  describe('should display specific error dialog in case of error', () => {
+    it('error while readText from clipboard', async () => {
+      const notifierTestFacility = TEST_FACILITY('notifier');
+      const clipboardString = createClipboardStringFromObject(notifierTestFacility, 'URL ');
+      const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
+      const showErrorDialogInsertDataFromClipboardSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialogInsertDataFromClipboard');
+      spyOn(window.navigator.clipboard, 'readText').and.returnValue(Promise.reject('Clipboard read error'));
+      await (await getButton(loader, '#btn-fill-form')).click();
+      expect(showErrorDialogInsertDataFromClipboardSpy).toHaveBeenCalled();
+    });
+
+    it('invalid input data', async () => {
+      const clipboardString = 'wrongWrongWrongWrong';
+      const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
+      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      const showErrorDialogInsertDataFromClipboardSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialogInsertDataFromClipboard');
+      await (await getButton(loader, '#btn-fill-form')).click();
+      expect(showErrorDialogInsertDataFromClipboardSpy).toHaveBeenCalled();
+    });
   });
 
   describe('Notifier Facility', () => {
@@ -416,11 +438,12 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
         const dialog = await getDialog(documentRootLoader, '.mat-mdc-dialog-container');
         expect(dialog).toBeTruthy();
-        const dialogText = await dialog.getText();
-        expect(dialogText).toContain('error Fehler bei der Auswahl der Adresse Bitte geben Sie die Daten für die Einsendende Person zunächst vollständig an.');
 
-        await (await getButton(documentRootLoader, '#btn-conf-dialog-no')).click();
+        // Titeltext prüfen
+        const title = await dialog.getTitleText();
+        expect(title).toMatch(/Fehler bei der Auswahl der Adresse/);
 
+        await (await getButton(documentRootLoader, '#close-btn')).click();
         expect(await radioGroup.getCheckedValue()).toBe(null);
       });
 

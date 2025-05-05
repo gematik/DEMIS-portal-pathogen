@@ -7,8 +7,8 @@ input {
   width: 100%;
 }
 
-::ng-deep .mat-form-field-appearance-outline.mat-form-field-disabled,
-::ng-deep .mat-form-field-outline {
+.mat-form-field-appearance-outline.mat-form-field-disabled,
+.mat-form-field-outline {
   opacity: 0;
 }
 

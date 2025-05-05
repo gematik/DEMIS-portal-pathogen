@@ -1,7 +1,7 @@
 <div class="add-favorites-container">
   <div class="favorites-actions">
     @if (!(isPathogenInFavorites()) && !isMaxNumberOfFavorites()) {
-      <mat-icon color="primary">favorite_border</mat-icon>
+      <mat-icon class="primary-color-icon">favorite_border</mat-icon>
       <a
         (click)="addPathogenToFavorites()"
         class="add-favorites-add-button"
