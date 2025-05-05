@@ -1,5 +1,5 @@
 <mat-drawer-container>
-  <mat-drawer class="container-drawer" mode="side" opened>
+  <mat-drawer class="tabs-navigation" mode="side" opened>
     <div>
       <app-side-navigation-stepper
         [currentStep]="currentStep"
@@ -12,13 +12,13 @@
   </mat-drawer>
   <mat-drawer-content>
     <mat-toolbar>{{ headline }}</mat-toolbar>
-    <div class="main-content-stepper-headline-container">
+    <div class="section-header">
       <h1>{{ currentStepHeadline }}</h1>
-      <div class="main-content-small-stepper">
+      <div class="oval-label">
         Schritt {{ currentStep + 1 }} von {{ maxNumberOfSteps }}
       </div>
     </div>
-    <div class="main-content-container">
+    <div class="section-body">
       <ng-content></ng-content>
     </div>
   </mat-drawer-content>

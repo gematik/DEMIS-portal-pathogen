@@ -1,6 +1,7 @@
 {
   "featureFlags": {
-    "FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA": false
+    "FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA": false,
+    "FEATURE_FLAG_PORTAL_ERROR_DIALOG": false
   },
   "gatewayPaths": {
     "pathogen": "/api/ng/notification/pathogen"
@@ -10,5 +11,6 @@
     "level": 1
   },
   "pathToGateway": "../gateway/notification",
+  "pathToFuts": "/fhir-ui-data-model-translation",
   "production": false
 }

@@ -1,5 +1,3 @@
-@import "../../../../styles/demis-color-and-palettes";
-
 .add-favorites-container {
   margin-bottom: 20px;
 }
@@ -13,7 +11,7 @@
 .add-favorites-add-button,
 .add-favorites-remove-button {
   cursor: pointer;
-  color: $color-demis-blue;
+  color: var(--color-primary);
   margin-top: 15px;
 }
 

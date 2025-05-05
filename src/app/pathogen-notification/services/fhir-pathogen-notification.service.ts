@@ -27,7 +27,7 @@ import { FhirNotificationService } from '../legacy/services/fhir-notification.se
 import { catchError } from 'rxjs/operators';
 import { ErrorDialogService } from './error-dialog.service';
 import { MatDialog } from '@angular/material/dialog';
-import { cloneObject } from '@gematik/demis-portal-core-library';
+import { cloneObject, MessageDialogService } from '@gematik/demis-portal-core-library';
 import NotificationTypeEnum = Notification.NotificationTypeEnum;
 
 @Injectable({
@@ -38,6 +38,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     protected http: HttpClient,
     protected override logger: NGXLogger,
     private errorDialogService: ErrorDialogService,
+    private messageDialogService: MessageDialogService,
     private dialog: MatDialog
   ) {
     super(http, logger);
@@ -59,7 +60,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   }
 
   fetchDiagnosticsBasedOnPathogenSelection(PathogenCode: string): Observable<PathogenData> {
-    const path = `/fhir-ui-data-model-translation/laboratory/federalState/pathogenData/${PathogenCode}`;
+    const path = `${environment.pathToFuts}/laboratory/federalState/pathogenData/${PathogenCode}`;
     return this.httpClient
       .get<PathogenData>(path, {
         headers: environment.headers,
@@ -67,10 +68,10 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       .pipe(
         catchError(error => {
           this.logger.error('Error fetching diagnostic', error);
-          this.errorDialogService.openErrorDialogAndClose(
-            'Fehler bei der Abfrage des ausgewählten Erregers',
+          this.errorDialogService.showBasicClosableErrorDialog(
             'Aktuell kann dieser Meldetatbestand nicht über das Portal gemeldet werden.' +
-              ' Bitte senden Sie die Meldung z.B. per Fax an das zuständige Gesundheitsamt.'
+              ' Bitte senden Sie die Meldung z.B. per Fax an das zuständige Gesundheitsamt.',
+            'Fehler bei der Abfrage des ausgewählten Erregers'
           );
           throw error;
         })
@@ -78,7 +79,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   }
 
   fetchPathogenCodeDisplaysForFederalState(federalStateCode: string): Observable<CodeDisplay[]> {
-    const path = `/fhir-ui-data-model-translation/laboratory/federalState/${federalStateCode}`;
+    const path = `${environment.pathToFuts}/laboratory/federalState/${federalStateCode}`;
     return this.httpClient
       .get<CodeDisplay[]>(path, {
         headers: environment.headers,
@@ -93,7 +94,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   }
 
   fetchFederalStateCodeDisplays = (): Observable<Array<CodeDisplay>> => {
-    const path = '/fhir-ui-data-model-translation/laboratory/federalStates';
+    const path = `${environment.pathToFuts}/laboratory/federalStates`;
     return this.httpClient
       .get<Array<CodeDisplay>>(path, {
         headers: environment.headers,
@@ -108,7 +109,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   };
 
   fetchCountryCodeDisplays = (): Observable<Array<CodeDisplay>> => {
-    const path = '/fhir-ui-data-model-translation/utils/countryCodes';
+    const path = `${environment.pathToFuts}/utils/countryCodes`;
     return this.httpClient
       .get<Array<CodeDisplay>>(path, {
         headers: environment.headers,
@@ -150,6 +151,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   private removeUnusedFormlyFields(testResults: PathogenTest) {
     delete testResults.notificationCategory['federalStateCodeDisplay'];
     delete testResults.notificationCategory['pathogenDisplay'];
+    delete testResults.submittingFacility['copyAddressCheckBox'];
     return testResults;
   }
 }

@@ -1,4 +1,4 @@
-.container-drawer {
+.tabs-navigation {
   width: 25vw;
   padding: 20px;
   display: flex;
@@ -6,34 +6,11 @@
   justify-content: stretch;
 }
 
-::ng-deep .mat-step .mat-vertical-stepper-header {
-  padding: 0;
-  margin-bottom: 20px;
-}
-
-::ng-deep .mat-step .mat-vertical-content-container {
-  display: none;
-}
-
-::ng-deep .mat-step .mat-step-label {
-  font-size: 16px;
-  font-weight: 400;
-}
-
-::ng-deep .mat-step .mat-step-label.mat-step-label-selected {
-  font-weight: 700;
-  font-size: 18px;
-}
-
-::ng-deep .mat-step .mat-step-header:hover {
-  background-color: transparent !important;
-}
-
-.main-content-container {
+.section-body {
   padding: 0 20px;
 }
 
-.main-content-stepper-headline-container {
+.section-header {
   display: flex;
   flex-direction: row;
   align-content: center;
@@ -45,7 +22,7 @@
   margin-right: auto;
 }
 
-.main-content-small-stepper {
+.oval-label {
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -58,7 +35,3 @@
   color: #161616;
 }
 
-::ng-deep .mat-step-header[aria-labelledby="disabled_step"] {
-  pointer-events: none !important;
-  opacity: 0.5;
-}

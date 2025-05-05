@@ -114,4 +114,7 @@ export function copyAddress(sourceFacility: any, target: FormlyFieldConfig) {
     .props.setFieldCount(sourceFacility.contacts.emailAddresses.length);
   target.formControl.patchValue(sourceFacility);
   target.formControl.disable();
+  const departmentName = target.fieldGroup.find(field => field.key === 'facilityInfo').fieldGroup[1].fieldGroup[0];
+  departmentName.formControl.enable();
+  departmentName.focus = true;
 }

@@ -30,6 +30,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA: true,
+    FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
   },
   gatewayPaths: {
     pathogen: '/api/ng/notification/pathogen',
@@ -40,6 +41,7 @@ export const mainConfig = {
     level: 1,
   },
   pathToGateway: '../gateway/notification',
+  pathToFuts: '../fhir-ui-data-model-translation',
   production: false,
 };
 

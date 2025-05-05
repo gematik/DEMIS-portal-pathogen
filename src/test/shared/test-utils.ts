@@ -179,7 +179,7 @@ export async function switchToPage5(fixture: ComponentFixture<any>) {
 }
 
 export function getStepHeader(fixture: ComponentFixture<any>): string {
-  return fixture.nativeElement.querySelector('.main-content-small-stepper').textContent;
+  return fixture.nativeElement.querySelector('.oval-label').textContent;
 }
 
 export function createClipboardStringFromObject(

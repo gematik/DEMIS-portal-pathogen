@@ -53,7 +53,10 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
           if (field.model.copyAddressCheckBox) {
             if (notifierFacilitySourceIsInvalid(notifierFacilitySource, field)) {
               field.formControl.setValue(false);
-              dialogService.openErrorDialogAndClose('Fehler bei der Auswahl', 'Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.');
+              dialogService.showBasicClosableErrorDialog(
+                'Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.',
+                'Fehler bei der Auswahl'
+              );
             } else {
               copyAddress(notifierFacilitySource, field.parent);
               field.parent.fieldGroup.find(field => field.key === 'facilityInfo').fieldGroup[1].fieldGroup[0].formControl.enable();
