@@ -24,7 +24,6 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
-import { MatStepHeader } from '@angular/material/stepper';
 
 export async function getInput(loader: HarnessLoader, selector: string) {
   return loader.getHarness(MatInputHarness.with({ selector }));
@@ -32,6 +31,10 @@ export async function getInput(loader: HarnessLoader, selector: string) {
 
 export async function getButton(loader: HarnessLoader, selector: string) {
   return loader.getHarness(MatButtonHarness.with({ selector }));
+}
+
+export async function getAllButtonsWithSameSelector(loader: HarnessLoader, selector: string) {
+  return loader.getAllHarnesses(MatButtonHarness.with({ selector }));
 }
 
 export async function getSelect(loader: HarnessLoader, selector: string) {
@@ -80,4 +83,8 @@ export async function getIcon(loader: HarnessLoader, selector: string) {
 export async function selectAutocompleteOption(harness: MatAutocompleteHarness, optionText: string) {
   await harness.enterText(optionText);
   await harness.blur();
+}
+
+export async function getMultipleInputFieldsWithSameSelector(loader: HarnessLoader, selector: string) {
+  return loader.getAllHarnesses(MatInputHarness.with({ selector }));
 }

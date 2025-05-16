@@ -63,7 +63,7 @@ import { StringFormatPipe } from './legacy/pipes/string-format.pipe';
 import { PathogenNotificationComponent } from './pathogen-notification.component';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
 import { ClipboardDataService } from './services/clipboard-data.service';
-import { DemisPortalSharedModule } from '@gematik/demis-portal-core-library';
+import { DemisPortalSharedModule, FormlyRepeaterComponent } from '@gematik/demis-portal-core-library';
 
 @NgModule({
   imports: [
@@ -71,6 +71,7 @@ import { DemisPortalSharedModule } from '@gematik/demis-portal-core-library';
     PathogenFormValidationModule,
     FormlyModule.forRoot({
       types: [
+        { name: 'repeater', component: FormlyRepeaterComponent },
         { name: 'repeat', component: RepeatComponent },
         {
           name: 'autocomplete',

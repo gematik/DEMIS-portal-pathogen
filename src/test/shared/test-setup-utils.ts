@@ -31,6 +31,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatStepperModule } from '@angular/material/stepper';
 import { SideNavigationStepperComponent } from '../../app/pathogen-notification/components/side-navigation-stepper/side-navigation-stepper.component';
 import { SideNavigationWrapperComponent } from '../../app/pathogen-notification/components/side-navigation-wrapper/side-navigation-wrapper.component';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 export const PATHOGEN_NOTIFICATION_IMPORTS = [
   RouterModule.forRoot([
@@ -54,6 +55,7 @@ export const PATHOGEN_NOTIFICATION_IMPORTS = [
   }),
   SideNavigationWrapperComponent,
   SideNavigationStepperComponent,
+  MatIconTestingModule,
 ];
 export let selectedPathogenCodeDisplay: { code: string; display: string; designations: any[] } | undefined;
 

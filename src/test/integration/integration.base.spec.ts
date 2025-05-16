@@ -31,6 +31,7 @@ export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA: true,
     FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
+    FEATURE_FLAG_PORTAL_REPEAT: true,
   },
   gatewayPaths: {
     pathogen: '/api/ng/notification/pathogen',
