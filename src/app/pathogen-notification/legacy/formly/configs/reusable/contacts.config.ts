@@ -18,8 +18,11 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { ContactPointInfo } from '../../../../../../api/notification';
 import { EMAIL_MAX_LENGTH, PHONE_MAX_LENGTH } from '../../../common-utils';
 import { FormlyConstants } from '../formly-constants';
+import { environment } from '../../../../../../environments/environment';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import UsageEnum = ContactPointInfo.UsageEnum;
+
+const getFeatureFlagPortalRepeat: () => boolean = () => environment.featureFlags?.FEATURE_FLAG_PORTAL_REPEAT;
 
 export const contactsFormConfigFields: (needsContact: boolean, hospitalizationPerson?: boolean) => FormlyFieldConfig[] = (
   needsContact,
@@ -41,17 +44,27 @@ export const contactsFormConfigFields: (needsContact: boolean, hospitalizationPe
       {
         key: 'phoneNumbers',
         id: 'phoneNumbers',
-        type: 'repeat',
+        type: getFeatureFlagPortalRepeat() ? 'repeater' : 'repeat',
         wrappers: ['validation'],
-        props: {
-          addText: 'Telefonnummer hinzufügen',
-          keepLastItem: needsContact,
-          isContact: true,
-          id: 'phoneNumbers',
-        },
+        props: getFeatureFlagPortalRepeat()
+          ? {
+              addButtonLabel: 'Telefonnummer hinzufügen',
+            }
+          : {
+              addText: 'Telefonnummer hinzufügen',
+              keepLastItem: needsContact,
+              isContact: true,
+              id: 'phoneNumbers',
+            },
+        expressions: getFeatureFlagPortalRepeat()
+          ? {
+              'props.required': needsContact ? (field: FormlyFieldConfig) => field.form?.get('emailAddresses')?.value.length === 0 : () => false,
+            }
+          : undefined,
         defaultValue: needsContact ? [{}] : undefined,
         fieldArray: {
-          fieldGroupClassName: 'd-flex flex-column',
+          className: getFeatureFlagPortalRepeat() ? FormlyConstants.COLMD11 : undefined,
+          fieldGroupClassName: !getFeatureFlagPortalRepeat() ? 'd-flex flex-column' : undefined,
           fieldGroup: [
             {
               key: 'contactType',
@@ -84,17 +97,27 @@ export const contactsFormConfigFields: (needsContact: boolean, hospitalizationPe
       {
         id: 'emailAddresses',
         key: 'emailAddresses',
-        type: 'repeat',
+        type: getFeatureFlagPortalRepeat() ? 'repeater' : 'repeat',
         wrappers: ['validation'],
-        props: {
-          addText: 'Email-Adresse hinzufügen',
-          keepLastItem: needsContact,
-          isContact: true,
-          id: 'emailAddresses',
-        },
+        props: getFeatureFlagPortalRepeat()
+          ? {
+              addButtonLabel: 'Email-Adresse hinzufügen',
+            }
+          : {
+              addText: 'Email-Adresse hinzufügen',
+              keepLastItem: needsContact,
+              isContact: true,
+              id: 'emailAddresses',
+            },
+        expressions: getFeatureFlagPortalRepeat()
+          ? {
+              'props.required': needsContact ? (field: FormlyFieldConfig) => field.form?.get('phoneNumbers')?.value.length === 0 : () => false,
+            }
+          : undefined,
         defaultValue: needsContact ? [{}] : undefined,
         fieldArray: {
-          fieldGroupClassName: 'd-flex flex-column',
+          className: getFeatureFlagPortalRepeat() ? FormlyConstants.COLMD11 : undefined,
+          fieldGroupClassName: !getFeatureFlagPortalRepeat() ? 'd-flex flex-column' : undefined,
           fieldGroup: [
             {
               key: 'contactType',

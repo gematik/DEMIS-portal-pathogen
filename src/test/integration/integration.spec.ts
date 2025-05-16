@@ -92,7 +92,8 @@ describe('Pathogen - Integration Tests', () => {
   const testContactValidationFor = (parameters: any, isMail: boolean, openContactField?: boolean) => {
     parameters.forEach(({ value, expectedResult }) => {
       it(`for the ${isMail ? 'email' : 'phone number'}, the value: '${value}' should throw the error: '${expectedResult}'`, async () => {
-        if (openContactField) await (await getButton(loader, isMail ? '#btn-email-adresse-hinzufügen' : '#btn-telefonnummer-hinzufügen')).click();
+        if (openContactField)
+          await (await getButton(loader, isMail ? '[data-testid="emailAddresses-add-button"]' : '[data-testid="phoneNumbers-add-button"]')).click();
         const inputField = await getInput(loader, `[data-cy=${isMail ? FIELD_EMAIL_CY : FIELD_PHONE_NUMBER_CY}]`);
         await inputField.setValue(value);
         await inputField.blur();
