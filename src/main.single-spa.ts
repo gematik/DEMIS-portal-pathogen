@@ -14,9 +14,8 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { enableProdMode, NgZone, importProvidersFrom } from '@angular/core';
-
-import { Router, NavigationStart, RouterModule, RouterLink } from '@angular/router';
+import { enableProdMode, importProvidersFrom, NgZone } from '@angular/core';
+import { NavigationStart, Router, RouterLink, RouterModule } from '@angular/router';
 import { getSingleSpaExtraProviders, singleSpaAngular } from 'single-spa-angular';
 import { singleSpaPropsSubject } from './single-spa/single-spa-props';
 import { AppProps } from 'single-spa';
@@ -29,16 +28,18 @@ import { PathogenNotificationModule } from './app/pathogen-notification/pathogen
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app/app-routing.module';
-import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
+import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
 import { AuthInterceptor } from './app/pathogen-notification/services/auth/auth.interceptor';
-import { HTTP_INTERCEPTORS, withInterceptorsFromDi, provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { allowedRoutes } from './app/pathogen-notification/common/routing-helper';
 
 const appId = 'notification-portal-mf-pathogen';
+let router: Router;
 
 const lifecycles = singleSpaAngular({
   bootstrapFunction: singleSpaProps => {
     singleSpaPropsSubject.next(singleSpaProps);
-    return bootstrapApplication(AppComponent, {
+    const appPromise = bootstrapApplication(AppComponent, {
       providers: [
         importProvidersFrom(
           RouterModule,
@@ -60,6 +61,16 @@ const lifecycles = singleSpaAngular({
         provideAnimations(),
       ],
     });
+
+    appPromise.then(appRef => {
+      if (environment.featureFlags.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION) {
+        router = appRef.injector.get(Router);
+        syncUrlWithRouter();
+      }
+      return appRef;
+    });
+
+    return appPromise;
   },
   template: '<mf-pathogen-root />',
   Router,
@@ -90,6 +101,28 @@ function bootstrapFn(props: AppProps) {
       return lifecycles.bootstrap;
     }
   });
+}
+
+function isSafeRoute(redirectUrl: string) {
+  return Object.values(allowedRoutes).some(route => route === redirectUrl);
+}
+
+/**
+ * shell and microfrontend are using different routers
+ * when switching tabs, the shell is switching the URL, but the angular router of this microfrontend is not updated automatically
+ * this is a workaround for this issue
+ */
+function syncUrlWithRouter() {
+  if (router) {
+    const redirectUrl = window.location.hash.replace(/^#\//, '').split('?')[0];
+    if (isSafeRoute(redirectUrl)) {
+      router.navigateByUrl('').then(_ => {
+        router.navigateByUrl('/' + redirectUrl);
+      });
+    } else {
+      router.navigateByUrl('/');
+    }
+  }
 }
 
 export const bootstrap = bootstrapFn;

@@ -24,6 +24,8 @@ import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/commo
 import { REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 
+const is7_3Notification = (federalStateCodeDisplays: CodeDisplay[]) => federalStateCodeDisplays.length === 0;
+
 export const selectNotificationCategoryFields = (
   federalStateCodeDisplays: CodeDisplay[],
   pathogenDisplays: string[],
@@ -32,7 +34,7 @@ export const selectNotificationCategoryFields = (
   return [
     {
       className: FormlyConstants.LAYOUT_HEADER,
-      template: PathogenFormInfos.stateSpecificReportingObligations,
+      template: !is7_3Notification(federalStateCodeDisplays) ? PathogenFormInfos.stateSpecificReportingObligations : '',
       key: 'selectPathogenInfoWrapper',
     },
     {
@@ -44,6 +46,9 @@ export const selectNotificationCategoryFields = (
           type: 'demis-favorites-list',
         },
       ],
+      expressions: {
+        hide: () => is7_3Notification(federalStateCodeDisplays),
+      },
     },
     {
       className: '',
@@ -62,6 +67,9 @@ export const selectNotificationCategoryFields = (
           }),
           required: true,
         },
+        expressions: {
+          hide: () => is7_3Notification(federalStateCodeDisplays),
+        },
       },
     ]),
     formlyRow([
@@ -78,7 +86,7 @@ export const selectNotificationCategoryFields = (
         },
         expressions: {
           hide: (field: FormlyFieldConfig) => {
-            return !field.form?.value?.federalStateCodeDisplay;
+            return !is7_3Notification(federalStateCodeDisplays) && !field.form?.value?.federalStateCodeDisplay;
           },
         },
         asyncValidators: {
@@ -156,6 +164,15 @@ export const selectNotificationCategoryFields = (
     ]),
     formlyRow([
       {
+        className: '',
+        template:
+          '<span>Bitte geben Sie die Meldungs-ID der Initialmeldung an, ' +
+          'die Sie korrigieren oder ergänzen möchten oder der vorläufigen Meldung, <br> wenn Sie nun den endgültigen Befund melden.</span><br><br>',
+        expressions: {
+          className: initialNotificationIdClassName,
+        },
+      },
+      {
         id: 'initialNotificationId',
         key: 'initialNotificationId',
         type: 'input',
@@ -174,15 +191,6 @@ export const selectNotificationCategoryFields = (
         },
       },
     ]),
-    {
-      className: '',
-      template:
-        '<span>Bitte geben Sie die Meldungs-ID der Initialmeldung an, ' +
-        'die Sie korrigieren oder ergänzen möchten oder der vorläufigen Meldung, <br> wenn Sie nun den endgültigen Befund melden.</span><br><br>',
-      expressions: {
-        className: initialNotificationIdClassName,
-      },
-    },
     formlyRow([
       {
         id: 'laboratoryOrderId',

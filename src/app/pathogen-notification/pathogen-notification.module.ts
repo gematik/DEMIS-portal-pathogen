@@ -49,7 +49,8 @@ import { FormWrapperComponent } from './components/form-wrapper/form-wrapper.com
 import { SideNavigationStepperComponent } from './components/side-navigation-stepper/side-navigation-stepper.component';
 import { SideNavigationWrapperComponent } from './components/side-navigation-wrapper/side-navigation-wrapper.component';
 import { HexhexbuttonComponent } from './legacy/components/hexhexbutton/hexhexbutton.component';
-import { PasteBoxComponent } from './legacy/components/paste-box/paste-box.component';
+// TODO: Remove this component, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
+import { PasteBoxComponent as DeprecatedPasteBoxComponent } from './legacy/components/paste-box/paste-box.component';
 import { ErrorMessageDialogComponent } from './legacy/dialogs/message-dialog/error-message-dialog.component';
 import { SubmitNotificationDialogComponent } from './legacy/dialogs/submit-notification-dialog/submit-notification-dialog.component';
 import { AutocompleteTypeComponent } from './legacy/formly/types/autocomplete/autocomplete-type.component';
@@ -63,7 +64,8 @@ import { StringFormatPipe } from './legacy/pipes/string-format.pipe';
 import { PathogenNotificationComponent } from './pathogen-notification.component';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
 import { ClipboardDataService } from './services/clipboard-data.service';
-import { DemisPortalSharedModule, FormlyRepeaterComponent } from '@gematik/demis-portal-core-library';
+import { DemisPortalSharedModule, FormlyDatepickerComponent, FormlyRepeaterComponent, PasteBoxComponent } from '@gematik/demis-portal-core-library';
+import { defaultAppearanceExtension, defaultPlaceholderExtension } from './utils/formly-extensions';
 
 @NgModule({
   imports: [
@@ -72,6 +74,7 @@ import { DemisPortalSharedModule, FormlyRepeaterComponent } from '@gematik/demis
     FormlyModule.forRoot({
       types: [
         { name: 'repeater', component: FormlyRepeaterComponent },
+        { name: 'datepicker', component: FormlyDatepickerComponent },
         { name: 'repeat', component: RepeatComponent },
         {
           name: 'autocomplete',
@@ -96,6 +99,16 @@ import { DemisPortalSharedModule, FormlyRepeaterComponent } from '@gematik/demis
         { name: 'expansion-panel', component: ExpansionPanelWrapperComponent },
       ],
       validationMessages: [{ name: 'required', message: 'Diese Angabe wird benötigt' }],
+      extensions: [
+        {
+          name: 'default-placeholder',
+          extension: defaultPlaceholderExtension,
+        },
+        {
+          name: 'default-appearance',
+          extension: defaultAppearanceExtension,
+        },
+      ],
     }),
     MatDialogModule,
     MatExpansionModule,
@@ -137,13 +150,15 @@ import { DemisPortalSharedModule, FormlyRepeaterComponent } from '@gematik/demis
     AutocompleteTypeComponent,
     ExpansionPanelWrapperComponent,
     ValidationWrapperComponent,
-    PasteBoxComponent,
+    // TODO: Remove this component, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
+    DeprecatedPasteBoxComponent,
     HexhexbuttonComponent,
     ErrorMessageDialogComponent,
     SubmitNotificationDialogComponent,
     FavoritesListComponent,
     FavoritesAddComponent,
     DemisPortalSharedModule,
+    PasteBoxComponent,
   ],
   providers: [FhirPathogenNotificationService, ClipboardDataService],
 })

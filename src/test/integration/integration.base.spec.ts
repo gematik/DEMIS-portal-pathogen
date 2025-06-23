@@ -14,24 +14,37 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { TestBed } from '@angular/core/testing';
-import { overrides, PATHOGEN_NOTIFICATION_IMPORTS } from '../shared/test-setup-utils';
+import { getFhirPathogenNotificationService, getRouter, overrides } from '../shared/test-setup-utils';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { MockedComponentFixture, MockProvider, MockRender } from 'ng-mocks';
+import { MockBuilder, MockedComponentFixture, MockProvider, MockRender } from 'ng-mocks';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ClipboardDataService } from '../../app/pathogen-notification/services/clipboard-data.service';
 import { environment } from '../../environments/environment';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ChangeDetectorRef } from '@angular/core';
+import { PathogenNotificationModule } from '../../app/pathogen-notification/pathogen-notification.module';
+import { NGXLogger } from 'ngx-logger';
+import { FormWrapperComponent } from '../../app/pathogen-notification/components/form-wrapper/form-wrapper.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FormlyModule } from '@ngx-formly/core';
+import { SideNavigationWrapperComponent } from '../../app/pathogen-notification/components/side-navigation-wrapper/side-navigation-wrapper.component';
+import { SideNavigationStepperComponent } from '../../app/pathogen-notification/components/side-navigation-stepper/side-navigation-stepper.component';
+import { FormlyMaterialModule } from '@ngx-formly/material';
+import { MatStepperModule } from '@angular/material/stepper';
 
 export const mainConfig = {
   featureFlags: {
-    FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA: true,
     FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
     FEATURE_FLAG_PORTAL_REPEAT: true,
+    FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false,
+    FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: false,
   },
   gatewayPaths: {
     pathogen: '/api/ng/notification/pathogen',
@@ -46,25 +59,51 @@ export const mainConfig = {
   production: false,
 };
 
-export async function buildMock() {
-  return await TestBed.configureTestingModule({
-    imports: PATHOGEN_NOTIFICATION_IMPORTS,
-    providers: [
-      provideHttpClient(withInterceptorsFromDi()),
-      MockProvider(FhirPathogenNotificationService, overrides.fhirPathogenNotificationService),
-      MockProvider(PathogenNotificationStorageService, overrides.pathogenNotificationStorageService),
-      MockProvider(ActivatedRoute, overrides.activatedRoute),
-      [ClipboardDataService],
-    ],
-  }).compileComponents();
+export function buildMock(activatedRoute = false, isNonnominal: boolean = false) {
+  const builder = MockBuilder(PathogenNotificationComponent)
+    .keep(
+      RouterModule.forRoot([
+        {
+          path: '**',
+          component: PathogenNotificationComponent,
+        },
+      ])
+    )
+    .keep(PathogenNotificationModule)
+    .keep(NoopAnimationsModule)
+    .keep(MatIconTestingModule)
+    .mock(NGXLogger)
+    .keep(FormWrapperComponent)
+    .keep(ReactiveFormsModule)
+    .keep(MatStepperModule)
+    .keep(MatProgressSpinnerModule)
+    .keep(FormlyModule.forRoot())
+    .keep(SideNavigationWrapperComponent)
+    .keep(SideNavigationStepperComponent)
+    .keep(FormlyMaterialModule)
+    .provide(MockProvider(ChangeDetectorRef))
+    .provide(MockProvider(FhirPathogenNotificationService, getFhirPathogenNotificationService(isNonnominal)))
+    .provide(MockProvider(PathogenNotificationStorageService, overrides.pathogenNotificationStorageService))
+    .provide(provideHttpClient(withInterceptorsFromDi()))
+    .provide(ClipboardDataService);
+
+  if (isNonnominal) {
+    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7_3/non-nominal')));
+  }
+
+  if (activatedRoute) {
+    builder.provide(MockProvider(ActivatedRoute, overrides.activatedRoute));
+  }
+
+  return builder;
 }
 
 let component: PathogenNotificationComponent;
 let fixture: MockedComponentFixture<PathogenNotificationComponent>;
 let loader: HarnessLoader;
 
-export function setupIntegrationTests() {
-  environment.pathogenConfig = mainConfig;
+export function setupIntegrationTests(customPathogenConfig?: any) {
+  environment.pathogenConfig = customPathogenConfig ?? mainConfig;
   fixture = MockRender(PathogenNotificationComponent);
   component = fixture.point.componentInstance;
   loader = TestbedHarnessEnvironment.loader(fixture);

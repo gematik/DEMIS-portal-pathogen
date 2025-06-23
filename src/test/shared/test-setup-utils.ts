@@ -14,66 +14,17 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
-import { PathogenNotificationModule } from '../../app/pathogen-notification/pathogen-notification.module';
-import { FormWrapperComponent } from '../../app/pathogen-notification/components/form-wrapper/form-wrapper.component';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FormlyModule } from '@ngx-formly/core';
-import { FormlyMaterialModule } from '@ngx-formly/material';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 import { of } from 'rxjs';
 import { TEST_DATA } from './test-data';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { MatStepperModule } from '@angular/material/stepper';
-import { SideNavigationStepperComponent } from '../../app/pathogen-notification/components/side-navigation-stepper/side-navigation-stepper.component';
-import { SideNavigationWrapperComponent } from '../../app/pathogen-notification/components/side-navigation-wrapper/side-navigation-wrapper.component';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 
-export const PATHOGEN_NOTIFICATION_IMPORTS = [
-  RouterModule.forRoot([
-    {
-      path: '**',
-      component: PathogenNotificationComponent,
-    },
-  ]),
-  PathogenNotificationComponent,
-  PathogenNotificationModule,
-  FormWrapperComponent,
-  ReactiveFormsModule,
-  MatProgressSpinnerModule,
-  FormlyModule.forRoot(),
-  FormlyMaterialModule,
-  NoopAnimationsModule,
-  MatStepperModule,
-  LoggerModule.forRoot({
-    level: NgxLoggerLevel.DEBUG,
-    serverLogLevel: NgxLoggerLevel.ERROR,
-  }),
-  SideNavigationWrapperComponent,
-  SideNavigationStepperComponent,
-  MatIconTestingModule,
-];
 export let selectedPathogenCodeDisplay: { code: string; display: string; designations: any[] } | undefined;
 
 export let diagnosticBasedOnPathogenSelection: any;
 
 export const overrides = {
-  get fhirPathogenNotificationService() {
-    return {
-      fetchCountryCodeDisplays: jasmine.createSpy('fetchCountryCodeDisplays').and.returnValue(of(TEST_DATA.countryCodeDisplays)),
-      fetchFederalStateCodeDisplays: jasmine.createSpy('fetchFederalStateCodeDisplays').and.returnValue(of(TEST_DATA.federalStateCodeDisplays)),
-      fetchPathogenCodeDisplaysForFederalState: jasmine
-        .createSpy('fetchPathogenCodeDisplaysForFederalState')
-        .and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
-      fetchDiagnosticsBasedOnPathogenSelection: jasmine
-        .createSpy('fetchDiagnosticsBasedOnPathogenSelection')
-        .and.callFake(() => of(diagnosticBasedOnPathogenSelection)),
-    } as Partial<FhirPathogenNotificationService>;
-  },
   get pathogenNotificationStorageService() {
     return {
       getNotifierFacility: jasmine.createSpy('getNotifierFacility').and.returnValue(TEST_DATA.notifierFacility),
@@ -87,6 +38,27 @@ export const overrides = {
     } as Partial<ActivatedRoute>;
   },
 };
+
+export function getRouter(url: string = '/pathogen-notification') {
+  return {
+    url,
+    events: of(new NavigationStart(0, url)),
+    navigate: jasmine.createSpy('navigate').and.callFake(() => Promise.resolve(true)),
+  } as Partial<Router>;
+}
+
+export function getFhirPathogenNotificationService(isNonNominal: boolean = false) {
+  return {
+    fetchCountryCodeDisplays: jasmine.createSpy('fetchCountryCodeDisplays').and.returnValue(of(TEST_DATA.countryCodeDisplays)),
+    fetchFederalStateCodeDisplays: jasmine
+      .createSpy('fetchFederalStateCodeDisplays')
+      .and.returnValue(isNonNominal ? of([]) : of(TEST_DATA.federalStateCodeDisplays)),
+    fetchPathogenCodeDisplays: jasmine.createSpy('fetchPathogenCodeDisplaysForFederalState').and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
+    fetchDiagnosticsBasedOnPathogenSelection: jasmine
+      .createSpy('fetchDiagnosticsBasedOnPathogenSelection')
+      .and.callFake(() => of(diagnosticBasedOnPathogenSelection)),
+  } as Partial<FhirPathogenNotificationService>;
+}
 
 export function setSelectedPathogenCodeDisplay(value: typeof selectedPathogenCodeDisplay) {
   selectedPathogenCodeDisplay = value;

@@ -18,8 +18,21 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PathogenNotificationComponent } from './pathogen-notification/pathogen-notification.component';
+import { allowedRoutes } from './pathogen-notification/common/routing-helper';
 
 const routes: Routes = [
+  {
+    path: allowedRoutes.nonNominal,
+    component: PathogenNotificationComponent,
+  },
+  {
+    path: allowedRoutes.anonymous,
+    component: PathogenNotificationComponent,
+  },
+  {
+    path: allowedRoutes.nominal,
+    component: PathogenNotificationComponent,
+  },
   {
     path: '**',
     component: PathogenNotificationComponent,

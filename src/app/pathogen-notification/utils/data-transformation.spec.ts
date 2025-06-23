@@ -21,12 +21,11 @@ import { TEST_DATA } from '../../../test/shared/test-data';
 describe('DataTransformation', () => {
   beforeEach(async () => {
     environment.pathogenConfig = {
-      featureFlags: {
-        FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA: false,
-      },
+      featureFlags: {},
       gatewayPaths: {
         pathogen: '/api/ng/notification/pathogen',
       },
+      futsPaths: {},
       ngxLoggerConfig: {
         serverLogLevel: 1,
         disableConsoleLogging: true,

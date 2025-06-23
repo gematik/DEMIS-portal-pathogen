@@ -17,7 +17,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { CodeDisplay, Notification, PathogenData, PathogenTest } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
 import { toFhirDateFormat } from '../legacy/common-utils';
@@ -28,6 +28,8 @@ import { catchError } from 'rxjs/operators';
 import { ErrorDialogService } from './error-dialog.service';
 import { MatDialog } from '@angular/material/dialog';
 import { cloneObject, MessageDialogService } from '@gematik/demis-portal-core-library';
+import { isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
+import { NotificationType } from '../common/routing-helper';
 import NotificationTypeEnum = Notification.NotificationTypeEnum;
 
 @Injectable({
@@ -59,8 +61,22 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     return testResults;
   }
 
-  fetchDiagnosticsBasedOnPathogenSelection(PathogenCode: string): Observable<PathogenData> {
-    const path = `${environment.pathToFuts}/laboratory/federalState/pathogenData/${PathogenCode}`;
+  fetchDiagnosticsBasedOnPathogenSelection(pathogenCode: string, type: NotificationType): Observable<PathogenData> {
+    let path: string;
+    if (isNonNominalNotificationEnabled()) {
+      switch (type) {
+        case NotificationType.NonNominalNotification7_3:
+          path = `${environment.laboratoryDataForSpecificCode_7_3}${pathogenCode}`;
+          break;
+        case NotificationType.NominalNotification7_1:
+          path = `${environment.laboratoryDataForSpecificCode_7_1}${pathogenCode}`;
+          break;
+        default:
+          path = `${environment.laboratoryDataForSpecificCode_7_1}${pathogenCode}`;
+      }
+    } else {
+      path = `${environment.pathToFuts}/laboratory/federalState/pathogenData/${pathogenCode}`;
+    }
     return this.httpClient
       .get<PathogenData>(path, {
         headers: environment.headers,
@@ -78,8 +94,22 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       );
   }
 
-  fetchPathogenCodeDisplaysForFederalState(federalStateCode: string): Observable<CodeDisplay[]> {
-    const path = `${environment.pathToFuts}/laboratory/federalState/${federalStateCode}`;
+  fetchPathogenCodeDisplays(type: NotificationType, federalStateCode?: string): Observable<CodeDisplay[]> {
+    let path: string;
+    if (isNonNominalNotificationEnabled()) {
+      switch (type) {
+        case NotificationType.NonNominalNotification7_3:
+          path = environment.notificationCategories_7_3;
+          break;
+        case NotificationType.NominalNotification7_1:
+          path = `${environment.notificationCategoriesForFederalState_7_1}${federalStateCode}`;
+          break;
+        default:
+          path = `${environment.notificationCategoriesForFederalState_7_1}${federalStateCode}`;
+      }
+    } else {
+      path = `${environment.pathToFuts}/laboratory/federalState/${federalStateCode}`;
+    }
     return this.httpClient
       .get<CodeDisplay[]>(path, {
         headers: environment.headers,
@@ -93,8 +123,14 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       );
   }
 
-  fetchFederalStateCodeDisplays = (): Observable<Array<CodeDisplay>> => {
-    const path = `${environment.pathToFuts}/laboratory/federalStates`;
+  fetchFederalStateCodeDisplays = (type: NotificationType): Observable<Array<CodeDisplay>> => {
+    if (type === NotificationType.NonNominalNotification7_3) {
+      return of([]);
+    }
+    let path = environment.pathToFederalStates_7_1;
+    if (!isNonNominalNotificationEnabled()) {
+      path = `${environment.pathToFuts}/laboratory/federalStates`;
+    }
     return this.httpClient
       .get<Array<CodeDisplay>>(path, {
         headers: environment.headers,
@@ -109,7 +145,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   };
 
   fetchCountryCodeDisplays = (): Observable<Array<CodeDisplay>> => {
-    const path = `${environment.pathToFuts}/utils/countryCodes`;
+    const path = environment.countryCodes;
     return this.httpClient
       .get<Array<CodeDisplay>>(path, {
         headers: environment.headers,
@@ -123,7 +159,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       );
   };
 
-  openSubmitDialog(pathogenTest: PathogenTest): void {
+  openSubmitDialog(pathogenTest: PathogenTest, notificationType: NotificationType): void {
     this.dialog.open(SubmitNotificationDialogComponent, {
       disableClose: true,
       maxWidth: '50vw',
@@ -135,17 +171,19 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
           pathogenTest: pathogenTest,
         } as Notification,
         fhirService: this,
+        notificationType: notificationType,
       },
     });
   }
 
-  override sendNotification(notification: Notification) {
+  override sendNotification(notification: Notification, type: NotificationType) {
     let clonedNotificationObject: Notification = cloneObject(notification);
 
     clonedNotificationObject.pathogenTest = this.removeUnusedFormlyFields(clonedNotificationObject.pathogenTest);
-    clonedNotificationObject.pathogenTest = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject.pathogenTest);
-
-    return super.sendNotification(clonedNotificationObject);
+    if (!environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
+      clonedNotificationObject.pathogenTest = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject.pathogenTest);
+    }
+    return super.sendNotification(clonedNotificationObject, type);
   }
 
   private removeUnusedFormlyFields(testResults: PathogenTest) {

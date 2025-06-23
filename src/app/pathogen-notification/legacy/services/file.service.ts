@@ -17,6 +17,7 @@
 import { Injectable } from '@angular/core';
 import * as transliterator from 'transliterator';
 import { Notification, NotifiedPersonBasicInfo } from '../../../../api/notification';
+import { formatDateToYYMMDD } from '../common-utils';
 import NotificationTypeEnum = Notification.NotificationTypeEnum;
 
 @Injectable({
@@ -52,11 +53,6 @@ export class FileService {
     );
   }
 
-  /**
-   *
-   * @param birthDate i.e. 05.11.1998
-   * @returns birthDate as YYMMDD
-   */
   private convertBirthDate(birthDate: string): string {
     if (birthDate) {
       const numbers = birthDate.split('.');
@@ -70,14 +66,11 @@ export class FileService {
   }
 
   private convertFileNameForPerson(person: NotifiedPersonBasicInfo) {
-    return (
-      this.getCurrentTime() +
-      ' ' +
-      this.transliterateNameFromUnicodeToAscii(person.lastname) +
-      ', ' +
-      this.transliterateNameFromUnicodeToAscii(person.firstname) +
-      this.convertBirthDate(person.birthDate) +
-      this.abbreviation
-    );
+    const time = this.getCurrentTime();
+    const last = this.transliterateNameFromUnicodeToAscii(person.lastname);
+    const first = this.transliterateNameFromUnicodeToAscii(person.firstname);
+    const birthDate = formatDateToYYMMDD(person.birthDate);
+    const birthSuffix = birthDate ? ` ${birthDate}` : '';
+    return `${time} ${last}, ${first}${birthSuffix}${this.abbreviation}`;
   }
 }

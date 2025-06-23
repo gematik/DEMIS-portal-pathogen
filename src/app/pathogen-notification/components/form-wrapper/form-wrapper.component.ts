@@ -22,13 +22,25 @@ import { MatButton } from '@angular/material/button';
 import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { SideNavigationWrapperComponent } from '../side-navigation-wrapper/side-navigation-wrapper.component';
+import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
 
 @Component({
   selector: 'app-form-wrapper',
   templateUrl: './form-wrapper.component.html',
   styleUrls: ['./form-wrapper.component.scss'],
   standalone: true,
-  imports: [SideNavigationWrapperComponent, MatTabGroup, MatTab, FormlyModule, MatToolbar, MatToolbarRow, RouterLink, MatButton, MatIcon],
+  imports: [
+    SideNavigationWrapperComponent,
+    MatTabGroup,
+    MatTab,
+    FormlyModule,
+    MatToolbar,
+    MatToolbarRow,
+    RouterLink,
+    MatButton,
+    MatIcon,
+    MaxHeightContentContainerComponent,
+  ],
 })
 export class FormWrapperComponent extends FieldType implements OnInit {
   selectedIndex = 0;

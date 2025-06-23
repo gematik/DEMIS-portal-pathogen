@@ -16,7 +16,6 @@
 
 import { FormlyFieldConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { FormlyConstants } from '../formly-constants';
-import { isNewCheckboxForCopyAddressEnabled } from '../../../../utils/pathogen-notification-mapper';
 import { tap } from 'rxjs/operators';
 import { AddressType } from '../../../../../../api/notification';
 
@@ -59,27 +58,23 @@ const condition = (field: FormlyFieldConfig, isNotifier: boolean) => {
 };
 
 export function updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled(field: FormlyFieldConfig, isNotifier: boolean) {
-  if (isNewCheckboxForCopyAddressEnabled()) {
-    return field.options.fieldChanges.pipe(
-      tap(() => {
-        if (condition(field, isNotifier)) {
-          const sourceModel = { ...field.model, additionalInfo: field.parent.model.facilityInfo?.institutionName }; // address object
-          const targetField = getCurrentAddress(field.parent.parent.fieldGroup);
-          targetField?.formControl?.patchValue(sourceModel);
-        }
-      })
-    );
-  }
+  return field.options.fieldChanges.pipe(
+    tap(() => {
+      if (condition(field, isNotifier)) {
+        const sourceModel = { ...field.model, additionalInfo: field.parent.model.facilityInfo?.institutionName }; // address object
+        const targetField = getCurrentAddress(field.parent.parent.fieldGroup);
+        targetField?.formControl?.patchValue(sourceModel);
+      }
+    })
+  );
 }
 
 export function updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled(field: FormlyFieldConfig) {
-  if (isNewCheckboxForCopyAddressEnabled()) {
-    const root = field.parent.parent.parent.parent;
-    if (root.model.notifiedPerson?.currentAddressType === AddressType.SubmittingFacility) {
-      const sourceModel = field.model.institutionName;
-      const targetField = getCurrentAddress(root.fieldGroup).fieldGroup.find(field => field.id === 'currentAddressInstitutionName');
-      targetField.formControl.patchValue(sourceModel);
-    }
+  const root = field.parent.parent.parent.parent;
+  if (root.model.notifiedPerson?.currentAddressType === AddressType.SubmittingFacility) {
+    const sourceModel = field.model.institutionName;
+    const targetField = getCurrentAddress(root.fieldGroup).fieldGroup.find(field => field.id === 'currentAddressInstitutionName');
+    targetField.formControl.patchValue(sourceModel);
   }
 }
 

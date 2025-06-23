@@ -32,6 +32,10 @@ interface GatewayPaths {
   [key: string]: string;
 }
 
+interface FutsPaths {
+  [key: string]: string;
+}
+
 interface Configuration {
   production: boolean;
   pathToGateway: string;
@@ -39,6 +43,7 @@ interface Configuration {
   featureFlags: FeatureFlags;
   ngxLoggerConfig: NgxLoggerConfig;
   pathToFuts: string;
+  futsPaths: FutsPaths;
 }
 
 export class Environment {
@@ -82,6 +87,14 @@ export class Environment {
     return this.gatewayPaths?.pathogen;
   }
 
+  public get pathToPathogen_7_1(): string {
+    return this.gatewayPaths?.pathogen_7_1;
+  }
+
+  public get pathToPathogen_7_3_nonNominal(): string {
+    return this.gatewayPaths?.pathogen_7_3_non_nominal;
+  }
+
   public get pathToFuts(): string {
     return this.config?.pathToFuts;
   }
@@ -92,6 +105,30 @@ export class Environment {
 
   private get gatewayPaths(): GatewayPaths {
     return this.config?.gatewayPaths;
+  }
+
+  public get pathToFederalStates_7_1(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.federalStates_7_1;
+  }
+
+  public get countryCodes(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.countryCodes;
+  }
+
+  public get notificationCategories_7_3(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.notificationCategories_7_3;
+  }
+
+  public get notificationCategoriesForFederalState_7_1(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.notificationCategoriesForFederalState_7_1;
+  }
+
+  public get laboratoryDataForSpecificCode_7_1(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.laboratoryDataForSpecificCode_7_1;
+  }
+
+  public get laboratoryDataForSpecificCode_7_3(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.laboratoryDataForSpecificCode_7_3;
   }
 }
 

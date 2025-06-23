@@ -18,14 +18,12 @@ import { TestBed } from '@angular/core/testing';
 import { PathogenNotificationComponent } from './pathogen-notification.component';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
 import { of } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
 import { PathogenNotificationStorageService } from './services/pathogen-notification-storage.service';
 import { TEST_DATA } from '../../test/shared/test-data';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { MockedComponentFixture, MockProvider, MockRender } from 'ng-mocks';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { overrides, PATHOGEN_NOTIFICATION_IMPORTS } from '../../test/shared/test-setup-utils';
+import { MockedComponentFixture } from 'ng-mocks';
+import { NotificationType } from './common/routing-helper';
+import { buildMock, setupIntegrationTests } from '../../test/integration/integration.base.spec';
 
 describe('PathogenNotificationComponent', () => {
   let component: PathogenNotificationComponent;
@@ -37,24 +35,19 @@ describe('PathogenNotificationComponent', () => {
   let fetchPathogenCodeDisplaysSpy: jasmine.Spy;
   let getNotifierFacilitySpy: jasmine.Spy;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: PATHOGEN_NOTIFICATION_IMPORTS,
-      providers: [
-        provideHttpClient(withInterceptorsFromDi()),
-        MockProvider(FhirPathogenNotificationService, overrides.fhirPathogenNotificationService),
-        MockProvider(PathogenNotificationStorageService, overrides.pathogenNotificationStorageService),
-        MockProvider(ActivatedRoute, overrides.activatedRoute),
-      ],
-    }).compileComponents();
+  beforeEach(async () => await buildMock());
 
-    fixture = MockRender(PathogenNotificationComponent);
+  beforeEach(async () => {
+    const result = setupIntegrationTests();
+    fixture = result.fixture;
+    component = result.component;
+    loader = result.loader;
+
     fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
     fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysForFederalState as jasmine.Spy;
+    fetchPathogenCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplays as jasmine.Spy;
     getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
-    component = fixture.point.componentInstance;
-    loader = TestbedHarnessEnvironment.loader(fixture);
+
     fixture.detectChanges();
   });
 
@@ -79,7 +72,7 @@ describe('PathogenNotificationComponent', () => {
   it('should fetch and set pathogenCodeDisplays on init', () => {
     fetchPathogenCodeDisplaysSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
     component.ngOnInit();
-    expect(fetchPathogenCodeDisplaysSpy).toHaveBeenCalledWith('DE-BW');
+    expect(fetchPathogenCodeDisplaysSpy).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BW');
     expect(component.pathogenCodeDisplays).toEqual(TEST_DATA.pathogenCodeDisplays);
   });
 

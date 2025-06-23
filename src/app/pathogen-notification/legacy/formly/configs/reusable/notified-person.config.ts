@@ -21,14 +21,14 @@ import { addressFormConfigFields } from './address.config';
 import { contactsFormConfigFields } from './contacts.config';
 import { formlyRow } from './commons';
 import { CURRENT_ADDRESS_TYPE_OPTION_LIST, RESIDENCE_ADDRESS_TYPE_OPTION_LIST } from '../../../formly-options-lists';
-import { notifiedPersonInfo } from './notified-person-info.config';
+import { getNotifiedPersonInfo } from './notified-person-info.config';
 
 export const RESIDENCE_ADDRESS_ID = 'residence-address-';
 export const CURRENT_ADDRESS_ID = 'current-address-';
 
 export const notifiedPersonFormConfigFields = (countryCodeDisplays: CodeDisplay[]): FormlyFieldConfig[] => {
   return [
-    ...notifiedPersonInfo,
+    ...getNotifiedPersonInfo(),
     formlyRow([
       {
         className: '',

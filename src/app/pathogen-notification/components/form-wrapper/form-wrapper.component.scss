@@ -4,15 +4,6 @@ a {
   text-decoration: none;
 }
 
-.container {
-  overflow-y: auto;
-  display: flex;
-  max-height: calc(100vh - 338px);
-  flex-direction: column;
-  height: 100vh;
-
-}
-
 formly-field {
   overflow-y: auto;
   max-height: 100%;
@@ -44,7 +35,7 @@ mat-toolbar {
 
 ::ng-deep mat-tab-header {
   visibility: hidden;
-  height: 1px;
+  height: 0;
 }
 
 .div {

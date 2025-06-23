@@ -21,7 +21,7 @@ import { environment } from '../../../environments/environment';
 import { FormGroup } from '@angular/forms';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 
-export const isNewCheckboxForCopyAddressEnabled = () => environment.featureFlags?.FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA;
+export const isNonNominalNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION;
 
 export const initializeSelectPathogenFields = (federalStateCodeDisplays: CodeDisplay[], pathogenCodeDisplays: CodeDisplay[]) => {
   return selectNotificationCategoryFields(federalStateCodeDisplays, pathogenCodeDisplays.map(formatCodeDisplayToDisplay), []);

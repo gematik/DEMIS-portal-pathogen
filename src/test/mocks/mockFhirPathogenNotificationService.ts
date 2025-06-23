@@ -69,7 +69,7 @@
 //       .pipe(
 //         catchError(error => {
 //           this.logger.error('Error fetching diagnostic', error);
-//           this.errorDialogService.openErrorDialogAndClose(
+//           this.errorDialogService.openErrorDialogAndRedirectToHome(
 //             'Fehler bei der Abfrage des ausgewählten Erregers',
 //             'Aktuell kann dieser Meldetatbestand nicht über das Portal gemeldet werden.' +
 //               ' Bitte senden Sie die Meldung z.B. per Fax an das zuständige Gesundheitsamt.'

@@ -15,7 +15,9 @@
  */
 
 //field ids
-export const FIELD_BIRTH_DATE = 'birthDate';
+
+export const FIELD_BIRTH_DATE_DEPRECATED = 'birthDate';
+export const FIELD_BIRTH_DATE = 'birthDate-datepicker-input-field';
 export const FIELD_PREFIX = 'prefix';
 export const FIELD_SALUTATION = 'salutation';
 export const FIELD_FIRST_NAME = 'firstname';
@@ -44,13 +46,13 @@ export const FIELD_CURRENT_ADDRESS_CITY = 'current-address-city';
 export const FIELD_CURRENT_ADDRESS_ZIP = 'current-address-zip';
 export const FIELD_CURRENT_ADDRESS_COUNTRY = 'current-address-country';
 export const FIELD_EMAIL_CY = 'email';
-export const FIELD_EMAIL_1 = 'email_0';
-export const FIELD_EMAIL_2 = 'email_1';
-export const FIELD_EMAIL_3 = 'email_2';
+export const FIELD_EMAIL_1 = 'emailAddresses-0 #email';
+export const FIELD_EMAIL_2 = 'emailAddresses-1 #email';
+export const FIELD_EMAIL_3 = 'emailAddresses-2 #email';
 export const FIELD_PHONE_NUMBER_CY = 'phoneNo';
-export const FIELD_PHONE_1 = 'phoneNo_0';
-export const FIELD_PHONE_2 = 'phoneNo_1';
-export const FIELD_PHONE_3 = 'phoneNo_2';
+export const FIELD_PHONE_1 = 'phoneNumbers-0 #phoneNo';
+export const FIELD_PHONE_2 = 'phoneNumbers-1 #phoneNo';
+export const FIELD_PHONE_3 = 'phoneNumbers-2 #phoneNo';
 export const FIELD_FEDERAL_STATE = 'federalStateCodeDisplay';
 export const FIELD_PATHOGEN_DISPLAY = 'pathogenDisplay';
 export const FIELD_PATHOGEN = 'pathogen';
@@ -58,8 +60,10 @@ export const FIELD_REPORT_STATUS = 'reportStatus';
 export const FIELD_INIT_NOTIFICATION_ID = 'initialNotificationId';
 export const FIELD_INTERPRETATION = 'interpretation';
 export const FIELD_LAB_ORDER_ID = 'laboratoryOrderId';
-export const FIELD_EXTRACTION_DATE = 'extractionDate';
-export const FIELD_RECEIVED_DATE = 'receivedDate';
+export const FIELD_EXTRACTION_DATE_DEPRECATED = 'extractionDate'; //only required until Datepicker runs under feature flag
+export const FIELD_RECEIVED_DATE_DEPRECATED = 'receivedDate'; //only required until Datepicker runs under feature flag
+export const FIELD_EXTRACTION_DATE = 'extractionDate-datepicker-input-field';
+export const FIELD_RECEIVED_DATE = 'receivedDate-datepicker-input-field';
 export const FIELD_MATERIAL = 'material';
 export const FIELD_METHOD = 'method';
 export const FIELD_METHOD_0 = 'method_0';
@@ -227,7 +231,8 @@ export const VALUE_INVALD_BSNR = '12345678';
 export const VALUE_INVALID_DISPLAY = 'Mich gibt es nicht';
 
 //validation error messages
-export const ERROR_INVALID_DATE = 'Kein gültiges Datum (Beispiele: 05.11.1998)';
+export const ERROR_INVALID_DATE_DEPRECATED = 'Kein gültiges Datum (Beispiele: 05.11.1998)'; //only required until Datepicker runs under feature flag
+export const ERROR_INVALID_DATE = 'Das eingegebene Datum ist ungültig';
 export const ERROR_INVALID_SPECIAL_CHAR = 'Ihre Eingabe enthält unzulässige Sonderzeichen';
 export const ERROR_REQUIRED = 'Diese Angabe wird benötigt';
 export const ERROR_MIN_LENGTH = 'Minimallänge nicht erreicht';
@@ -239,3 +244,8 @@ export const ERROR_INVALID_BSNR = 'Bitte geben Sie Ihre 9-stellige Betriebsstät
 export const ERROR_EXTRACTION_DATE = 'Das Entnahmedatum darf nicht nach dem Eingangsdatum liegen';
 export const ERROR_OPTION_MISMATCH = 'Keine Übereinstimmung gefunden';
 export const ERROR_OPTION_INCOMPLETE = 'Unvollständige Eingabe';
+
+// buttons
+export const ADD_BUTTON_EMAIL = '#emailAddresses-add-button';
+export const ADD_BUTTON_PHONE = '#phoneNumbers-add-button';
+export const ADD_BUTTON_CLIPBOARD = '#btn-fill-form';
