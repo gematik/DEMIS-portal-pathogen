@@ -20,10 +20,11 @@ import { GENDER_OPTION_LIST } from '../../../formly-options-lists';
 import { FormlyConstants } from '../formly-constants';
 import { formlyInputField, formlyRow } from './commons';
 import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
+import { environment } from '../../../../../../environments/environment';
 
 const INFO_KEY = 'info';
 
-export const notifiedPersonInfo: FormlyFieldConfig[] = [
+export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
   {
     className: FormlyConstants.LAYOUT_HEADER,
     template: PathogenFormInfos.insertAllKnownInfosToFulfillReportingObligation,
@@ -76,17 +77,33 @@ export const notifiedPersonInfo: FormlyFieldConfig[] = [
   ),
   formlyRow(
     [
-      formlyInputField({
-        key: 'birthDate',
-        className: FormlyConstants.COLMD5,
-        props: {
-          placeholder: UI_DATE_FORMAT_GER,
-          maxLength: 10,
-          label: 'Geburtsdatum',
-          required: false,
-        },
-        validators: ['dateInputValidator'],
-      }),
+      environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER
+        ? {
+            id: 'birthDate',
+            key: 'birthDate',
+            className: FormlyConstants.COLMD5,
+            type: 'datepicker',
+            wrappers: [],
+            props: {
+              label: 'Geburtsdatum',
+              allowedPrecisions: ['day'],
+              required: false,
+              minDate: new Date('1870-01-01'),
+              maxDate: new Date(),
+              multiYear: true,
+            },
+          }
+        : formlyInputField({
+            key: 'birthDate',
+            className: FormlyConstants.COLMD5,
+            props: {
+              placeholder: UI_DATE_FORMAT_GER,
+              maxLength: 10,
+              label: 'Geburtsdatum',
+              required: false,
+            },
+            validators: ['dateInputValidator'],
+          }),
     ],
     INFO_KEY
   ),

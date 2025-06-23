@@ -1,7 +1,6 @@
 <app-side-navigation-wrapper
   [currentStepHeadline]="field.fieldGroup[selectedIndex].props.label"
   [currentStep]="selectedIndex"
-  [headline]="field.fieldGroup[selectedIndex].props.title"
   [maxNumberOfSteps]="field.fieldGroup.length"
   [model]="field.model"
   [steps]="field.fieldGroup"
@@ -16,10 +15,10 @@
       <mat-tab
         [label]="tab.props.label"
       >
-        <div class="container">
+        <gem-demis-max-height-content-container [elementSelectorsToSubtract]="['app-navbar', '#pathogen-tab-section-header', '#pathogen-actions-bar']">
           <formly-field [field]="tab"></formly-field>
-        </div>
-        <mat-toolbar>
+        </gem-demis-max-height-content-container>
+        <mat-toolbar id="pathogen-actions-bar">
           <mat-toolbar-row>
             <div>
               <a fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}" routerLink="./">@if (!first) {

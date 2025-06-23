@@ -31,37 +31,34 @@ import { practitionerInfoFormConfigFields } from './practitioner-info.config';
 import { oneTimeCodeConfigField } from './oneTimeCode.config';
 import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
 import { tap } from 'rxjs/operators';
-import { isNewCheckboxForCopyAddressEnabled } from '../../../../utils/pathogen-notification-mapper';
 
 export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDisplay[], needsContact: boolean = true): FormlyFieldConfig[] => {
-  return isNewCheckboxForCopyAddressEnabled()
-    ? [
-        {
-          // recognizes any change in notifierFacility to make sure that the address is copied correctly
-          hooks: {
-            onInit: field => {
-              const root = field.parent.parent;
-              return root.fieldGroup
-                .find(field => field.key === 'notifierFacility')
-                .options.fieldChanges.pipe(
-                  tap(() => {
-                    const submittingFacilityModel = root.model.submittingFacility;
-                    if (submittingFacilityModel.copyAddressCheckBox) {
-                      const notifierFacilityModel = field.parent.model;
-                      if (!notifierFacilitySourceIsInvalid(notifierFacilityModel, field)) {
-                        const targetField = root.fieldGroup.find(field => field.key === 'submittingFacility');
-                        copyAddress(notifierFacilityModel, targetField);
-                        targetField.fieldGroup.find(field => field.key === 'copyAddressCheckBox').formControl.enable();
-                      }
-                    }
-                  })
-                );
-            },
-          },
+  return [
+    {
+      // recognizes any change in notifierFacility to make sure that the address is copied correctly
+      hooks: {
+        onInit: field => {
+          const root = field.parent.parent;
+          return root.fieldGroup
+            .find(field => field.key === 'notifierFacility')
+            .options.fieldChanges.pipe(
+              tap(() => {
+                const submittingFacilityModel = root.model.submittingFacility;
+                if (submittingFacilityModel.copyAddressCheckBox) {
+                  const notifierFacilityModel = field.parent.model;
+                  if (!notifierFacilitySourceIsInvalid(notifierFacilityModel, field)) {
+                    const targetField = root.fieldGroup.find(field => field.key === 'submittingFacility');
+                    copyAddress(notifierFacilityModel, targetField);
+                    targetField.fieldGroup.find(field => field.key === 'copyAddressCheckBox').formControl.enable();
+                  }
+                }
+              })
+            );
         },
-        ...notifierFacilityFormConfigFields(countryCodeDisplays).concat(contactsFormConfigFields(needsContact)),
-      ]
-    : notifierFacilityFormConfigFields(countryCodeDisplays).concat(contactsFormConfigFields(needsContact));
+      },
+    },
+    ...notifierFacilityFormConfigFields(countryCodeDisplays).concat(contactsFormConfigFields(needsContact)),
+  ];
 };
 
 export const notifierFacilityFormConfigFields = (countryCodeDisplays: CodeDisplay[]): FormlyFieldConfig[] => {

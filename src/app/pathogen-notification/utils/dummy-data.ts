@@ -22,126 +22,166 @@ import {
   NotificationLaboratoryCategory,
   NotifiedPersonBasicInfo,
 } from '../../../api/notification';
-import { GERMANY_COUNTRY_CODE, newDate, UI_DATE_FORMAT_ENG, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
+import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, UI_DATE_FORMAT_ENG, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
 import { transformPathogenTestToPathogenForm } from './data-transformation';
+import { environment } from '../../../environments/environment';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import UsageEnum = ContactPointInfo.UsageEnum;
 import GenderEnum = NotifiedPersonBasicInfo.GenderEnum;
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 
-const pathogenTestDummyDataSource: any = {
-  notifierFacility: {
-    facilityInfo: {
-      institutionName: 'TEST Organisation',
-      bsnr: '248123512',
-      existsBsnr: true,
-    },
-    address: {
-      zip: ZIP_CODE_DEFAULT,
-      country: GERMANY_COUNTRY_CODE,
-      street: 'Im Himmelreich',
-      // institutionName: 'TEST Organisation',
-      additionalInfo: null,
-      city: 'Frühling',
-      houseNumber: '1',
-      addressType: AddressType.Current,
-    },
-    contact: {
-      salutation: 'Mr',
-      prefix: 'Dr',
-      firstname: 'Melderina',
-      lastname: 'Melderson',
-    },
-    contacts: [
-      {
-        contactType: ContactTypeEnum.Phone,
-        value: '0182736912388889',
-        usage: UsageEnum.Work,
+const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
+  return {
+    notifierFacility: {
+      facilityInfo: {
+        institutionName: 'TEST Organisation',
+        bsnr: '248123512',
+        existsBsnr: true,
       },
-      {
-        contactType: ContactTypeEnum.Email,
-        value: 'testerino@test.de',
+      address: {
+        zip: ZIP_CODE_DEFAULT,
+        country: GERMANY_COUNTRY_CODE,
+        street: 'Im Himmelreich',
+        // institutionName: 'TEST Organisation',
+        additionalInfo: null,
+        city: 'Frühling',
+        houseNumber: '1',
+        addressType: AddressType.Current,
       },
-    ],
-  },
-  submittingFacility: {
-    facilityInfo: {
-      institutionName: 'Das Einsenderinstitut',
-      departmentName: 'Station 9a',
-    },
-    address: {
-      zip: ZIP_CODE_DEFAULT,
-      country: GERMANY_COUNTRY_CODE,
-      street: 'Am Einsenderdamm',
-      city: 'Einsendercity',
-      houseNumber: '1',
-    },
-    contact: {
-      salutation: 'Mrs',
-      prefix: 'Dr',
-      firstname: 'Einsenderina',
-      lastname: 'Einsenderson',
-    },
-    contacts: [
-      {
-        contactType: ContactTypeEnum.Phone,
-        value: '012345678',
+      contact: {
+        salutation: 'Mr',
+        prefix: 'Dr',
+        firstname: 'Melderina',
+        lastname: 'Melderson',
       },
-      {
-        contactType: ContactTypeEnum.Email,
-        value: 'einsender@einsenderinstitut.de',
+      contacts: [
+        {
+          contactType: ContactTypeEnum.Phone,
+          value: '0182736912388889',
+          usage: UsageEnum.Work,
+        },
+        {
+          contactType: ContactTypeEnum.Email,
+          value: 'testerino@test.de',
+        },
+      ],
+    },
+    submittingFacility: {
+      facilityInfo: {
+        institutionName: 'Das Einsenderinstitut',
+        departmentName: 'Station 9a',
       },
-    ],
-  },
-  notifiedPerson: {
-    info: {
-      firstname: 'Max',
-      lastname: 'Power',
-      birthDate: newDate(UI_DATE_FORMAT_ENG),
-      gender: GenderEnum.Male,
-    },
-    residenceAddress: {
-      zip: ZIP_CODE_DEFAULT,
-      country: GERMANY_COUNTRY_CODE,
-      street: 'Wohnsitzstraße',
-      city: 'Berlin',
-      houseNumber: '1',
-      addressType: AddressType.Primary,
-    },
-    currentAddress: {
-      addressType: AddressType.PrimaryAsCurrent,
-    },
-    contacts: [
-      {
-        contactType: ContactTypeEnum.Phone,
-        value: '012345767',
+      address: {
+        zip: ZIP_CODE_DEFAULT,
+        country: GERMANY_COUNTRY_CODE,
+        street: 'Am Einsenderdamm',
+        city: 'Einsendercity',
+        houseNumber: '1',
       },
-      { contactType: ContactTypeEnum.Email, value: 'testerino@test.de' },
-    ],
-  },
-  pathogen: 'invp',
+      contact: {
+        salutation: 'Mrs',
+        prefix: 'Dr',
+        firstname: 'Einsenderina',
+        lastname: 'Einsenderson',
+      },
+      contacts: [
+        {
+          contactType: ContactTypeEnum.Phone,
+          value: '012345678',
+        },
+        {
+          contactType: ContactTypeEnum.Email,
+          value: 'einsender@einsenderinstitut.de',
+        },
+      ],
+    },
+    notifiedPerson: {
+      info: {
+        firstname: 'Max',
+        lastname: 'Power',
+        birthDate: getTodayDate(),
+        gender: GenderEnum.Male,
+      },
+      residenceAddress: {
+        zip: ZIP_CODE_DEFAULT,
+        country: GERMANY_COUNTRY_CODE,
+        street: 'Wohnsitzstraße',
+        city: 'Berlin',
+        houseNumber: '1',
+        addressType: AddressType.Primary,
+      },
+      currentAddress: {
+        addressType: AddressType.PrimaryAsCurrent,
+      },
+      contacts: [
+        {
+          contactType: ContactTypeEnum.Phone,
+          value: '012345767',
+        },
+        { contactType: ContactTypeEnum.Email, value: 'testerino@test.de' },
+      ],
+    },
+    pathogen: isNonNominal ? pathogenDataNonNominal.pathogen : 'invp',
+    notificationCategory: isNonNominal
+      ? pathogenDataNonNominal.notificationCategory
+      : {
+          federalStateCodeDisplay: 'DE-BW',
+          pathogenDisplay: 'Influenzavirus',
+          pathogen: 'Influenza A-Virus' as unknown as CodeDisplay,
+          reportStatus: ReportStatusEnum.Preliminary,
+        },
+    pathogenDTO: isNonNominal
+      ? pathogenDataNonNominal.pathogenDTO
+      : {
+          codeDisplay: {
+            code: 'invp',
+            display: 'Influenzavirus; Meldepflicht nur für den direkten Nachweis',
+            designations: [{ language: 'de', value: 'Influenzavirus' }],
+          },
+          specimenList: [
+            {
+              specimenDTO: {
+                extractionDate: getTodayDate(),
+                receivedDate: getTodayDate(),
+                material: 'Rachenabstrich' as unknown as CodeDisplay,
+                methodPathogenList: [
+                  {
+                    method: 'Antigennachweis' as unknown as CodeDisplay,
+                    result: ResultEnum.Pos,
+                  },
+                ],
+                resistanceList: [],
+                resistanceGeneList: [],
+              },
+            },
+          ],
+        },
+  };
+};
+
+const pathogenDataNonNominal = {
+  pathogen: 'hivp',
   notificationCategory: {
-    federalStateCodeDisplay: 'DE-BW',
-    pathogenDisplay: 'Influenzavirus',
-    pathogen: 'Influenza A-Virus' as unknown as CodeDisplay,
+    pathogenDisplay: 'HIV',
+    pathogen: 'Humanes Immundefizienz-Virus' as unknown as CodeDisplay,
     reportStatus: ReportStatusEnum.Preliminary,
   },
   pathogenDTO: {
     codeDisplay: {
-      code: 'invp',
-      display: 'Influenzavirus; Meldepflicht nur für den direkten Nachweis',
-      designations: [{ language: 'de', value: 'Influenzavirus' }],
+      code: 'hivp',
+      display: 'Humanes Immundefizienz-Virus (HIV)',
+      designations: [{ language: 'de-DE', value: 'HIV' }],
     },
     specimenList: [
       {
         specimenDTO: {
-          extractionDate: newDate(UI_DATE_FORMAT_ENG),
-          receivedDate: newDate(UI_DATE_FORMAT_ENG),
-          material: 'Rachenabstrich' as unknown as CodeDisplay,
+          extractionDate: getTodayDate(),
+          receivedDate: getTodayDate(),
+          material: 'Blutprobe' as unknown as CodeDisplay,
           methodPathogenList: [
             {
-              method: 'Antigennachweis' as unknown as CodeDisplay,
+              method: 'Nukleinsäure-Assay' as unknown as CodeDisplay,
               result: ResultEnum.Pos,
             },
           ],
@@ -153,18 +193,24 @@ const pathogenTestDummyDataSource: any = {
   },
 };
 
-export const pathogenTestDummyData = (): any => {
-  return pathogenTestDummyDataSource;
+function getTodayDate(): string {
+  return environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER ? newDate(DATE_FORMAT) : newDate(UI_DATE_FORMAT_ENG);
+}
+
+export const pathogenTestDummyData = (isNonNominal: boolean): any => {
+  return pathogenTestDummyDataSource(isNonNominal);
 };
 
-export const pathogenFormDummyData = (): any => {
-  return transformPathogenTestToPathogenForm(pathogenTestDummyData());
+export const pathogenFormDummyData = (isNonNominal: boolean): any => {
+  return transformPathogenTestToPathogenForm(pathogenTestDummyData(isNonNominal));
 };
 
-export const dummyDataForPathogenForm = {
-  notifierFacility: pathogenFormDummyData().notifierFacility,
-  submittingFacility: pathogenFormDummyData().submittingFacility,
-  notifiedPerson: pathogenFormDummyData().notifiedPerson,
-  notificationCategory: pathogenFormDummyData().notificationCategory,
-  pathogenDTO: pathogenFormDummyData().pathogenDTO,
+export const dummyDataForPathogenForm = (isNonNominal: boolean) => {
+  return {
+    notifierFacility: pathogenFormDummyData(isNonNominal).notifierFacility,
+    submittingFacility: pathogenFormDummyData(isNonNominal).submittingFacility,
+    notifiedPerson: pathogenFormDummyData(isNonNominal).notifiedPerson,
+    notificationCategory: pathogenFormDummyData(isNonNominal).notificationCategory,
+    pathogenDTO: pathogenFormDummyData(isNonNominal).pathogenDTO,
+  };
 };

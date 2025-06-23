@@ -30,7 +30,6 @@ import { TEXT_MAX_LENGTH } from '../../../legacy/common-utils';
 import { practitionerInfoFormConfigFields } from '../../../legacy/formly/configs/reusable/practitioner-info.config';
 import { contactsFormConfigFields } from '../../../legacy/formly/configs/reusable/contacts.config';
 import { ErrorDialogService } from '../../../services/error-dialog.service';
-import { isNewCheckboxForCopyAddressEnabled } from '../../../utils/pathogen-notification-mapper';
 
 export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dialogService: ErrorDialogService): FormlyFieldConfig[] => {
   return [
@@ -66,9 +65,6 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
             resetAllFields(field, root);
           }
         },
-      },
-      expressions: {
-        hide: () => !isNewCheckboxForCopyAddressEnabled(),
       },
     },
     {

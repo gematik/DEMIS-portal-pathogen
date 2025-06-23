@@ -25,6 +25,7 @@ import { NGXLoggerMock } from 'ngx-logger/testing';
 import { Notification } from '../../../api/notification/model/notification';
 import { NotificationLaboratoryCategory } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
+import { NotificationType } from '../common/routing-helper';
 
 describe('FhirPathogenNotificationService', () => {
   let service: FhirPathogenNotificationService;
@@ -34,11 +35,19 @@ describe('FhirPathogenNotificationService', () => {
 
   beforeEach(async () => {
     environment.pathogenConfig = {
-      featureFlags: {
-        FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA: false,
-      },
+      featureFlags: {},
       gatewayPaths: {
         pathogen: '/api/ng/notification/pathogen',
+        pathogen_7_1: '/api/ng/notification/pathogen/7_1',
+        pathogen_7_3_non_nominal: '/api/ng/notification/pathogen/7_3/non_nominal',
+      },
+      futsPaths: {
+        countryCodes: '/utils/countryCodes',
+        federalStates_7_1: '/laboratory/7.1/federalStates',
+        notificationCategories_7_3: '/laboratory/7.3',
+        notificationCategoriesForFederalState_7_1: '/laboratory/7.1/federalState/',
+        laboratoryDataForSpecificCode_7_1: '/laboratory/7.1/federalState/pathogenData/',
+        laboratoryDataForSpecificCode_7_3: '/laboratory/7.3/pathogenData/',
       },
       ngxLoggerConfig: {
         serverLogLevel: 1,
@@ -78,7 +87,7 @@ describe('FhirPathogenNotificationService', () => {
     spyOn(logger, 'error');
     spyOn(errorDialogService, 'showBasicClosableErrorDialog');
 
-    service.fetchDiagnosticsBasedOnPathogenSelection(pathogenCode).subscribe({
+    service.fetchDiagnosticsBasedOnPathogenSelection(pathogenCode, NotificationType.NominalNotification7_1).subscribe({
       error: err => {
         expect(err).toBeTruthy();
       },
@@ -96,7 +105,7 @@ describe('FhirPathogenNotificationService', () => {
     spyOn(logger, 'error');
     spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
 
-    service.fetchPathogenCodeDisplaysForFederalState(federalStateCode).subscribe({
+    service.fetchPathogenCodeDisplays(NotificationType.NominalNotification7_1, federalStateCode).subscribe({
       error: err => {
         expect(err).toBeTruthy();
       },
@@ -113,7 +122,7 @@ describe('FhirPathogenNotificationService', () => {
     spyOn(logger, 'error');
     spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
 
-    service.fetchFederalStateCodeDisplays().subscribe({
+    service.fetchFederalStateCodeDisplays(NotificationType.NominalNotification7_1).subscribe({
       error: err => {
         expect(err).toBeTruthy();
       },
@@ -185,7 +194,7 @@ describe('FhirPathogenNotificationService', () => {
     spyOn<any>(service, 'removeUnusedFormlyFields').and.callThrough();
     spyOn<any>(FhirPathogenNotificationService, 'setFhirSpecificsDateFormat').and.callThrough();
 
-    service.sendNotification(mockNotification).subscribe(response => {
+    service.sendNotification(mockNotification, NotificationType.NominalNotification7_1).subscribe(response => {
       expect(response).toBeTruthy();
     });
 

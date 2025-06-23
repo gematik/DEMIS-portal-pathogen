@@ -4,7 +4,7 @@
   </div>
 }
 
-<div>
+<gem-demis-max-height-content-container [elementSelectorsToSubtract]="['app-navbar']">
   <form (ngSubmit)="submit()" [formGroup]="form">
     <formly-form
       [fields]="fields"
@@ -14,4 +14,4 @@
     >
     </formly-form>
   </form>
-</div>
+</gem-demis-max-height-content-container>

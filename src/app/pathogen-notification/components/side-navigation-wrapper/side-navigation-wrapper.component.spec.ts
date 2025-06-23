@@ -21,6 +21,8 @@ import { SideNavigationWrapperComponent } from './side-navigation-wrapper.compon
 import { PathogenNotificationComponent } from '../../pathogen-notification.component';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
+import { MockProvider } from 'ng-mocks';
+import { NGXLogger } from 'ngx-logger';
 
 describe('SideNavigationWrapperComponent', () => {
   let component: SideNavigationWrapperComponent;
@@ -29,7 +31,7 @@ describe('SideNavigationWrapperComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [SideNavigationWrapperComponent, NoopAnimationsModule, RouterModule.forRoot([])],
-      providers: [{ provide: PathogenNotificationComponent, useValue: {} }],
+      providers: [{ provide: PathogenNotificationComponent, useValue: {} }, MockProvider(NGXLogger)],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
   }));
@@ -47,7 +49,6 @@ describe('SideNavigationWrapperComponent', () => {
   it('should have default values for inputs', () => {
     expect(component.currentStep).toBe(0);
     expect(component.maxNumberOfSteps).toBe(0);
-    expect(component.headline).toBe('');
     expect(component.currentStepHeadline).toBe('');
     expect(component.steps).toBeUndefined();
     expect(component.model).toBeUndefined();

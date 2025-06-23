@@ -1,11 +1,23 @@
 {
   "featureFlags": {
-    "FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA": false,
-    "FEATURE_FLAG_PORTAL_ERROR_DIALOG": false,
-    "FEATURE_FLAG_PORTAL_REPEAT": false
+    "FEATURE_FLAG_NON_NOMINAL_NOTIFICATION": true,
+    "FEATURE_FLAG_PORTAL_ERROR_DIALOG": true,
+    "FEATURE_FLAG_PORTAL_PASTEBOX": true,
+    "FEATURE_FLAG_PORTAL_REPEAT": true,
+    "FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER": true
   },
   "gatewayPaths": {
-    "pathogen": "/api/ng/notification/pathogen"
+    "pathogen": "/api/ng/notification/pathogen",
+    "pathogen_7_1": "/api/ng/notification/pathogen/7.1",
+    "pathogen_7_3_non_nominal": "/api/ng/notification/pathogen/7.3/non_nominal"
+  },
+  "futsPaths": {
+    "countryCodes": "/utils/countryCodes",
+    "federalStates_7_1": "/laboratory/7.1/federalStates",
+    "notificationCategories_7_3": "/laboratory/7.3",
+    "notificationCategoriesForFederalState_7_1": "/laboratory/7.1/federalState/",
+    "laboratoryDataForSpecificCode_7_1": "/laboratory/7.1/federalState/pathogenData/",
+    "laboratoryDataForSpecificCode_7_3": "/laboratory/7.3/pathogenData/"
   },
   "ngxLoggerConfig": {
     "disableConsoleLogging": false,

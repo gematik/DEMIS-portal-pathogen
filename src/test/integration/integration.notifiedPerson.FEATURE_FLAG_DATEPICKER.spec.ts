@@ -37,18 +37,15 @@ import {
   ADD_BUTTON_EMAIL,
   ADD_BUTTON_PHONE,
   ADDRESS_TYPE_OTHER_FACILITY,
-  ERROR_INVALID_DATE,
-  ERROR_INVALID_DATE_DEPRECATED,
-  FIELD_BIRTH_DATE_DEPRECATED,
   FIELD_COPY_ADDRESS,
   FIELD_EMAIL_CY,
   FIELD_PHONE_NUMBER_CY,
 } from '../shared/test-constants';
 import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
-import { buildMock, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
 
-describe('Pathogen - Notified Person Integration Tests', () => {
+describe('Pathogen - Notified Person Integration Tests with FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER', () => {
   let component: PathogenNotificationComponent;
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
@@ -86,7 +83,10 @@ describe('Pathogen - Notified Person Integration Tests', () => {
   beforeEach(async () => await buildMock());
 
   beforeEach(() => {
-    const result = setupIntegrationTests();
+    const result = setupIntegrationTests({
+      ...mainConfig,
+      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: true },
+    });
 
     fixture = result.fixture;
     component = result.component;
@@ -114,17 +114,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     });
 
     describe('Validation of notifiedPerson ', () => {
-      const deprecatedNotifiedPerson = TEST_PARAMETER_VALIDATION.notifiedPerson.map(entry => {
-        if (entry.expectedResult === ERROR_INVALID_DATE) {
-          return {
-            ...entry,
-            field: FIELD_BIRTH_DATE_DEPRECATED,
-            expectedResult: ERROR_INVALID_DATE_DEPRECATED,
-          };
-        }
-        return entry;
-      });
-      testValidationFor(deprecatedNotifiedPerson);
+      testValidationFor(TEST_PARAMETER_VALIDATION.notifiedPerson);
     });
 
     describe('Validation of residenceAddress', () => {

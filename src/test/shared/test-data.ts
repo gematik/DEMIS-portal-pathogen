@@ -61,6 +61,7 @@ import {
   CLIPBOARD_VALUE_ZIP,
   ERROR_INVALID_BSNR,
   ERROR_INVALID_DATE,
+  ERROR_INVALID_DATE_DEPRECATED,
   ERROR_INVALID_EMAIL,
   ERROR_INVALID_HOUSE_NUMBER,
   ERROR_INVALID_PHONE,
@@ -79,6 +80,8 @@ import {
   FIELD_CURRENT_ADDRESS_ZIP,
   FIELD_DEPARTMENTNAME,
   FIELD_EMAIL_1,
+  FIELD_EXTRACTION_DATE,
+  FIELD_EXTRACTION_DATE_DEPRECATED,
   FIELD_FIRST_NAME,
   FIELD_INSTITUTIONAME,
   FIELD_LAST_NAME,
@@ -96,6 +99,7 @@ import {
   FIELD_PHONE_1,
   FIELD_PREFIX,
   FIELD_RECEIVED_DATE,
+  FIELD_RECEIVED_DATE_DEPRECATED,
   FIELD_RESIDENCE_ADDRESS_CITY,
   FIELD_RESIDENCE_ADDRESS_HOUSE_NUMBER,
   FIELD_RESIDENCE_ADDRESS_STREET,
@@ -936,7 +940,28 @@ export const TEST_PARAMETER_VALIDATION = {
       { field: FIELD_RECEIVED_DATE, value: VALUE_EMPTY, expectedResult: ERROR_REQUIRED },
       { field: FIELD_RECEIVED_DATE, value: VALUE_INVALID_DATE, expectedResult: ERROR_INVALID_DATE },
     ],
-    extractionDate: [{ field: FIELD_RECEIVED_DATE, value: VALUE_INVALID_DATE, expectedResult: ERROR_INVALID_DATE }],
+    extractionDate: [
+      {
+        field: FIELD_EXTRACTION_DATE,
+        value: VALUE_INVALID_DATE,
+        expectedResult: ERROR_INVALID_DATE,
+      },
+    ],
+    receivedDateDeprecated: [
+      { field: FIELD_RECEIVED_DATE_DEPRECATED, value: VALUE_EMPTY, expectedResult: ERROR_REQUIRED },
+      {
+        field: FIELD_RECEIVED_DATE_DEPRECATED,
+        value: VALUE_INVALID_DATE,
+        expectedResult: ERROR_INVALID_DATE_DEPRECATED,
+      },
+    ],
+    extractionDateDeprecated: [
+      {
+        field: FIELD_EXTRACTION_DATE_DEPRECATED,
+        value: VALUE_INVALID_DATE,
+        expectedResult: ERROR_INVALID_DATE_DEPRECATED,
+      },
+    ],
     material: [
       { field: FIELD_MATERIAL, value: VALUE_SPACE, expectedResult: ERROR_OPTION_INCOMPLETE },
       { field: FIELD_MATERIAL, value: VALUE_INVALID_DISPLAY, expectedResult: ERROR_OPTION_MISMATCH },

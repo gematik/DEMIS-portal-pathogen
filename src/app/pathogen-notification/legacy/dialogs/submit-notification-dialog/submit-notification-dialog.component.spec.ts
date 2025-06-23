@@ -24,6 +24,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { LoggerTestingModule } from 'ngx-logger/testing';
 import { of } from 'rxjs';
 import { FhirNotificationService } from '../../services/fhir-notification.service';
+import { NotificationType } from '../../../common/routing-helper';
 
 describe('SubmitNotificationDialogComponent', () => {
   let component: SubmitNotificationDialogComponent;
@@ -44,7 +45,7 @@ describe('SubmitNotificationDialogComponent', () => {
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
-    when(fhirNotificationService.sendNotification(anything())).thenReturn(of());
+    when(fhirNotificationService.sendNotification(anything(), NotificationType.NominalNotification7_1)).thenReturn(of());
     fixture = TestBed.createComponent(SubmitNotificationDialogComponent);
     component = fixture.componentInstance;
   }));

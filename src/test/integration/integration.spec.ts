@@ -14,17 +14,12 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
-import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
-import { TestBed } from '@angular/core/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { MockedComponentFixture, MockProvider, MockRender } from 'ng-mocks';
+import { MockedComponentFixture } from 'ng-mocks';
 import { getHtmlButtonElement } from '../shared/html-element-utils';
 import { getButton, getCheckbox, getDialog, getInput, getStepper } from '../shared/material-harness-utils';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { overrides, PATHOGEN_NOTIFICATION_IMPORTS, setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
 import {
   checkDescribingError,
   clickNextButton,
@@ -35,8 +30,10 @@ import {
   verifyInputFieldValues,
   waitForStability,
 } from '../shared/test-utils';
-import { environment } from '../../environments/environment';
 import {
+  ADD_BUTTON_CLIPBOARD,
+  ADD_BUTTON_EMAIL,
+  ADD_BUTTON_PHONE,
   FIELD_COPY_ADDRESS,
   FIELD_DEPARTMENTNAME,
   FIELD_EMAIL_2,
@@ -60,11 +57,10 @@ import {
   SUBMITTING_VALUE_DEPARTMENT_NAME,
   VALUE_EMPTY,
 } from '../shared/test-constants';
-import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
-import { ClipboardDataService } from '../../app/pathogen-notification/services/clipboard-data.service';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY } from '../shared/test-objects';
 import { lastValueFrom, of } from 'rxjs';
+import { buildMock, setupIntegrationTests } from './integration.base.spec';
 
 describe('Pathogen - Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -92,8 +88,7 @@ describe('Pathogen - Integration Tests', () => {
   const testContactValidationFor = (parameters: any, isMail: boolean, openContactField?: boolean) => {
     parameters.forEach(({ value, expectedResult }) => {
       it(`for the ${isMail ? 'email' : 'phone number'}, the value: '${value}' should throw the error: '${expectedResult}'`, async () => {
-        if (openContactField)
-          await (await getButton(loader, isMail ? '[data-testid="emailAddresses-add-button"]' : '[data-testid="phoneNumbers-add-button"]')).click();
+        if (openContactField) await (await getButton(loader, isMail ? ADD_BUTTON_EMAIL : ADD_BUTTON_PHONE)).click();
         const inputField = await getInput(loader, `[data-cy=${isMail ? FIELD_EMAIL_CY : FIELD_PHONE_NUMBER_CY}]`);
         await inputField.setValue(value);
         await inputField.blur();
@@ -102,46 +97,19 @@ describe('Pathogen - Integration Tests', () => {
     });
   };
 
+  beforeEach(async () => await buildMock());
+
   beforeEach(async () => {
-    environment.pathogenConfig = {
-      featureFlags: {
-        FEATURE_FLAG_COPY_CHECKBOX_FOR_NOTIFIER_DATA: true,
-      },
-      gatewayPaths: {
-        pathogen: '/api/ng/notification/pathogen',
-      },
-      ngxLoggerConfig: {
-        serverLogLevel: 1,
-        disableConsoleLogging: true,
-        level: 1,
-      },
-      pathToGateway: '../gateway/notification',
-      pathToFuts: '../fhir-ui-data-model-translation',
-      production: false,
-    };
-
-    await TestBed.configureTestingModule({
-      imports: [PATHOGEN_NOTIFICATION_IMPORTS, NoopAnimationsModule],
-      providers: [
-        provideHttpClient(withInterceptorsFromDi()),
-        MockProvider(FhirPathogenNotificationService, overrides.fhirPathogenNotificationService),
-        MockProvider(PathogenNotificationStorageService, overrides.pathogenNotificationStorageService),
-        [ClipboardDataService],
-      ],
-    }).compileComponents();
-
-    fixture = MockRender(PathogenNotificationComponent);
-    fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
-    fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysForFederalState as jasmine.Spy;
-    getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
-    getSelectedPathogenCodeDisplaySpy = TestBed.inject(PathogenNotificationStorageService).getSelectedPathogenCodeDisplay as jasmine.Spy;
-    fetchDiagnosticsBasedOnPathogenSelectionSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as jasmine.Spy;
-    setSelectedPathogenCodeDisplay(null);
-    setDiagnosticBasedOnPathogenSelection(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP);
-    component = fixture.point.componentInstance;
-    loader = TestbedHarnessEnvironment.loader(fixture);
+    const result = setupIntegrationTests();
+    fixture = result.fixture;
+    component = result.component;
+    loader = result.loader;
     fixture.detectChanges();
+  });
+
+  it('should show 7.1 header', async () => {
+    let textContent = fixture.nativeElement.textContent;
+    expect(textContent.includes('Erregernachweis (§7.1)')).toBeTrue();
   });
 
   it('should not send, when nothing is inserted', async () => {
@@ -173,27 +141,6 @@ describe('Pathogen - Integration Tests', () => {
       await reportStep.select();
 
       expect(await parallel(() => steps.map(step => step.isSelected()))).toEqual([false, false, false, true, false]);
-    });
-  });
-
-  describe('Notifier Facility', () => {
-    it('should be at notifier facility form', async () => {
-      expect(fixture.nativeElement.textContent).toContain('Ansprechperson (Melder)');
-    });
-    describe('Validation of facilityInfo', () => {
-      testValidationFor(TEST_PARAMETER_VALIDATION.facilityInfo);
-    });
-    describe('Validation of address', () => {
-      testValidationFor(TEST_PARAMETER_VALIDATION.notifierFacilityAddress);
-    });
-    describe('Validation of contactPerson', () => {
-      testValidationFor(TEST_PARAMETER_VALIDATION.contactPerson);
-    });
-    describe('Validation of email', () => {
-      testContactValidationFor(TEST_PARAMETER_VALIDATION.email, true);
-    });
-    describe('Validation of phone number', () => {
-      testContactValidationFor(TEST_PARAMETER_VALIDATION.phone, false);
     });
   });
 
@@ -311,8 +258,9 @@ describe('Pathogen - Integration Tests', () => {
         await waitForStability(fixture);
         await setInputFieldValue(loader, notifierTestFacility.email.selector, notifierTestFacility.email.value, fixture);
         await waitForStability(fixture);
-        await (await getButton(loader, '#btn-email-adresse-hinzufügen')).click();
-        await setInputFieldValue(loader, `#${FIELD_EMAIL_2}`, 'myemail@test.de', fixture);
+        await (await getButton(loader, ADD_BUTTON_EMAIL)).click();
+        const testEmail = 'myemail@test.de';
+        await setInputFieldValue(loader, `#${FIELD_EMAIL_2}`, testEmail, fixture);
 
         // assertion: data should have been changed in submitter as well
         await selectPageByNumber(loader, fixture, 1);
@@ -332,7 +280,7 @@ describe('Pathogen - Integration Tests', () => {
           },
           {
             selector: `#${FIELD_EMAIL_2}`,
-            expectedValue: 'myemail@test.de',
+            expectedValue: testEmail,
           },
         ]);
       });
@@ -342,7 +290,7 @@ describe('Pathogen - Integration Tests', () => {
 
         const p = lastValueFrom(of('URL S.name=Ein Name'));
         spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
-        await (await getButton(loader, '#btn-fill-form')).click();
+        await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
         expect(await facilitynameInput.getValue()).toBe('Ein Name');
 
@@ -375,8 +323,10 @@ describe('Pathogen - Integration Tests', () => {
         //assertion
         await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader, false);
         const dialog = await getDialog(TestbedHarnessEnvironment.documentRootLoader(fixture), '.mat-mdc-dialog-container');
-        expect(await dialog.getText()).toContain('error Fehler bei der Auswahl Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.');
-        const noButton = await getButton(TestbedHarnessEnvironment.documentRootLoader(fixture), '#btn-conf-dialog-no');
+        const dialogText = await dialog.getText();
+        expect(dialogText).toContain('Fehler bei der Auswahl');
+        expect(dialogText).toContain('Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.');
+        const noButton = await getButton(TestbedHarnessEnvironment.documentRootLoader(fixture), '#close-btn');
         await noButton.click();
 
         await assertCheckboxUnchecked(`#${FIELD_COPY_ADDRESS}`);

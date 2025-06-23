@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { FormlyFieldConfig, FormlyFormOptions, FormlyModule } from '@ngx-formly/core';
@@ -44,19 +44,23 @@ import {
   getResetModel,
   initializeDiagnosticFields,
   initializeSelectPathogenFields,
+  isNonNominalNotificationEnabled,
   updatePathogenForm,
 } from './utils/pathogen-notification-mapper';
 import { applyFilter } from './formly/configs/pathogen/select-notification-category.config';
 import { dummyDataForPathogenForm, pathogenTestDummyData } from './utils/dummy-data';
 import { pathogenSpecimenFields } from './formly/configs/pathogen/pathogen-specimen.config';
 import { initialModelForClipboard } from './services/core/clipboard-constants';
+import { Router } from '@angular/router';
+import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
+import { getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
 
 @Component({
   selector: 'app-pathogen-notification',
   templateUrl: './pathogen-notification.component.html',
   styleUrls: ['./pathogen-notification.component.scss'],
   standalone: true,
-  imports: [MatProgressSpinner, ReactiveFormsModule, FormlyModule],
+  imports: [MatProgressSpinner, ReactiveFormsModule, FormlyModule, MaxHeightContentContainerComponent],
 })
 export class PathogenNotificationComponent implements OnInit, OnDestroy {
   form: FormGroup = new FormGroup({});
@@ -80,10 +84,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   pathogenCodeDisplays: CodeDisplay[] = [];
   countryCodeDisplays: CodeDisplay[] = [];
   pathogenData: PathogenData;
+  notificationType = NotificationType.NominalNotification7_1;
   private notificationCategoryKey = 'notificationCategory';
   private defaultFederalState = 'DE-BW';
   private pathogenIsChangingFromClipboard = false;
   private currentPathogenValue = '';
+  readonly router = inject(Router);
 
   constructor(
     public dialog: MatDialog,
@@ -95,7 +101,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   ) {
     this.sendFunction = (pathogenForm: any) => {
       const pathogenTest = transformPathogenFormToPathogenTest(pathogenForm, this.getSelectedPathogenCodeDisplayFromStorage(), this.pathogenData);
-      this.fhirPathogenNotificationService.openSubmitDialog(pathogenTest);
+      this.fhirPathogenNotificationService.openSubmitDialog(pathogenTest, this.notificationType);
     };
   }
 
@@ -104,10 +110,13 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.changeLoadingState(true);
     const selectedFederalStateCode = this.notificationStorageService.getFederalStateCode() || this.defaultFederalState;
 
+    if (isNonNominalNotificationEnabled()) {
+      this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
+    }
     forkJoin([
       this.fhirPathogenNotificationService.fetchCountryCodeDisplays(),
-      this.fhirPathogenNotificationService.fetchFederalStateCodeDisplays(),
-      this.fhirPathogenNotificationService.fetchPathogenCodeDisplaysForFederalState(selectedFederalStateCode),
+      this.fhirPathogenNotificationService.fetchFederalStateCodeDisplays(this.notificationType),
+      this.fhirPathogenNotificationService.fetchPathogenCodeDisplays(this.notificationType, selectedFederalStateCode),
     ])
       .pipe(
         take(1),
@@ -138,7 +147,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
         this.changeLoadingState(false);
         setTimeout(() => {
-          this.subscribeToFederalStateChanges();
+          if (this.notificationType === NotificationType.NominalNotification7_1) {
+            this.subscribeToFederalStateChanges();
+          }
           this.subscribeToPathogenChanges();
           this.subscribeToCurrentAddressTypeChanges();
         });
@@ -280,7 +291,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     selectedFederalStateCode = selectedFederalStateCode ?? this.defaultFederalState; // necessary if not in clipboard data
     this.notificationStorageService.setFederalStateCode(selectedFederalStateCode);
     this.fhirPathogenNotificationService
-      .fetchPathogenCodeDisplaysForFederalState(selectedFederalStateCode)
+      .fetchPathogenCodeDisplays(this.notificationType, selectedFederalStateCode)
       .pipe(take(1))
       .subscribe((pathogenCodeDisplays: CodeDisplay[]) => {
         this.pathogenCodeDisplays = pathogenCodeDisplays;
@@ -295,8 +306,14 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         if (!fromHexHexButton) this.setValueForPathogenSelectionField('');
 
         this.resetNotificationCategoryAndSpecimenList();
-        if (fromHexHexButton) this.updateAfterPathogenSelection(pathogenTestDummyData().pathogenDTO.codeDisplay, true);
+        if (fromHexHexButton) {
+          this.updateAfterPathogenSelection(pathogenTestDummyData(this.isNonNominalNotification7_3()).pathogenDTO.codeDisplay, true);
+        }
       });
+  }
+
+  private isNonNominalNotification7_3(): boolean {
+    return this.notificationType === NotificationType.NonNominalNotification7_3;
   }
 
   private updateAfterPathogenSelection(selectedPathogenCodeDisplay: CodeDisplay, fromHexHexButton: boolean = false, fromClipboard = false) {
@@ -306,7 +323,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.changeLoadingState(true);
     this.resetNotificationCategoryAndSpecimenList();
     this.fhirPathogenNotificationService
-      .fetchDiagnosticsBasedOnPathogenSelection(selectedPathogenCodeDisplay.code)
+      .fetchDiagnosticsBasedOnPathogenSelection(selectedPathogenCodeDisplay.code, this.notificationType)
       .pipe(
         take(1),
         catchError(error => {
@@ -342,15 +359,27 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
             this.closePathogenSelectionAutocomplete();
           });
         } else {
-          this.model.pathogenForm = dummyDataForPathogenForm;
-          //fix for a bug where the pathogen field was not populated if it was cleared by user
-          this.setValueForPathogenSelectionField('Influenzavirus');
-          this.form.markAllAsTouched();
+          this.updateFormForHexHex();
         }
         if (!fromClipboard) {
           this.changeLoadingState(false);
         }
       });
+  }
+
+  private updateFormForHexHex() {
+    if (this.isNonNominalNotification7_3()) {
+      this.model.pathogenForm = dummyDataForPathogenForm(true);
+    } else {
+      this.model.pathogenForm = dummyDataForPathogenForm(false);
+    }
+    //fix for a bug where the pathogen field was not populated if it was cleared by user
+    if (this.isNonNominalNotification7_3()) {
+      this.setValueForPathogenSelectionField('HIV');
+    } else {
+      this.setValueForPathogenSelectionField('Influenzavirus');
+    }
+    this.form.markAllAsTouched();
   }
 
   private async updatePathogenSelectionListAfterClipboardUpdate(pathogenCode: string): Promise<void> {
@@ -402,6 +431,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.getSubPathogenSelectionField().props.filter = (term: string) => applyFilter(term, subPathogens);
 
     this.diagnosticFormFields = pathogenSpecimenFields(
+      this.isNonNominalNotification7_3(),
       materials,
       methods,
       resistanceGenes,

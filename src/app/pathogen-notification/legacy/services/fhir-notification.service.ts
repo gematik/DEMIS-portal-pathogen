@@ -21,6 +21,8 @@ import { Observable } from 'rxjs';
 import { Notification, PathogenTest } from '../../../../api/notification';
 import { trimStrings } from '@gematik/demis-portal-core-library';
 import { environment } from '../../../../environments/environment';
+import { isNonNominalNotificationEnabled } from '../../utils/pathogen-notification-mapper';
+import { NotificationType } from '../../common/routing-helper';
 import NotificationTypeEnum = Notification.NotificationTypeEnum;
 
 @Injectable({
@@ -47,20 +49,34 @@ export abstract class FhirNotificationService {
     });
   }
 
-  sendNotification(notification: Notification) {
+  sendNotification(notification: Notification, notificationType: NotificationType) {
     // https://service.gematik.de/browse/DSC2-4453  Anforderung 2
     const trimmedNotification: Notification = trimStrings(notification);
 
     if (trimmedNotification.notificationType === NotificationTypeEnum.PathogenTest) {
-      return this.confirmSendPathogenNotification(trimmedNotification.pathogenTest);
+      return this.confirmSendPathogenNotification(trimmedNotification.pathogenTest, notificationType);
     } else {
       this.logger.error('Unbekannter Meldungstyp: ', trimmedNotification);
       throw new Error('Unknown notification type: ' + JSON.stringify(trimmedNotification));
     }
   }
 
-  private confirmSendPathogenNotification(pathogenTest: PathogenTest): Observable<HttpResponse<any>> {
-    const fullUrl = this.url + environment.pathToPathogen;
+  getNotificationUrl(type: NotificationType): string {
+    if (!isNonNominalNotificationEnabled()) {
+      return this.url + environment.pathToPathogen;
+    }
+    switch (type) {
+      case NotificationType.NonNominalNotification7_3:
+        return this.url + environment.pathToPathogen_7_3_nonNominal;
+      case NotificationType.NominalNotification7_1:
+        return this.url + environment.pathToPathogen_7_1;
+      default:
+        return this.url + environment.pathToPathogen;
+    }
+  }
+
+  private confirmSendPathogenNotification(pathogenTest: PathogenTest, notificationType: NotificationType): Observable<HttpResponse<any>> {
+    let fullUrl = this.getNotificationUrl(notificationType);
     return this.httpClient.post(fullUrl, JSON.stringify(pathogenTest), {
       headers: FhirNotificationService.getHeaders(),
       observe: 'response',

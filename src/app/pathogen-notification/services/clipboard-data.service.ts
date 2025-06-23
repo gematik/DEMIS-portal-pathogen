@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { merge } from 'lodash-es';
 import { NGXLogger } from 'ngx-logger';
@@ -22,7 +22,7 @@ import { AddressType, CodeDisplay, PathogenData, PathogenTest } from '../../../a
 import { matchesRegExp } from '../legacy/notification-form-validation-module';
 import { ErrorMessageDialogComponent } from '../legacy/dialogs/message-dialog/error-message-dialog.component';
 import { MessageType } from '../legacy/models/ui/message';
-import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
+import { formatCodeDisplayToDisplay, germanToIsoFormat, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
 import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenForm } from '../utils/data-transformation';
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
 import { addContact, ClipboardErrorTexts, ClipboardRules, FACILITY_RULES, initialModelForClipboard, PERSON_RULES } from './core/clipboard-constants';
@@ -39,13 +39,12 @@ export class ClipboardDataService {
   // info for pathogen notification component: calls backend and updates diagnostic data
   pathogenValueIsChanging = new BehaviorSubject<string>('');
   pathogenDataIsChangingFromClipboard = new BehaviorSubject<boolean>(false);
+  readonly clipboardData = signal<string[][] | undefined>(undefined);
 
-  constructor(
-    public dialog: MatDialog,
-    protected logger: NGXLogger,
-    private notificationStorageService: PathogenNotificationStorageService,
-    private messageDialogService: MessageDialogService
-  ) {}
+  public readonly dialog = inject(MatDialog);
+  protected readonly logger = inject(NGXLogger);
+  private readonly notificationStorageService = inject(PathogenNotificationStorageService);
+  private readonly messageDialogService = inject(MessageDialogService);
 
   SUBMITTING_FACILITY_RULES: ClipboardRules = {
     'S.name': value => ({ submittingFacility: { facilityInfo: { institutionName: value } } }),
@@ -158,10 +157,19 @@ export class ClipboardDataService {
     return model;
   }
 
+  private get FEATURE_FLAG_PORTAL_PASTEBOX() {
+    return environment.featureFlags.FEATURE_FLAG_PORTAL_PASTEBOX ?? false;
+  }
+
   private async getClipboardDataWithoutDiagnostic(model: any): Promise<any> {
-    const clipboardData = await this.readClipboard();
-    this.validateClipboardData(clipboardData);
-    let transformedClipboardData = this.transformClipboardData(clipboardData);
+    let transformedClipboardData: string[][] | undefined;
+    if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
+      transformedClipboardData = this.clipboardData();
+    } else {
+      const clipboardData = await this.readClipboard();
+      this.validateClipboardData(clipboardData);
+      transformedClipboardData = this.transformClipboardData(clipboardData);
+    }
     model = this.transformModelForSubmittingFacilityCheckbox(transformedClipboardData, model);
     let [transformedModel, transformedClipboardDataForAddress] = await this.transformClipboardDataForAddress(model, transformedClipboardData);
     transformedModel = await this.resetCurrentAddressOnTypeChange(transformedModel, transformedClipboardDataForAddress);
@@ -221,16 +229,25 @@ export class ClipboardDataService {
   }
 
   private async getClipboardDataWithNotificationCategoryAndDiagnostic(model: any): Promise<any> {
-    const clipboardData = await this.readClipboard();
-    this.validateClipboardData(clipboardData);
-    const transformedClipboardData = this.transformClipboardData(clipboardData);
+    let transformedClipboardData: string[][] | undefined;
+    if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
+      transformedClipboardData = this.clipboardData();
+    } else {
+      const clipboardData = await this.readClipboard();
+      this.validateClipboardData(clipboardData);
+      transformedClipboardData = this.transformClipboardData(clipboardData);
+    }
     this.setSignalToFetchPathogenData(false, transformedClipboardData);
     if (this.checkDiagnosticRules(transformedClipboardData)) {
       await this.fillModelFromClipBoard(model, { ...this.DIAGNOSTIC_CLIPBOARD_RULES }, transformedClipboardData);
     }
+
     return model;
   }
 
+  /**
+   * @deprecated
+   */
   private async readClipboard(): Promise<string> {
     try {
       return await navigator.clipboard.readText();
@@ -253,6 +270,9 @@ export class ClipboardDataService {
     }
   }
 
+  /**
+   * @deprecated
+   */
   validateClipboardData(clipboardData: string): void {
     if (!matchesRegExp(/^URL .*/, clipboardData)) {
       if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG) {
@@ -272,6 +292,9 @@ export class ClipboardDataService {
     }
   }
 
+  /**
+   * @deprecated
+   */
   private transformClipboardData(clipboardData: string): string[][] {
     const urlParams = clipboardData.substring(4);
     const transformedClipboardData = decodeURI(urlParams)
@@ -413,5 +436,19 @@ export class ClipboardDataService {
     }
     this.logger.error('PathogenData is undefined');
     return '';
+  }
+
+  normalizeClipboardData(clipboardData: Map<string, string>) {
+    const normalized = new Map<string, string>();
+
+    for (const [key, value] of clipboardData.entries()) {
+      if (typeof value === 'string') {
+        normalized.set(key, germanToIsoFormat(value));
+      } else {
+        normalized.set(key, value);
+      }
+    }
+
+    return normalized;
   }
 }

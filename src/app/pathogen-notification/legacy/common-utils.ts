@@ -17,7 +17,7 @@
 import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
-import { format } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import { DateTime } from 'luxon';
 import { v4 as uuid_v4 } from 'uuid';
 
@@ -95,6 +95,8 @@ export const INIT_INFO_VALIDATOR_ERROR_MSG: string = 'Informationen zur Person n
 export const ADDITIONAL_INFO_ERROR_MSG: string = 'Ihre Eingabe enthält unzulässige Sonderzeichen.';
 export const NUMBER_OF_BEDS_ERROR_MSG: string = 'Bitte geben Sie eine positive Zahl ein.';
 export const EMPTY_DROPDOWN_MENU_MSG: string = 'Es konnten keine Standorte zu Ihrem Institutionskennzeichen gefunden werden!';
+export const VALUE_DEFAULT_PLACEHOLDER = 'Bitte eingeben';
+export const VALUE_DEFUALT_SELECT_PLACEHOLDER = 'Bitte auswählen';
 
 export const GERMAN_LANGUAGE_SELECTORS = ['de', 'de-de', 'de-at', 'de-ch'];
 
@@ -195,6 +197,55 @@ export function stringToDateFromLuxon(date: string, format?: string): Date {
   format = format ?? UI_LUXON_DATE_FORMAT;
   //@ts-ignore
   return !!date && DateTime.fromFormat(date, format).isValid ? DateTime.fromFormat(date, format).toJSDate() : null;
+}
+
+/**
+ * Converts a date string in YYYY-MM-DD format to dd.MM.yyyy.
+ * Returns empty string if input is not exactly in that format or invalid.
+ */
+export function isoToGermanFormat(dateIso: string): string {
+  if (!dateIso) return '';
+  const parsed = parse(dateIso, 'yyyy-MM-dd', new Date());
+  return isValid(parsed) ? format(parsed, 'dd.MM.yyyy') : '';
+}
+
+/**
+ * If a german date string is given (ie. 14.03.2020 or 03.2022), it will be converted to ISO format.
+ * @param input
+ */
+export function germanToIsoFormat(input: string): string {
+  const formatsToTry = ['dd.MM.yyyy', 'MM.yyyy'];
+  for (const fmt of formatsToTry) {
+    const parsed = parse(input, fmt, new Date());
+    if (isValid(parsed)) {
+      if (fmt === 'dd.MM.yyyy') return format(parsed, 'yyyy-MM-dd');
+      if (fmt === 'MM.yyyy') return format(parsed, 'yyyy-MM');
+    }
+  }
+
+  return input;
+}
+
+/**
+ * Converts a date string to YYMMDD format.
+ * Supports both "DD.MM.YYYY" and "YYYY-MM-DD".
+ *
+ * @param date e.g., "05.11.1998" or "1998-11-05"
+ * @returns birthDate as YYMMDD, e.g., "981105"
+ */
+export function formatDateToYYMMDD(date: string): string {
+  if (!date) return '';
+
+  const formatsToTry = ['dd.MM.yyyy', 'yyyy-MM-dd'];
+
+  for (const fmt of formatsToTry) {
+    const parsed = parse(date, fmt, new Date());
+    if (isValid(parsed)) {
+      return format(parsed, 'yyMMdd');
+    }
+  }
+
+  return '';
 }
 
 /***

@@ -14,21 +14,27 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { FormlyModule } from '@ngx-formly/core';
-import { AbstractControl } from '@angular/forms';
-import { endDateValidator } from '../legacy/notification-form-validation-module';
-
-export const PathogenFormValidationModule = FormlyModule.forRoot({
-  validators: [
-    {
-      name: 'receivedDateStartDateValidator',
-      validation: receivedDateStartDateValidation,
-    },
-  ],
-});
-
-export const EXTRACTION_START_ERROR_MSG: string = 'Das Entnahmedatum darf nicht nach dem Eingangsdatum liegen';
-
-function receivedDateStartDateValidation(control: AbstractControl): any {
-  return endDateValidator(control.parent?.value?.extractionDate, control.value, EXTRACTION_START_ERROR_MSG);
+export enum NotificationType {
+  NominalNotification7_1,
+  NonNominalNotification7_3,
+  AnonymousNotification7_3,
 }
+
+interface AllowedRoutes {
+  [key: string]: string;
+}
+
+export const allowedRoutes: AllowedRoutes = {
+  nominal: 'pathogen-notification/7_1',
+  nonNominal: 'pathogen-notification/7_3/non-nominal',
+  anonymous: 'pathogen-notification/7_3/anonymous',
+  main: 'pathogen-notification',
+};
+
+export const getNotificationTypeByRouterUrl = (url: string): NotificationType => {
+  if (url.includes(allowedRoutes.nonNominal)) {
+    return NotificationType.NonNominalNotification7_3;
+  } else {
+    return NotificationType.NominalNotification7_1;
+  }
+};

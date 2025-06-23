@@ -14,11 +14,12 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
-import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
-import { TestBed } from '@angular/core/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { MockedComponentFixture } from 'ng-mocks';
+import { lastValueFrom, of } from 'rxjs';
+import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import {
   getAutocomplete,
   getButton,
@@ -30,20 +31,6 @@ import {
   selectAutocompleteOption,
   selectRadioOption,
 } from '../shared/material-harness-utils';
-import { HarnessLoader } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
-import {
-  buildClipboardString,
-  clickNextButton,
-  createClipboardStringFromObject,
-  switchToPage,
-  verifyAutocompleteField,
-  verifyInputFieldValues,
-  verifyRadioButton,
-  verifySelectField,
-  verifyStateOfDiagnosticPage,
-} from '../shared/test-utils';
 import {
   ADD_BUTTON_CLIPBOARD,
   ADDRESS_TYPE_ORDINARY,
@@ -84,24 +71,24 @@ import {
   TEST_PARAMETER_CLIPBOARD_RESIDENCE_ADDRESS_FULL,
   TEST_PARAMETER_CLIPBOARD_RESIDENCE_ADDRESS_SINGLE_PRIMARY,
 } from '../shared/test-data';
-import { lastValueFrom, of } from 'rxjs';
-import { MatSelectHarness } from '@angular/material/select/testing';
 import { specimenDTO, TEST_FACILITY, TEST_NOTIFICATION_CATEGORY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
-import { buildMock, setupIntegrationTests } from './integration.base.spec';
-import { MessageDialogService } from '@gematik/demis-portal-core-library';
-import { VALUE_DEFUALT_SELECT_PLACEHOLDER } from 'src/app/pathogen-notification/legacy/common-utils';
+import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
+import {
+  buildClipboardString,
+  clickNextButton,
+  createClipboardStringFromObject,
+  switchToPage,
+  verifyAutocompleteField,
+  verifyInputFieldValues,
+  verifyRadioButton,
+  verifySelectField,
+  verifyStateOfDiagnosticPage,
+} from '../shared/test-utils';
+import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
 
-describe('Pathogen - Clipboard Integration Tests', () => {
-  let component: PathogenNotificationComponent;
+describe('Pathogen - Clipboard Integration Tests with FEATURE_FLAG_PORTAL_PASTEBOX and DATEPICKER', () => {
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
-
-  let fetchCountryCodeDisplaysSpy: jasmine.Spy;
-  let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysSpy: jasmine.Spy;
-  let getNotifierFacilitySpy: jasmine.Spy;
-  let fetchDiagnosticsBasedOnPathogenSelectionSpy: jasmine.Spy;
-  let getSelectedPathogenCodeDisplaySpy: jasmine.Spy;
 
   const testClipboardFieldMappingOfNotifiedPersonAddressFor = parameters => {
     parameters.forEach(({ key, value, addressType, selector }) => {
@@ -126,41 +113,21 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
   beforeEach(async () => await buildMock(true));
   beforeEach(() => {
-    const result = setupIntegrationTests();
+    const result = setupIntegrationTests({
+      ...mainConfig,
+      featureFlags: {
+        ...mainConfig.featureFlags,
+        FEATURE_FLAG_PORTAL_PASTEBOX: true,
+        FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: true,
+      },
+    });
+    spyOn(window.navigator.clipboard, 'writeText');
 
     fixture = result.fixture;
-    component = result.component;
-    loader = result.loader;
-    fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
-    fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplays as jasmine.Spy;
-    getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
-    getSelectedPathogenCodeDisplaySpy = TestBed.inject(PathogenNotificationStorageService).getSelectedPathogenCodeDisplay as jasmine.Spy;
-    fetchDiagnosticsBasedOnPathogenSelectionSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as jasmine.Spy;
     setSelectedPathogenCodeDisplay(null);
     setDiagnosticBasedOnPathogenSelection(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP);
+    loader = result.loader;
     fixture.detectChanges();
-  });
-
-  describe('should display specific error dialog in case of error', () => {
-    it('error while readText from clipboard', async () => {
-      const notifierTestFacility = TEST_FACILITY('notifier');
-      const clipboardString = createClipboardStringFromObject(notifierTestFacility, 'URL ');
-      const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
-      const showErrorDialogInsertDataFromClipboardSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialogInsertDataFromClipboard');
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(Promise.reject('Clipboard read error'));
-      await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-      expect(showErrorDialogInsertDataFromClipboardSpy).toHaveBeenCalled();
-    });
-
-    it('invalid input data', async () => {
-      const clipboardString = 'wrongWrongWrongWrong';
-      const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
-      const showErrorDialogInsertDataFromClipboardSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialogInsertDataFromClipboard');
-      await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-      expect(showErrorDialogInsertDataFromClipboardSpy).toHaveBeenCalled();
-    });
   });
 
   describe('Notifier Facility', () => {
@@ -203,7 +170,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       beforeEach(async () => {
         await clickNextButton(fixture);
         salutationSelect = await getSelect(loader, '#salutation');
-        expect(await salutationSelect.getValueText()).toBe(VALUE_DEFUALT_SELECT_PLACEHOLDER);
+        expect(await salutationSelect.getValueText()).toBe('Bitte auswählen');
       });
 
       it('should cause error for invalid salutation', async () => {
@@ -212,7 +179,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
 
-        expect(await salutationSelect.getValueText()).toBe(VALUE_DEFUALT_SELECT_PLACEHOLDER);
+        expect(await salutationSelect.getValueText()).toBe('Bitte auswählen');
       });
 
       it('should set valid female value from clipboard', async () => {
@@ -308,20 +275,20 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       it('should cause error for invalid gender', async () => {
         const genderSelect = await getSelect(loader, '#gender');
         const selectedGender = await genderSelect.getValueText();
-        expect(selectedGender).toBe(VALUE_DEFUALT_SELECT_PLACEHOLDER);
+        expect(selectedGender).toBe('Bitte auswählen');
 
         const p = lastValueFrom(of('URL P.gender=W'));
         spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
 
-        expect(await genderSelect.getValueText()).toBe(VALUE_DEFUALT_SELECT_PLACEHOLDER);
+        expect(await genderSelect.getValueText()).toBe('Bitte auswählen');
       });
 
       it('should set valid value from clipboard', async () => {
         const genderSelect = await getSelect(loader, '#gender');
         const selectedGender = await genderSelect.getValueText();
-        expect(selectedGender).toBe(VALUE_DEFUALT_SELECT_PLACEHOLDER);
+        expect(selectedGender).toBe('Bitte auswählen');
 
         const p = lastValueFrom(of('URL P.gender=Female'));
         spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
@@ -500,7 +467,9 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         const clipboardStringNotificationCategory = createClipboardStringFromObject(TEST_NOTIFICATION_CATEGORY, 'URL ');
         const clipboardStringSpecimen = createClipboardStringFromObject(specimenDTO, '&');
         const p = lastValueFrom(of(clipboardStringNotificationCategory.concat(clipboardStringSpecimen)));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        const clipboardData = clipboardStringNotificationCategory.concat(clipboardStringSpecimen).replace('undefined=undefined&', '');
+        console.log('clipboardData', clipboardData);
+        spyOn(window.navigator.clipboard, 'readText').and.resolveTo(clipboardData);
         await verifyStateOfDiagnosticPage(loader, 'disabled_step');
         // set code for influenzavirus due to local storage issue
         setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);

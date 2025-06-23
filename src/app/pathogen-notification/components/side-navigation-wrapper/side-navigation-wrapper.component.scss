@@ -1,9 +1,19 @@
 .tabs-navigation {
   width: 25vw;
-  padding: 20px;
+  max-width: 437px;
+  padding-left: 44px;
+  padding-right: 44px;
+  padding-top: 44px;
   display: flex;
   flex-direction: row;
   justify-content: stretch;
+}
+
+.stepper-heading {
+  max-width: 345px;
+  padding-bottom:15px;
+  font-size: 15px;
+  color: var(--color-primary);
 }
 
 .section-body {
@@ -16,7 +26,7 @@
   align-content: center;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 20px;
+  padding: 44px 20px 20px;
   max-width: 1140px;
   margin-left: auto;
   margin-right: auto;

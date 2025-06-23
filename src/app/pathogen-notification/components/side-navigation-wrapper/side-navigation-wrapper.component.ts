@@ -14,37 +14,74 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, Input } from '@angular/core';
-import { FormlyFieldConfig } from '@ngx-formly/core';
-import { PathogenNotificationComponent } from '../../pathogen-notification.component';
-import { MatToolbar } from '@angular/material/toolbar';
-import { PasteBoxComponent } from '../../legacy/components/paste-box/paste-box.component';
-import { HexhexbuttonComponent } from '../../legacy/components/hexhexbutton/hexhexbutton.component';
-import { SideNavigationStepperComponent } from '../side-navigation-stepper/side-navigation-stepper.component';
+import { Component, inject, Input } from '@angular/core';
 import { MatDrawer, MatDrawerContainer, MatDrawerContent } from '@angular/material/sidenav';
+import { PasteBoxComponent } from '@gematik/demis-portal-core-library';
+import { FormlyFieldConfig } from '@ngx-formly/core';
+import { environment } from 'src/environments/environment';
+import { HexhexbuttonComponent } from '../../legacy/components/hexhexbutton/hexhexbutton.component';
+import { PasteBoxComponent as DeprecatedPasteBoxComponent } from '../../legacy/components/paste-box/paste-box.component';
+import { PathogenNotificationComponent } from '../../pathogen-notification.component';
+import { SideNavigationStepperComponent } from '../side-navigation-stepper/side-navigation-stepper.component';
+import { ClipboardDataService } from '../../services/clipboard-data.service';
+import { Router } from '@angular/router';
+import { getNotificationTypeByRouterUrl, NotificationType } from '../../common/routing-helper';
 
 @Component({
   selector: 'app-side-navigation-wrapper',
   templateUrl: './side-navigation-wrapper.component.html',
   styleUrls: ['./side-navigation-wrapper.component.scss'],
   standalone: true,
-  imports: [MatDrawerContainer, MatDrawer, SideNavigationStepperComponent, HexhexbuttonComponent, PasteBoxComponent, MatDrawerContent, MatToolbar],
+  imports: [
+    MatDrawerContainer,
+    MatDrawer,
+    SideNavigationStepperComponent,
+    HexhexbuttonComponent,
+    DeprecatedPasteBoxComponent,
+    MatDrawerContent,
+    PasteBoxComponent,
+  ],
 })
 export class SideNavigationWrapperComponent {
   @Input() currentStep = 0;
   @Input() maxNumberOfSteps = 0;
-  @Input() headline = '';
   @Input() currentStepHeadline = '';
   @Input() steps: FormlyFieldConfig[];
   @Input() model: any;
+  notificationType = NotificationType.NominalNotification7_1;
+  readonly router = inject(Router);
 
-  constructor(private pathogenNotificationComponent: PathogenNotificationComponent) {}
+  private readonly clipboardDataService = inject(ClipboardDataService);
 
-  async handlePasteBoxClick(): Promise<void> {
+  constructor(private pathogenNotificationComponent: PathogenNotificationComponent) {
+    this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
+  }
+
+  // TODO: Remove this getter, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
+  get FEATURE_FLAG_PORTAL_PASTEBOX() {
+    return environment.featureFlags?.FEATURE_FLAG_PORTAL_PASTEBOX ?? false;
+  }
+
+  get FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER() {
+    return environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER ?? false;
+  }
+
+  async handlePasteBoxClick(clipboardData?: Map<string, string>): Promise<void> {
+    debugger;
+    if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
+      if (this.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
+        const normalizedData = this.clipboardDataService.normalizeClipboardData(clipboardData);
+        this.clipboardDataService.clipboardData.set(Array.from(normalizedData.entries()) as string[][]);
+      } else {
+        this.clipboardDataService.clipboardData.set(Array.from(clipboardData.entries()) as string[][]);
+      }
+    }
     await this.pathogenNotificationComponent.populatePathogenFormWithClipboardData(true);
   }
 
   async handleHexhexButtonClick(): Promise<void> {
     this.pathogenNotificationComponent.populatePathogenFormWithHexHexData();
   }
+
+  protected readonly NotificationType = NotificationType;
 }

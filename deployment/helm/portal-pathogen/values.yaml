@@ -11,6 +11,39 @@ required:
     name: portal-pathogen
     tag: null
 
+## configure file templates in config-files folder added to config map
+## you can override complete files in config-files folder by replacing content
+## e.g.
+## files:
+##   import-map.json: |-
+##     {
+##     }
+config:
+  production: true
+  ## these are physical routes, relative to the pod URL of this micro frontend, not angular ones
+  pathToGateway: ../gateway/notification
+  pathToFuts: ../fhir-ui-data-model-translation
+  gatewayPaths:
+    pathogen: /api/ng/notification/pathogen
+    pathogen_7_1: /api/ng/notification/pathogen/7.1
+    pathogen_7_3_non_nominal: /api/ng/notification/pathogen/7.3/non_nominal
+  futsPaths:
+    countryCodes: /utils/countryCodes
+    federalStates_7_1: /laboratory/7.1/federalStates
+    notificationCategories_7_3: /laboratory/7.3
+    notificationCategoriesForFederalState_7_1: /laboratory/7.1/federalState/
+    laboratoryDataForSpecificCode_7_1: /laboratory/7.1/federalState/pathogenData/
+    laboratoryDataForSpecificCode_7_3: /laboratory/7.3/pathogenData/
+  featureFlags: #Always set this to false here; feature flags will then be activated as needed via the stage configurations.
+    FEATURE_FLAG_PORTAL_ERROR_DIALOG: false
+    FEATURE_FLAG_PORTAL_PASTEBOX: false
+    FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false
+    FEATURE_FLAG_PORTAL_REPEAT: false
+    FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: false
+  ngxLoggerConfig:
+    level: 1
+    disableConsoleLogging: true
+
 # Extra Labels to be added
 # E.g.
 # customLabels:
@@ -115,14 +148,3 @@ tolerations: [ ]
 
 istio:
   enable: false
-
-config:
-  production: false
-  pathToGateway: ../gateway/notification
-  pathToFuts: ../fhir-ui-data-model-translation
-  gatewayPaths:
-    pathogen: /api/ng/notification/pathogen
-  featureFlags: { }
-  ngxLoggerConfig:
-    level: 1
-    disableConsoleLogging: true

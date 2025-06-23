@@ -40,10 +40,12 @@ import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionP
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { NotificationType } from '../../../common/routing-helper';
 
 export interface SubmitNotificationDialogData {
   notification: Notification;
   fhirService: FhirNotificationService;
+  notificationType: NotificationType;
 }
 
 @Component({
@@ -89,6 +91,7 @@ export class SubmitNotificationDialogComponent implements OnInit {
   pdfDownload?: SafeUrl;
   displayedColumns: string[] = ['field', 'message'];
   fileName?: string;
+  notificationType: NotificationType;
 
   constructor(
     protected fileService: FileService,
@@ -100,12 +103,13 @@ export class SubmitNotificationDialogComponent implements OnInit {
 
   ngOnInit() {
     this.notification = { ...this.data.notification };
+    this.notificationType = this.data.notificationType;
     this.submitNotification();
   }
 
   submitNotification() {
     this.activeTemplate = this.progressTemplate;
-    this.data.fhirService.sendNotification(this.notification).subscribe({
+    this.data.fhirService.sendNotification(this.notification, this.notificationType).subscribe({
       next: response => {
         const content = encodeURIComponent(response.body.content);
         const href = 'data:application/actet-stream;base64,' + content;

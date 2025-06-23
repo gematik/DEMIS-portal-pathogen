@@ -64,10 +64,9 @@ mat-panel-title {
   z-index: -1;
 }
 
-.grayed-out-element {
-  opacity: 0.5;
-  background-color: #f5f5f5;
-  color: var(--color-neutral-light) !important;
+formly-field.grayed-out-element formly-wrapper-mat-form-field mat-form-field .mat-mdc-text-field-wrapper , formly-field.grayed-out-element formly-template {
+    color: var(--color-black) !important;
+    opacity: 0.5;
 }
 
 ::ng-deep .mat-mdc-button {

@@ -18,6 +18,11 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
 
+/**
+ * @deprecated Use PasteBoxComponent from @gematik/demis-portal-core-library instead
+ *
+ * TODO: Remove this component, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
+ */
 @Component({
   selector: 'app-paste-box',
   templateUrl: './paste-box.component.html',

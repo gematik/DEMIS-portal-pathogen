@@ -18,12 +18,13 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { getHtmlButtonElement } from './html-element-utils';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { getAutocomplete, getCheckbox, getInput, getRadioButton, getRadioGroup, getSelect, getStepper } from './material-harness-utils';
+import { getAutocomplete, getCheckbox, getInput, getRadioGroup, getSelect, getStepper, selectRadioOption } from './material-harness-utils';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { TestDataDiagnosticPage, TestDataFacilityPage, TestDataNotificationCategoryPage, TestDataNotifiedPersonPage } from './test-objects';
 import { MatStepHarness } from '@angular/material/stepper/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
+import { ADDRESS_TYPE_PRIMARYASCURRENT, ADDRESS_TYPE_SUBMITTING_FACILITY } from './test-constants';
 
 export async function checkDescribingError(fixture: ComponentFixture<any>, input: MatInputHarness | MatAutocompleteHarness, expectedResult: string) {
   fixture.detectChanges();
@@ -31,9 +32,15 @@ export async function checkDescribingError(fixture: ComponentFixture<any>, input
   expect(describedby).withContext('input should have a describedby attribute').toBeTruthy();
   const errorElement = fixture.nativeElement.querySelector(`mat-error#${describedby}`);
   expect(errorElement).withContext('error element should be present').toBeTruthy();
+  //errror is generally displayed in the formly-validation-message component
+  // but in some cases it is displayed directly in the mat-error element
+  if (errorElement.textContent) {
+    expect(errorElement.textContent).withContext('expected message found directly inside mat-error').toContain(expectedResult);
+    return;
+  }
   const formlyError = errorElement.querySelector('formly-validation-message');
-  expect(formlyError).withContext('formly error should be present').toBeTruthy();
-  expect(formlyError.textContent).toContain(expectedResult);
+  expect(formlyError).withContext('formly-validation-message should be present').toBeTruthy();
+  expect(formlyError.textContent).withContext('expected message inside formly-validation-message').toContain(expectedResult);
 }
 
 export async function clickAddSpecimenButton(fixture: ComponentFixture<any>) {
@@ -72,7 +79,6 @@ async function clickButton(button: HTMLButtonElement, fixture: ComponentFixture<
 export async function setCheckboxTo(state: boolean, checkboxId: string, fixture: ComponentFixture<any>, loader: HarnessLoader, expectedState = state) {
   const checkbox = await getCheckbox(loader, `#${checkboxId}`);
   await (state ? checkbox.check() : checkbox.uncheck());
-  await waitForStability(fixture);
   expect(await checkbox.isChecked()).toBe(expectedState);
 }
 
@@ -137,7 +143,6 @@ export async function setInputFieldValue(loader: HarnessLoader, selector: string
   await input.blur();
   fixture.detectChanges();
   expect(await input.getValue()).toBe(expectedValue);
-  await waitForStability(fixture);
 }
 
 export const buildClipboardString = (params: string[][]) => {
@@ -161,21 +166,16 @@ export async function selectPageByNumber(loader: HarnessLoader, fixture: Compone
   const stepper = await getStepper(loader);
   const steps = await stepper.getSteps();
   await steps[number].select();
-  await waitForStability(fixture, 500);
   await expectAsync(steps[number].isSelected()).toBeResolvedTo(true);
 }
 
-export async function switchToPage4(fixture: ComponentFixture<any>) {
-  await clickNextButton(fixture);
-  await clickNextButton(fixture);
-  await clickNextButton(fixture);
-}
+export async function switchToPage(pageNumber: number, fixture: ComponentFixture<any>) {
+  const currentPage = 1;
+  const clicksNeeded = pageNumber - currentPage;
 
-export async function switchToPage5(fixture: ComponentFixture<any>) {
-  await clickNextButton(fixture);
-  await clickNextButton(fixture);
-  await clickNextButton(fixture);
-  await clickNextButton(fixture);
+  for (let i = 0; i < clicksNeeded; i++) {
+    await clickNextButton(fixture);
+  }
 }
 
 export function getStepHeader(fixture: ComponentFixture<any>): string {
@@ -201,11 +201,11 @@ export async function verifyStateOfDiagnosticPage(loader: HarnessLoader, expecte
 
 export async function selectAndVerifySubmittingFacilityAsCurrentAddress(loader: HarnessLoader, fixture: MockedComponentFixture<PathogenNotificationComponent>) {
   await waitForStability(fixture, 100);
-  const radioButton0 = await getRadioButton(loader, '#currentAddressType_0');
-  await radioButton0.check();
-  await waitForStability(fixture);
-  const radioButton = await getRadioButton(loader, '#currentAddressType_1');
-  await waitForStability(fixture);
-  await radioButton.check();
+  const radioGroup = await getRadioGroup(loader, '#currentAddressType');
+  await selectRadioOption(radioGroup, 'Wohnsitz');
+  expect(await radioGroup.getCheckedValue()).toBe(ADDRESS_TYPE_PRIMARYASCURRENT);
+  await waitForStability(fixture, 100);
+  await selectRadioOption(radioGroup, 'Adresse der Einsender-Einrichtung');
+  expect(await radioGroup.getCheckedValue()).toBe(ADDRESS_TYPE_SUBMITTING_FACILITY);
   await waitForStability(fixture);
 }

@@ -1,5 +1,13 @@
-<mat-drawer-container>
+<mat-drawer-container class="stepper-container">
   <mat-drawer class="tabs-navigation" mode="side" opened>
+    <div class="stepper-heading">
+      @if (notificationType === NotificationType.NominalNotification7_1) {
+        <h1>Erregernachweis (§7.1)</h1>
+      }
+      @if (notificationType === NotificationType.NonNominalNotification7_3) {
+        <h1>Erregernachweis (§7.3)</h1>
+      }
+    </div>
     <div>
       <app-side-navigation-stepper
         [currentStep]="currentStep"
@@ -7,12 +15,15 @@
         [model]="model"
       ></app-side-navigation-stepper>
       <app-hexhexbutton (paste)="handleHexhexButtonClick()"></app-hexhexbutton>
-      <app-paste-box (paste)="handlePasteBoxClick()"></app-paste-box>
+      @if (FEATURE_FLAG_PORTAL_PASTEBOX) {
+        <gem-demis-paste-box (dataPasted)="handlePasteBoxClick($event)"></gem-demis-paste-box>
+      } @else {
+        <app-paste-box (paste)="handlePasteBoxClick()"></app-paste-box>
+      }
     </div>
   </mat-drawer>
   <mat-drawer-content>
-    <mat-toolbar>{{ headline }}</mat-toolbar>
-    <div class="section-header">
+    <div id="pathogen-tab-section-header" class="section-header">
       <h1>{{ currentStepHeadline }}</h1>
       <div class="oval-label">
         Schritt {{ currentStep + 1 }} von {{ maxNumberOfSteps }}
