@@ -25,9 +25,9 @@ interface AllowedRoutes {
 }
 
 export const allowedRoutes: AllowedRoutes = {
-  nominal: 'pathogen-notification/7_1',
-  nonNominal: 'pathogen-notification/7_3/non-nominal',
-  anonymous: 'pathogen-notification/7_3/anonymous',
+  nominal: 'pathogen-notification/7.1',
+  nonNominal: 'pathogen-notification/7.3/non-nominal',
+  anonymous: 'pathogen-notification/7.3/anonymous',
   main: 'pathogen-notification',
 };
 

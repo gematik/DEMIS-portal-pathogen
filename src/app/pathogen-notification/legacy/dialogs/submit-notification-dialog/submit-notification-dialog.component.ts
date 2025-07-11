@@ -14,11 +14,11 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, Inject, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { NGXLogger } from 'ngx-logger';
-import { Notification, OkResponse } from 'src/api/notification';
+import { OkResponse, PathogenTest } from 'src/api/notification';
 import { ErrorResult, MessageType, SuccessResult } from '../../models/ui/message';
 import { FhirNotificationService } from '../../services/fhir-notification.service';
 import { FileService } from '../../services/file.service';
@@ -43,7 +43,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { NotificationType } from '../../../common/routing-helper';
 
 export interface SubmitNotificationDialogData {
-  notification: Notification;
+  notification: PathogenTest;
   fhirService: FhirNotificationService;
   notificationType: NotificationType;
 }
@@ -78,14 +78,14 @@ export interface SubmitNotificationDialogData {
     NgTemplateOutlet,
   ],
 })
-export class SubmitNotificationDialogComponent implements OnInit {
+export class SubmitNotificationDialogComponent {
   @ViewChild('progress', { static: true }) progressTemplate?: TemplateRef<any>;
   @ViewChild('responseSuccess', { static: true })
   responseSuccessTemplate?: TemplateRef<any>;
   @ViewChild('responseFail', { static: true })
   responseFailTemplate?: TemplateRef<any>;
 
-  notification!: Notification;
+  notification!: PathogenTest;
   activeTemplate?: TemplateRef<any>;
   result: SuccessResult | ErrorResult | null = null;
   pdfDownload?: SafeUrl;
@@ -98,17 +98,26 @@ export class SubmitNotificationDialogComponent implements OnInit {
     private sanitizer: DomSanitizer,
     @Inject(MAT_DIALOG_DATA) public data: SubmitNotificationDialogData,
     private logger: NGXLogger,
-    private router: Router
-  ) {}
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Hotfix for DEMIS-3774s
+    // TODO fix finally with DEMIS-2758
+    setTimeout(() => {
+      this.initialize();
+    });
+  }
 
-  ngOnInit() {
+  initialize() {
     this.notification = { ...this.data.notification };
     this.notificationType = this.data.notificationType;
+    this.activeTemplate = this.progressTemplate;
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
     this.submitNotification();
   }
 
   submitNotification() {
-    this.activeTemplate = this.progressTemplate;
     this.data.fhirService.sendNotification(this.notification, this.notificationType).subscribe({
       next: response => {
         const content = encodeURIComponent(response.body.content);
@@ -119,15 +128,18 @@ export class SubmitNotificationDialogComponent implements OnInit {
           this.triggerDownload(href);
           this.buildSuccessResult(response.body);
           this.activeTemplate = this.responseSuccessTemplate;
+          this.cdr.detectChanges();
         } else {
           this.setResultToError(response);
           this.activeTemplate = this.responseFailTemplate;
+          this.cdr.detectChanges();
         }
       },
       error: error => {
         this.logger.error('error', error);
         this.setResultToError(error.error);
         this.activeTemplate = this.responseFailTemplate;
+        this.cdr.detectChanges();
       },
       complete: () => {
         this.logger.log('complete');

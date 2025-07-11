@@ -15,12 +15,8 @@
  */
 
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { anything, instance, mock, when } from 'ts-mockito';
-import { SubmitNotificationDialogComponent } from './submit-notification-dialog.component';
-
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { SubmitNotificationDialogComponent, SubmitNotificationDialogData } from './submit-notification-dialog.component';
 import { LoggerTestingModule } from 'ngx-logger/testing';
 import { of } from 'rxjs';
 import { FhirNotificationService } from '../../services/fhir-notification.service';
@@ -30,22 +26,36 @@ describe('SubmitNotificationDialogComponent', () => {
   let component: SubmitNotificationDialogComponent;
   let fixture: ComponentFixture<SubmitNotificationDialogComponent>;
 
-  const fhirNotificationService = mock(FhirNotificationService);
+  const mockFhirService = jasmine.createSpyObj('FhirNotificationService', ['sendNotification']);
+  mockFhirService.sendNotification.and.returnValue(
+    of({
+      body: {
+        status: 'All OK',
+        content: '',
+        notificationId: '',
+        timestamp: '',
+        authorName: '',
+        authorEmail: '',
+        contentType: '',
+        title: '',
+      },
+    })
+  );
+
+  const mockData: SubmitNotificationDialogData = {
+    notification: { notifiedPerson: { info: 'test' } } as any,
+    fhirService: mockFhirService,
+    notificationType: NotificationType.NominalNotification7_1,
+  };
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [LoggerTestingModule, SubmitNotificationDialogComponent],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: false },
+        { provide: MAT_DIALOG_DATA, useValue: mockData },
         { provide: MatDialogRef, useValue: {} },
-        {
-          provide: FhirNotificationService,
-          useFactory: () => instance(fhirNotificationService),
-        },
       ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
-    when(fhirNotificationService.sendNotification(anything(), NotificationType.NominalNotification7_1)).thenReturn(of());
     fixture = TestBed.createComponent(SubmitNotificationDialogComponent);
     component = fixture.componentInstance;
   }));

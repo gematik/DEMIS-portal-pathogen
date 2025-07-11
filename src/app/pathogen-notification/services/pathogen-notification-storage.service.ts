@@ -24,6 +24,7 @@ import { LocalStorageService } from '../legacy/services/local-storage.service';
 export class PathogenNotificationStorageService {
   public readonly PATHOGEN_CODE_DISPLAY = 'PATHOGEN_CODE_DISPLAY';
   public readonly PATHOGEN_FAVORITES = 'PATHOGEN_FAVORITES';
+  public readonly PATHOGEN_FAVORITES_7_3 = 'PATHOGEN_FAVORITES_7_3';
   public readonly FEDERAL_STATE_CODE = 'FEDERAL_STATE_CODE';
   public readonly NOTIFIER_FACILITY = 'NOTIFIER_FACILITY';
 
@@ -60,8 +61,8 @@ export class PathogenNotificationStorageService {
     return this.localStorageService.getItem(this.NOTIFIER_FACILITY);
   }
 
-  getFavorites(): CodeDisplay[] {
-    const favorites = this.localStorageService.getItem(this.PATHOGEN_FAVORITES);
+  getFavorites(isNonNominalNotification7_3: boolean = false): CodeDisplay[] {
+    const favorites = this.localStorageService.getItem(this.getFavoritesKey(isNonNominalNotification7_3));
 
     if (
       typeof favorites === 'string' ||
@@ -69,25 +70,29 @@ export class PathogenNotificationStorageService {
       !Array.isArray(favorites) ||
       favorites.some(fav => typeof fav !== 'object' || !fav.code || !fav.display)
     ) {
-      this.updateFavorites([]);
+      this.updateFavorites([], isNonNominalNotification7_3);
       return [];
     }
 
     return favorites as CodeDisplay[];
   }
 
-  updateFavorites(favorites: CodeDisplay[]) {
-    this.localStorageService.setItem(this.PATHOGEN_FAVORITES, favorites);
+  updateFavorites(favorites: CodeDisplay[], isNonNominalNotification7_3: boolean = false) {
+    this.localStorageService.setItem(this.getFavoritesKey(isNonNominalNotification7_3), favorites);
     this.favoritesChanged.emit(); // Emit the event when favorites are updated
   }
 
-  addFavoriteToList(favorite: CodeDisplay): void {
-    this.localStorageService.addItemToList(this.PATHOGEN_FAVORITES, favorite);
+  addFavoriteToList(favorite: CodeDisplay, isNonNominalNotification7_3: boolean = false): void {
+    this.localStorageService.addItemToList(this.getFavoritesKey(isNonNominalNotification7_3), favorite);
     this.favoritesChanged.emit(); // Emit the event when a favorite is added
   }
 
-  removeFavoriteFromList(favorite: CodeDisplay): void {
-    this.localStorageService.removeObjectFromList(this.PATHOGEN_FAVORITES, favorite);
+  removeFavoriteFromList(favorite: CodeDisplay, isNonNominalNotification7_3: boolean = false): void {
+    this.localStorageService.removeObjectFromList(this.getFavoritesKey(isNonNominalNotification7_3), favorite);
     this.favoritesChanged.emit(); // Emit the event when a favorite is removed
+  }
+
+  private getFavoritesKey(isNonNominalNotification7_3: boolean): string {
+    return isNonNominalNotification7_3 ? this.PATHOGEN_FAVORITES_7_3 : this.PATHOGEN_FAVORITES;
   }
 }

@@ -32,6 +32,8 @@ import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 
 const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
+  const todayDate = environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER ? newDate(DATE_FORMAT) : newDate(UI_DATE_FORMAT_ENG);
+  const pathogenDataNonNominalWithDate = pathogenDataNonNominal(todayDate);
   return {
     notifierFacility: {
       facilityInfo: {
@@ -100,7 +102,7 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
       info: {
         firstname: 'Max',
         lastname: 'Power',
-        birthDate: getTodayDate(),
+        birthDate: todayDate,
         gender: GenderEnum.Male,
       },
       residenceAddress: {
@@ -122,9 +124,9 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
         { contactType: ContactTypeEnum.Email, value: 'testerino@test.de' },
       ],
     },
-    pathogen: isNonNominal ? pathogenDataNonNominal.pathogen : 'invp',
+    pathogen: isNonNominal ? pathogenDataNonNominalWithDate.pathogen : 'invp',
     notificationCategory: isNonNominal
-      ? pathogenDataNonNominal.notificationCategory
+      ? pathogenDataNonNominalWithDate.notificationCategory
       : {
           federalStateCodeDisplay: 'DE-BW',
           pathogenDisplay: 'Influenzavirus',
@@ -132,7 +134,7 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
           reportStatus: ReportStatusEnum.Preliminary,
         },
     pathogenDTO: isNonNominal
-      ? pathogenDataNonNominal.pathogenDTO
+      ? pathogenDataNonNominalWithDate.pathogenDTO
       : {
           codeDisplay: {
             code: 'invp',
@@ -142,8 +144,8 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
           specimenList: [
             {
               specimenDTO: {
-                extractionDate: getTodayDate(),
-                receivedDate: getTodayDate(),
+                extractionDate: todayDate,
+                receivedDate: todayDate,
                 material: 'Rachenabstrich' as unknown as CodeDisplay,
                 methodPathogenList: [
                   {
@@ -160,42 +162,40 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
   };
 };
 
-const pathogenDataNonNominal = {
-  pathogen: 'hivp',
-  notificationCategory: {
-    pathogenDisplay: 'HIV',
-    pathogen: 'Humanes Immundefizienz-Virus' as unknown as CodeDisplay,
-    reportStatus: ReportStatusEnum.Preliminary,
-  },
-  pathogenDTO: {
-    codeDisplay: {
-      code: 'hivp',
-      display: 'Humanes Immundefizienz-Virus (HIV)',
-      designations: [{ language: 'de-DE', value: 'HIV' }],
+const pathogenDataNonNominal = (todayDate: string) => {
+  return {
+    pathogen: 'hivp',
+    notificationCategory: {
+      pathogenDisplay: 'HIV',
+      pathogen: 'Humanes Immundefizienz-Virus' as unknown as CodeDisplay,
+      reportStatus: ReportStatusEnum.Preliminary,
     },
-    specimenList: [
-      {
-        specimenDTO: {
-          extractionDate: getTodayDate(),
-          receivedDate: getTodayDate(),
-          material: 'Blutprobe' as unknown as CodeDisplay,
-          methodPathogenList: [
-            {
-              method: 'Nukleinsäure-Assay' as unknown as CodeDisplay,
-              result: ResultEnum.Pos,
-            },
-          ],
-          resistanceList: [],
-          resistanceGeneList: [],
-        },
+    pathogenDTO: {
+      codeDisplay: {
+        code: 'hivp',
+        display: 'Humanes Immundefizienz-Virus (HIV)',
+        designations: [{ language: 'de-DE', value: 'HIV' }],
       },
-    ],
-  },
+      specimenList: [
+        {
+          specimenDTO: {
+            extractionDate: todayDate,
+            receivedDate: todayDate,
+            material: 'Blutprobe' as unknown as CodeDisplay,
+            methodPathogenList: [
+              {
+                method: 'Nukleinsäure-Assay' as unknown as CodeDisplay,
+                result: ResultEnum.Pos,
+              },
+            ],
+            resistanceList: [],
+            resistanceGeneList: [],
+          },
+        },
+      ],
+    },
+  };
 };
-
-function getTodayDate(): string {
-  return environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER ? newDate(DATE_FORMAT) : newDate(UI_DATE_FORMAT_ENG);
-}
 
 export const pathogenTestDummyData = (isNonNominal: boolean): any => {
   return pathogenTestDummyDataSource(isNonNominal);

@@ -2,9 +2,15 @@
 
 # Release portal-pathogen
 
+## Release 1.4.6
+- Updated data model
+
 ## Release 1.4.5
-- changed inputs to outline style
+- Changed inputs to outline style
 - Updated Readme license disclaimer
+- implementation of §7.3 notification (non nominal)
+- include new paste box from core lib
+- include new repeat component from core lib
 
 ## Release 1.4.4
 - Updated Portal-Core Library version

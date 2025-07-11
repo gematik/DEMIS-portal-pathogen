@@ -18,6 +18,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FavoritesAddComponent } from './favorites-add.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { PathogenNotificationComponent } from '../../pathogen-notification.component';
+import { MockProvider } from 'ng-mocks';
 
 describe('FavoritesAddComponent', () => {
   let component: FavoritesAddComponent;
@@ -27,6 +29,7 @@ describe('FavoritesAddComponent', () => {
     TestBed.configureTestingModule({
       imports: [FavoritesAddComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      providers: [MockProvider(PathogenNotificationComponent)],
     });
     fixture = TestBed.createComponent(FavoritesAddComponent);
     component = fixture.componentInstance;

@@ -45,14 +45,14 @@ describe('Pathogen - Nonnominal Integration Tests', () => {
 
   it('should show 7.3 header', () => {
     let textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('Erregernachweis (§7.3)')).toBeTrue();
-    expect(textContent.includes('Erregernachweis (§7.1)')).toBeFalse();
+    expect(textContent.includes('§ 7 Abs. 3 IfSG')).toBeTrue();
+    expect(textContent.includes('Erregernachweis (§ 7 Abs. 1 IfSG)')).toBeFalse();
   });
 
-  it('should not show favorites (temporary)', async () => {
+  it('should show favorites', async () => {
     await switchToPage(4, fixture);
     let textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('Favoriten')).toBeFalse();
+    expect(textContent.includes('Favoriten')).toBeTrue();
   });
 
   it('should not show federalState select', async () => {

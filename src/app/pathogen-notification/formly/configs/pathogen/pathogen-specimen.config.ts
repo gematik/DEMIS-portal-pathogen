@@ -27,7 +27,6 @@ import { environment } from '../../../../../environments/environment';
 import { EXTRACTION_START_ERROR_MSG } from '../../../common/pathogen-formly-validation-module';
 
 export const pathogenSpecimenFields = (
-  disableFavorites: boolean, // TODO remove when 7.3 favorites are implemented
   materialDisplays: string[],
   methodDisplays: string[],
   resistanceGeneDisplays?: string[],
@@ -51,9 +50,6 @@ export const pathogenSpecimenFields = (
           type: 'demis-favorites-add-list',
         },
       ],
-      expressions: {
-        hide: () => disableFavorites,
-      },
     },
     {
       key: 'specimenList',

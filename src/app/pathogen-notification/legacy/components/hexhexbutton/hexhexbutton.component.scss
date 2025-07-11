@@ -20,6 +20,7 @@ $baby-blue: #f8faff;
   font-size: 1em;
   position: relative;
   transition: transform ease-in 0.1s, box-shadow ease-in 0.25s;
+  margin-bottom: 10px;
 
   &::before,
   &::after {

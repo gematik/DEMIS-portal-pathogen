@@ -18,6 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FavoritesListComponent } from './favorites-list.component';
 import { PathogenNotificationComponent } from '../../pathogen-notification.component';
+import { MockProvider } from 'ng-mocks';
 
 describe('FavoritesListComponent', () => {
   let component: FavoritesListComponent;
@@ -26,7 +27,7 @@ describe('FavoritesListComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [FavoritesListComponent],
-      providers: [{ provide: PathogenNotificationComponent, useValue: {} }],
+      providers: [MockProvider(PathogenNotificationComponent)],
     });
     fixture = TestBed.createComponent(FavoritesListComponent);
     component = fixture.componentInstance;

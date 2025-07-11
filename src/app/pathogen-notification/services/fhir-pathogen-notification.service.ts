@@ -18,7 +18,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
-import { CodeDisplay, Notification, PathogenData, PathogenTest } from '../../../api/notification';
+import { CodeDisplay, PathogenData, PathogenTest } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
 import { toFhirDateFormat } from '../legacy/common-utils';
 
@@ -30,7 +30,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { cloneObject, MessageDialogService } from '@gematik/demis-portal-core-library';
 import { isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
 import { NotificationType } from '../common/routing-helper';
-import NotificationTypeEnum = Notification.NotificationTypeEnum;
 
 @Injectable({
   providedIn: 'root',
@@ -166,22 +165,19 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       minHeight: '40vh',
       panelClass: 'app-submit-notification-dialog-panel',
       data: {
-        notification: {
-          notificationType: NotificationTypeEnum.PathogenTest,
-          pathogenTest: pathogenTest,
-        } as Notification,
+        notification: pathogenTest,
         fhirService: this,
         notificationType: notificationType,
       },
     });
   }
 
-  override sendNotification(notification: Notification, type: NotificationType) {
-    let clonedNotificationObject: Notification = cloneObject(notification);
+  override sendNotification(notification: PathogenTest, type: NotificationType) {
+    let clonedNotificationObject: PathogenTest = cloneObject(notification);
 
-    clonedNotificationObject.pathogenTest = this.removeUnusedFormlyFields(clonedNotificationObject.pathogenTest);
+    clonedNotificationObject = this.removeUnusedFormlyFields(clonedNotificationObject);
     if (!environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
-      clonedNotificationObject.pathogenTest = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject.pathogenTest);
+      clonedNotificationObject = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject);
     }
     return super.sendNotification(clonedNotificationObject, type);
   }
