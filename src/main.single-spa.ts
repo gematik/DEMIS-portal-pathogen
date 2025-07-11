@@ -110,17 +110,23 @@ function isSafeRoute(redirectUrl: string) {
 /**
  * shell and microfrontend are using different routers
  * when switching tabs, the shell is switching the URL, but the angular router of this microfrontend is not updated automatically
- * this is a workaround for this issue
  */
 function syncUrlWithRouter() {
   if (router) {
     const redirectUrl = window.location.hash.replace(/^#\//, '').split('?')[0];
+    // check that current url from shell is part of pathogen routes (no suspicious urls) and call pathogen router
     if (isSafeRoute(redirectUrl)) {
       router.navigateByUrl('').then(_ => {
         router.navigateByUrl('/' + redirectUrl);
       });
     } else {
-      router.navigateByUrl('/');
+      // no main pathogen route -> navigate to pathogen route depending on current url
+      // this can happen on restart or when user tries an open redirect attack
+      if (redirectUrl.includes('non-nominal')) {
+        router.navigateByUrl(allowedRoutes.nonNominal);
+      } else {
+        router.navigateByUrl(allowedRoutes.main);
+      }
     }
   }
 }

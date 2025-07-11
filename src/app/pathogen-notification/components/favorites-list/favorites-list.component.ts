@@ -34,12 +34,14 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 export class FavoritesListComponent extends FieldType implements OnInit, OnDestroy {
   favorites: WritableSignal<CodeDisplay[]> = signal([]);
   protected readonly getDesignationValueIfAvailable = getDesignationValueIfAvailable;
+  private readonly isNonNominalNotification7_3: boolean = false;
 
   constructor(
     private pathogenNotificationStorageService: PathogenNotificationStorageService,
     private pathogenNotificationComponent: PathogenNotificationComponent
   ) {
     super();
+    this.isNonNominalNotification7_3 = this.pathogenNotificationComponent.isNonNominalNotification7_3();
     this.loadFavorites();
   }
 
@@ -51,7 +53,7 @@ export class FavoritesListComponent extends FieldType implements OnInit, OnDestr
   }
 
   loadFavorites(): void {
-    const favorites = this.pathogenNotificationStorageService.getFavorites() || [];
+    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNonNominalNotification7_3) || [];
     this.favorites.update(() => favorites);
   }
 
@@ -67,7 +69,7 @@ export class FavoritesListComponent extends FieldType implements OnInit, OnDestr
 
   removePathogenFromFavorites(pathogen: CodeDisplay): void {
     const updatedFavorites = this.favorites().filter(fav => fav.code !== pathogen.code);
-    this.pathogenNotificationStorageService.updateFavorites(updatedFavorites);
+    this.pathogenNotificationStorageService.updateFavorites(updatedFavorites, this.isNonNominalNotification7_3);
   }
 
   ngOnDestroy(): void {

@@ -16,8 +16,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { FileService } from './file.service';
-import { Notification, NotifiedPersonBasicInfo } from '../../../../api/notification';
-import NotificationTypeEnum = Notification.NotificationTypeEnum;
+import { NotifiedPersonBasicInfo, PathogenTest } from '../../../../api/notification';
 
 describe('FileService', () => {
   let service: FileService;
@@ -28,45 +27,30 @@ describe('FileService', () => {
   });
 
   it('returns file name for PathogenTest notification type', () => {
-    const notification: Notification = {
-      notificationType: NotificationTypeEnum.PathogenTest,
-      pathogenTest: {
-        notifiedPerson: {
-          info: {
-            firstname: 'Max',
-            lastname: 'Meier',
-            birthDate: '05.11.1998',
-          } as NotifiedPersonBasicInfo,
-        },
+    const notification: PathogenTest = {
+      notifiedPerson: {
+        info: {
+          firstname: 'Max',
+          lastname: 'Meier',
+          birthDate: '05.11.1998',
+        } as NotifiedPersonBasicInfo,
       },
-    } as Notification;
+    } as PathogenTest;
 
     const fileName = service.getFileNameByNotificationType(notification);
     expect(fileName).toMatch(/^\d{12} Meier, Max 981105\.pdf$/);
   });
 
-  it('returns file name with current time for non-PathogenTest notification type', () => {
-    const notification: Notification = {
-      notificationType: NotificationTypeEnum.BedOccupancy,
-    } as Notification;
-
-    const fileName = service.getFileNameByNotificationType(notification);
-    expect(fileName).toMatch(/^\d{12}\.pdf$/);
-  });
-
   it('handles empty birth date gracefully', () => {
-    const notification: Notification = {
-      notificationType: NotificationTypeEnum.PathogenTest,
-      pathogenTest: {
-        notifiedPerson: {
-          info: {
-            firstname: 'Max',
-            lastname: 'Meier',
-            birthDate: '',
-          } as NotifiedPersonBasicInfo,
-        },
+    const notification: PathogenTest = {
+      notifiedPerson: {
+        info: {
+          firstname: 'Max',
+          lastname: 'Meier',
+          birthDate: '',
+        } as NotifiedPersonBasicInfo,
       },
-    } as Notification;
+    } as PathogenTest;
 
     const fileName = service.getFileNameByNotificationType(notification);
     expect(fileName).toMatch(/^\d{12} Meier, Max\.pdf$/);

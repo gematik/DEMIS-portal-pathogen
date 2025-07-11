@@ -46,9 +46,6 @@ export const selectNotificationCategoryFields = (
           type: 'demis-favorites-list',
         },
       ],
-      expressions: {
-        hide: () => is7_3Notification(federalStateCodeDisplays),
-      },
     },
     {
       className: '',

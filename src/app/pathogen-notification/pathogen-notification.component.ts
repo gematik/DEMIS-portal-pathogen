@@ -312,7 +312,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       });
   }
 
-  private isNonNominalNotification7_3(): boolean {
+  public isNonNominalNotification7_3(): boolean {
     return this.notificationType === NotificationType.NonNominalNotification7_3;
   }
 
@@ -431,7 +431,6 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.getSubPathogenSelectionField().props.filter = (term: string) => applyFilter(term, subPathogens);
 
     this.diagnosticFormFields = pathogenSpecimenFields(
-      this.isNonNominalNotification7_3(),
       materials,
       methods,
       resistanceGenes,

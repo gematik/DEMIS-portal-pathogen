@@ -16,9 +16,8 @@
 
 import { Injectable } from '@angular/core';
 import * as transliterator from 'transliterator';
-import { Notification, NotifiedPersonBasicInfo } from '../../../../api/notification';
+import { NotifiedPersonBasicInfo, PathogenTest } from '../../../../api/notification';
 import { formatDateToYYMMDD } from '../common-utils';
-import NotificationTypeEnum = Notification.NotificationTypeEnum;
 
 @Injectable({
   providedIn: 'root',
@@ -26,12 +25,8 @@ import NotificationTypeEnum = Notification.NotificationTypeEnum;
 export class FileService {
   abbreviation = '.pdf';
 
-  getFileNameByNotificationType(notification: Notification) {
-    if (notification.notificationType === NotificationTypeEnum.PathogenTest) {
-      return this.convertFileNameForPerson(notification.pathogenTest.notifiedPerson.info);
-    } else {
-      return this.getCurrentTime() + this.abbreviation;
-    }
+  getFileNameByNotificationType(notification: PathogenTest) {
+    return this.convertFileNameForPerson(notification.notifiedPerson.info);
   }
 
   /**

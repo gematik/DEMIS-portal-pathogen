@@ -18,12 +18,11 @@ import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
 import { Observable } from 'rxjs';
-import { Notification, PathogenTest } from '../../../../api/notification';
+import { PathogenTest } from '../../../../api/notification';
 import { trimStrings } from '@gematik/demis-portal-core-library';
 import { environment } from '../../../../environments/environment';
 import { isNonNominalNotificationEnabled } from '../../utils/pathogen-notification-mapper';
 import { NotificationType } from '../../common/routing-helper';
-import NotificationTypeEnum = Notification.NotificationTypeEnum;
 
 @Injectable({
   providedIn: 'root',
@@ -49,16 +48,11 @@ export abstract class FhirNotificationService {
     });
   }
 
-  sendNotification(notification: Notification, notificationType: NotificationType) {
+  sendNotification(notification: PathogenTest, notificationType: NotificationType) {
     // https://service.gematik.de/browse/DSC2-4453  Anforderung 2
-    const trimmedNotification: Notification = trimStrings(notification);
+    const trimmedNotification: PathogenTest = trimStrings(notification);
 
-    if (trimmedNotification.notificationType === NotificationTypeEnum.PathogenTest) {
-      return this.confirmSendPathogenNotification(trimmedNotification.pathogenTest, notificationType);
-    } else {
-      this.logger.error('Unbekannter Meldungstyp: ', trimmedNotification);
-      throw new Error('Unknown notification type: ' + JSON.stringify(trimmedNotification));
-    }
+    return this.confirmSendPathogenNotification(trimmedNotification, notificationType);
   }
 
   getNotificationUrl(type: NotificationType): string {

@@ -22,8 +22,7 @@ import { FhirPathogenNotificationService } from './fhir-pathogen-notification.se
 import { ErrorDialogService } from './error-dialog.service';
 import { provideHttpClient } from '@angular/common/http';
 import { NGXLoggerMock } from 'ngx-logger/testing';
-import { Notification } from '../../../api/notification/model/notification';
-import { NotificationLaboratoryCategory } from '../../../api/notification';
+import { NotificationLaboratoryCategory, PathogenTest } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
 import { NotificationType } from '../common/routing-helper';
 
@@ -38,8 +37,8 @@ describe('FhirPathogenNotificationService', () => {
       featureFlags: {},
       gatewayPaths: {
         pathogen: '/api/ng/notification/pathogen',
-        pathogen_7_1: '/api/ng/notification/pathogen/7_1',
-        pathogen_7_3_non_nominal: '/api/ng/notification/pathogen/7_3/non_nominal',
+        pathogen_7_1: '/api/ng/notification/pathogen/7.1',
+        pathogen_7_3_non_nominal: '/api/ng/notification/pathogen/7.3/non_nominal',
       },
       futsPaths: {
         countryCodes: '/utils/countryCodes',
@@ -153,42 +152,36 @@ describe('FhirPathogenNotificationService', () => {
   });
 
   it('should reformat notification', () => {
-    const mockNotification: Notification = {
-      notificationType: Notification.NotificationTypeEnum.PathogenTest,
-      pathogenTest: {
-        notifiedPerson: {
-          info: { birthDate: '03.03.2025' },
+    const mockNotification: PathogenTest = {
+      notifiedPerson: {
+        info: { birthDate: '03.03.2025' },
+      },
+      notificationCategory: {
+        pathogen: {
+          code: 'Test',
+          display: 'Test',
         },
-        notificationCategory: {
-          pathogen: {
-            code: 'Test',
-            display: 'Test',
-          },
-          reportStatus: NotificationLaboratoryCategory.ReportStatusEnum.Final,
-          federalStateCodeDisplay: 'removeMe',
-          pathogenDisplay: 'removeMeToo',
-        },
-        submittingFacility: {
-          copyAddressCheckBox: true,
-        },
+        reportStatus: NotificationLaboratoryCategory.ReportStatusEnum.Final,
+        federalStateCodeDisplay: 'removeMe',
+        pathogenDisplay: 'removeMeToo',
+      },
+      submittingFacility: {
+        copyAddressCheckBox: true,
       },
     } as any;
 
-    const notificationWithRemovedFields: Notification = {
-      notificationType: Notification.NotificationTypeEnum.PathogenTest,
-      pathogenTest: {
-        notifiedPerson: {
-          info: { birthDate: '2025-03-03' },
-        },
-        notificationCategory: {
-          pathogen: {
-            code: 'Test',
-            display: 'Test',
-          },
-          reportStatus: NotificationLaboratoryCategory.ReportStatusEnum.Final,
-        },
-        submittingFacility: {},
+    const notificationWithRemovedFields: PathogenTest = {
+      notifiedPerson: {
+        info: { birthDate: '2025-03-03' },
       },
+      notificationCategory: {
+        pathogen: {
+          code: 'Test',
+          display: 'Test',
+        },
+        reportStatus: NotificationLaboratoryCategory.ReportStatusEnum.Final,
+      },
+      submittingFacility: {},
     } as any;
 
     spyOn<any>(service, 'removeUnusedFormlyFields').and.callThrough();
@@ -202,7 +195,7 @@ describe('FhirPathogenNotificationService', () => {
     expect(req.request.method).toBe('POST');
     req.flush({ success: true });
 
-    expect(service['removeUnusedFormlyFields'] as any).toHaveBeenCalledWith(notificationWithRemovedFields.pathogenTest);
-    expect(FhirPathogenNotificationService['setFhirSpecificsDateFormat'] as any).toHaveBeenCalledWith(notificationWithRemovedFields.pathogenTest);
+    expect(service['removeUnusedFormlyFields'] as any).toHaveBeenCalledWith(notificationWithRemovedFields);
+    expect(FhirPathogenNotificationService['setFhirSpecificsDateFormat'] as any).toHaveBeenCalledWith(notificationWithRemovedFields);
   });
 });

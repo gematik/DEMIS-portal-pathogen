@@ -88,7 +88,7 @@ export function buildMock(activatedRoute = false, isNonnominal: boolean = false)
     .provide(ClipboardDataService);
 
   if (isNonnominal) {
-    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7_3/non-nominal')));
+    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.3/non-nominal')));
   }
 
   if (activatedRoute) {
