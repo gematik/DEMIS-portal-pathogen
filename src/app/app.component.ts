@@ -20,7 +20,6 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'mf-pathogen-root',
   templateUrl: './app.component.html',
-  standalone: true,
   imports: [RouterOutlet],
 })
 export class AppComponent {

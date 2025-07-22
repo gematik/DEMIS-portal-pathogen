@@ -41,7 +41,6 @@ import { FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { FormlyMaterialModule } from '@ngx-formly/material';
 import { FormlyMatDatepickerModule } from '@ngx-formly/material/datepicker';
-import { SafePipeModule } from 'safe-pipe';
 import { PathogenFormValidationModule } from './common/pathogen-formly-validation-module';
 import { FavoritesAddComponent } from './components/favorites-add/favorites-add.component';
 import { FavoritesListComponent } from './components/favorites-list/favorites-list.component';
@@ -115,7 +114,6 @@ import { defaultAppearanceExtension, defaultPlaceholderExtension } from './utils
     MatOptionModule,
     MatButtonModule,
     MatAutocompleteModule,
-    SafePipeModule,
     MatCardModule,
     MatTableModule,
     MatButtonToggleModule,

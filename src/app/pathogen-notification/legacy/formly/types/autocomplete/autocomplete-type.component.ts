@@ -55,7 +55,6 @@ import { ReactiveFormsModule } from '@angular/forms';
       }
     </mat-autocomplete>
   `,
-  standalone: true,
   imports: [MatInput, MatAutocompleteTrigger, ReactiveFormsModule, FormlyModule, MatIconButton, MatSuffix, MatIcon, MatAutocomplete, MatOption, AsyncPipe],
   encapsulation: ViewEncapsulation.None,
 })

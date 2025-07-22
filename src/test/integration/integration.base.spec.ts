@@ -38,6 +38,7 @@ import { SideNavigationWrapperComponent } from '../../app/pathogen-notification/
 import { SideNavigationStepperComponent } from '../../app/pathogen-notification/components/side-navigation-stepper/side-navigation-stepper.component';
 import { FormlyMaterialModule } from '@ngx-formly/material';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
 
 export const mainConfig = {
   featureFlags: {
@@ -80,6 +81,7 @@ export function buildMock(activatedRoute = false, isNonnominal: boolean = false)
     .keep(FormlyModule.forRoot())
     .keep(SideNavigationWrapperComponent)
     .keep(SideNavigationStepperComponent)
+    .keep(MaxHeightContentContainerComponent)
     .keep(FormlyMaterialModule)
     .provide(MockProvider(ChangeDetectorRef))
     .provide(MockProvider(FhirPathogenNotificationService, getFhirPathogenNotificationService(isNonnominal)))

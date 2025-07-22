@@ -11,9 +11,9 @@
     </div>
     <div>
       <app-side-navigation-stepper
-        [currentStep]="currentStep"
-        [steps]="steps"
-        [model]="model"
+        [currentStep]="currentStep()"
+        [steps]="steps()"
+        [model]="model()"
       ></app-side-navigation-stepper>
       <app-hexhexbutton (paste)="handleHexhexButtonClick()"></app-hexhexbutton>
       @if (FEATURE_FLAG_PORTAL_PASTEBOX) {
@@ -25,9 +25,9 @@
   </mat-drawer>
   <mat-drawer-content>
     <div id="pathogen-tab-section-header" class="section-header">
-      <h1>{{ currentStepHeadline }}</h1>
+      <h1>{{ currentStepHeadline() }}</h1>
       <div class="oval-label">
-        Schritt {{ currentStep + 1 }} von {{ maxNumberOfSteps }}
+        Schritt {{ currentStep() + 1 }} von {{ maxNumberOfSteps() }}
       </div>
     </div>
     <div class="section-body">

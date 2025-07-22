@@ -23,7 +23,6 @@ import { MatButton, MatIconButton } from '@angular/material/button';
   selector: 'app-repeat',
   templateUrl: './repeat.component.html',
   styleUrls: ['./repeat.component.scss'],
-  standalone: true,
   imports: [FormlyModule, MatIconButton, MatIcon, MatButton],
 })
 export class RepeatComponent extends FieldArrayType {

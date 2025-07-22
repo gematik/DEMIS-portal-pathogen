@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, WritableSignal, inject } from '@angular/core';
 import { FieldType } from '@ngx-formly/core';
 import { CodeDisplay } from 'src/api/notification';
 import { getDesignationValueIfAvailable } from '../../legacy/common-utils';
@@ -28,18 +28,17 @@ import { MatButton, MatIconButton } from '@angular/material/button';
   selector: 'app-favorites-list',
   templateUrl: './favorites-list.component.html',
   styleUrls: ['./favorites-list.component.scss'],
-  standalone: true,
   imports: [MatButton, MatIconButton, MatIcon, NgTemplateOutlet],
 })
 export class FavoritesListComponent extends FieldType implements OnInit, OnDestroy {
+  private readonly pathogenNotificationStorageService = inject(PathogenNotificationStorageService);
+  private readonly pathogenNotificationComponent = inject(PathogenNotificationComponent);
+
   favorites: WritableSignal<CodeDisplay[]> = signal([]);
   protected readonly getDesignationValueIfAvailable = getDesignationValueIfAvailable;
   private readonly isNonNominalNotification7_3: boolean = false;
 
-  constructor(
-    private pathogenNotificationStorageService: PathogenNotificationStorageService,
-    private pathogenNotificationComponent: PathogenNotificationComponent
-  ) {
+  constructor() {
     super();
     this.isNonNominalNotification7_3 = this.pathogenNotificationComponent.isNonNominalNotification7_3();
     this.loadFavorites();

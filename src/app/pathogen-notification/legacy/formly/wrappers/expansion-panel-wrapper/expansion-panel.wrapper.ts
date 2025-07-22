@@ -46,7 +46,6 @@ import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionP
       </div>
     </div>
   `,
-  standalone: true,
   imports: [MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle],
 })
 export class ExpansionPanelWrapperComponent extends FieldWrapper {

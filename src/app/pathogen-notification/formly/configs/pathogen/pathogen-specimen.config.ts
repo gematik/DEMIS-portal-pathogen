@@ -78,11 +78,16 @@ export const pathogenSpecimenFields = (
             expressions: {
               'props.label': (field: FormlyFieldConfig) => {
                 let receivedDatePart: string;
-                if (environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
-                  receivedDatePart = field.model?.receivedDate ? ` vom ${isoToGermanFormat(field.model.receivedDate)}` : '';
-                } else {
-                  receivedDatePart = field.model?.receivedDate ? ` vom ${field.model.receivedDate}` : '';
-                }
+                const receivedDateValue = field.model?.receivedDate;
+                if (receivedDateValue) {
+                  if (environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
+                    const dateString = typeof receivedDateValue === 'string' ? receivedDateValue : receivedDateValue.toString();
+                    receivedDatePart = ` vom ${isoToGermanFormat(dateString)}`;
+                  } else {
+                    receivedDatePart = ` vom ${field.model.receivedDate}`;
+                  }
+                } else receivedDatePart = '';
+
                 const materialPart = field.model?.material ? ` aus ${field.model.material}` : '';
                 return receivedDatePart || materialPart ? 'Diagnostik' + materialPart + receivedDatePart : 'Probe';
               },

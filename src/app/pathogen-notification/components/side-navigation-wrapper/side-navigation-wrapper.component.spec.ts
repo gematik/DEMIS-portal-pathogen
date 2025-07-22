@@ -47,10 +47,10 @@ describe('SideNavigationWrapperComponent', () => {
   });
 
   it('should have default values for inputs', () => {
-    expect(component.currentStep).toBe(0);
-    expect(component.maxNumberOfSteps).toBe(0);
-    expect(component.currentStepHeadline).toBe('');
-    expect(component.steps).toBeUndefined();
-    expect(component.model).toBeUndefined();
+    expect(component.currentStep()).toBe(0);
+    expect(component.maxNumberOfSteps()).toBe(0);
+    expect(component.currentStepHeadline()).toBe('');
+    expect(component.steps()).toBeUndefined();
+    expect(component.model()).toBeUndefined();
   });
 });

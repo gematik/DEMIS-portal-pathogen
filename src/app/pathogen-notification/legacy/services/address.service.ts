@@ -15,7 +15,7 @@
  */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { NGXLogger } from 'ngx-logger';
@@ -56,10 +56,8 @@ export interface GeoAddress {
   providedIn: 'root',
 })
 export class AddressService {
-  constructor(
-    private http: HttpClient,
-    private logger: NGXLogger
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly logger = inject(NGXLogger);
 
   getSuggestions(streetSearch: string, limit: number = 5): Observable<GeoAddress[]> {
     return this.http

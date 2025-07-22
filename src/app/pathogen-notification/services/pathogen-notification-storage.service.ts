@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { EventEmitter, Injectable } from '@angular/core';
+import { EventEmitter, Injectable, inject } from '@angular/core';
 import { CodeDisplay, NotifierFacility } from '../../../api/notification';
 import { LocalStorageService } from '../legacy/services/local-storage.service';
 
@@ -22,6 +22,8 @@ import { LocalStorageService } from '../legacy/services/local-storage.service';
   providedIn: 'root',
 })
 export class PathogenNotificationStorageService {
+  private readonly localStorageService = inject(LocalStorageService);
+
   public readonly PATHOGEN_CODE_DISPLAY = 'PATHOGEN_CODE_DISPLAY';
   public readonly PATHOGEN_FAVORITES = 'PATHOGEN_FAVORITES';
   public readonly PATHOGEN_FAVORITES_7_3 = 'PATHOGEN_FAVORITES_7_3';
@@ -30,8 +32,6 @@ export class PathogenNotificationStorageService {
 
   // Event emitter to notify components of changes in the favorites list
   favoritesChanged: EventEmitter<void> = new EventEmitter<void>();
-
-  constructor(private localStorageService: LocalStorageService) {}
 
   setSelectedPathogenCodeDisplay(codeDisplay: CodeDisplay): void {
     this.localStorageService.setItem(this.PATHOGEN_CODE_DISPLAY, codeDisplay);

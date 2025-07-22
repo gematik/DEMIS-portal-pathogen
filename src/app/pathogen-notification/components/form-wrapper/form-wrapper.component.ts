@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FieldType, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { MatIcon } from '@angular/material/icon';
@@ -28,7 +28,6 @@ import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-l
   selector: 'app-form-wrapper',
   templateUrl: './form-wrapper.component.html',
   styleUrls: ['./form-wrapper.component.scss'],
-  standalone: true,
   imports: [
     SideNavigationWrapperComponent,
     MatTabGroup,
@@ -43,12 +42,10 @@ import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-l
   ],
 })
 export class FormWrapperComponent extends FieldType implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+
   selectedIndex = 0;
   currentFragment = '';
-
-  constructor(private route: ActivatedRoute) {
-    super();
-  }
 
   ngOnInit(): void {
     this.route.fragment.subscribe(fragment => {

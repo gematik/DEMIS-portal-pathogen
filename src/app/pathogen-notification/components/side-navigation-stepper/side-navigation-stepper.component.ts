@@ -15,7 +15,7 @@
  */
 
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, input, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { MatIcon } from '@angular/material/icon';
@@ -26,19 +26,16 @@ import { MatStep, MatStepper, MatStepperIcon } from '@angular/material/stepper';
   selector: 'app-side-navigation-stepper',
   templateUrl: './side-navigation-stepper.component.html',
   styleUrls: ['./side-navigation-stepper.component.scss'],
-  standalone: true,
   imports: [MatStepper, NgFor, MatStep, MatStepperIcon, MatIcon, NgIf],
   encapsulation: ViewEncapsulation.None,
 })
 export class SideNavigationStepperComponent {
-  @Input() steps: FormlyFieldConfig[] = [];
-  @Input() currentStep: number;
-  @Input() model: any;
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute
-  ) {}
+  readonly steps = input<FormlyFieldConfig[]>([]);
+  readonly currentStep = input<number>(undefined);
+  readonly model = input<any>(undefined);
 
   isTouchedAndValid(field: FormlyFieldConfig) {
     if (field.key) {
@@ -48,14 +45,14 @@ export class SideNavigationStepperComponent {
   }
 
   isEditable(index: number) {
-    const isDiagnosticReadySpecimenPrep = !this.model?.notificationCategory?.pathogenDisplay ? 'disabled_step' : null;
+    const isDiagnosticReadySpecimenPrep = !this.model()?.notificationCategory?.pathogenDisplay ? 'disabled_step' : null;
     return index == 4 && isDiagnosticReadySpecimenPrep;
   }
 
   onStepChange(event: StepperSelectionEvent) {
     this.router.navigate(['./'], {
       relativeTo: this.route,
-      fragment: this.steps[event.selectedIndex].props['anchor'],
+      fragment: this.steps()[event.selectedIndex].props['anchor'],
     });
   }
 

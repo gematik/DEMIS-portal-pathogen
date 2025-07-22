@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ErrorMessageDialogComponent } from '../legacy/dialogs/message-dialog/error-message-dialog.component';
 import { MessageType } from '../legacy/models/ui/message';
 import { MatDialog } from '@angular/material/dialog';
@@ -25,10 +25,8 @@ import { MessageDialogService } from '@gematik/demis-portal-core-library';
   providedIn: 'root',
 })
 export class ErrorDialogService {
-  constructor(
-    public dialog: MatDialog,
-    private messageDialogService: MessageDialogService
-  ) {}
+  dialog = inject(MatDialog);
+  private readonly messageDialogService = inject(MessageDialogService);
 
   /**
    * Help method to display a closable error-dialog with only one error.

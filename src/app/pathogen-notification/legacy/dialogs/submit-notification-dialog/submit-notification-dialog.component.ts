@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { ChangeDetectorRef, Component, Inject, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ChangeDetectorRef, SecurityContext, TemplateRef, ViewChild, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { NGXLogger } from 'ngx-logger';
@@ -52,7 +52,6 @@ export interface SubmitNotificationDialogData {
   selector: 'app-submit-notification-dialog',
   templateUrl: './submit-notification-dialog.component.html',
   styleUrls: ['./submit-notification-dialog.component.scss'],
-  standalone: true,
   imports: [
     MatDialogTitle,
     MatDialogContent,
@@ -79,6 +78,12 @@ export interface SubmitNotificationDialogData {
   ],
 })
 export class SubmitNotificationDialogComponent {
+  protected fileService = inject(FileService);
+  private readonly sanitizer = inject(DomSanitizer);
+  data = inject<SubmitNotificationDialogData>(MAT_DIALOG_DATA);
+  private readonly logger = inject(NGXLogger);
+  private readonly router = inject(Router);
+
   @ViewChild('progress', { static: true }) progressTemplate?: TemplateRef<any>;
   @ViewChild('responseSuccess', { static: true })
   responseSuccessTemplate?: TemplateRef<any>;
@@ -93,14 +98,7 @@ export class SubmitNotificationDialogComponent {
   fileName?: string;
   notificationType: NotificationType;
 
-  constructor(
-    protected fileService: FileService,
-    private sanitizer: DomSanitizer,
-    @Inject(MAT_DIALOG_DATA) public data: SubmitNotificationDialogData,
-    private logger: NGXLogger,
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {
+  constructor(private readonly cdr: ChangeDetectorRef) {
     // Hotfix for DEMIS-3774s
     // TODO fix finally with DEMIS-2758
     setTimeout(() => {
