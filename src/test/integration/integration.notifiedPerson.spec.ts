@@ -24,6 +24,8 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
 import {
   checkDescribingError,
+  clickBackButton,
+  clickNextButton,
   selectAndVerifySubmittingFacilityAsCurrentAddress,
   selectPageByNumber,
   setCheckboxTo,
@@ -161,7 +163,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
           expectedValue: TEST_DATA.notifierFacility.facilityInfo.institutionName,
         },
       ]);
-      await selectPageByNumber(loader, fixture, 1);
+      await clickNextButton(fixture);
     });
 
     it('When submitting facility address is changed, this currentAddress should also change', async () => {
@@ -169,15 +171,15 @@ describe('Pathogen - Notified Person Integration Tests', () => {
       await setInputFieldValue(loader, facility.institutionName.selector, TEST_PARAMETER_SET_NOTIFIER.facilityInfo[0].value, fixture);
       await setTextFieldValuesFor(TEST_PARAMETER_SET_NOTIFIER.address, loader);
       // select submitting facility type as currentAddressType
-      await selectPageByNumber(loader, fixture, 2);
+      await clickNextButton(fixture);
       await selectAndVerifySubmittingFacilityAsCurrentAddress(loader, fixture);
       // go back to submitting facility and change value
-      await selectPageByNumber(loader, fixture, 1);
+      await clickBackButton(fixture);
       await setInputFieldValue(loader, facility.institutionName.selector, facility.institutionName.value, fixture);
       await setInputFieldValue(loader, facility.zip.selector, facility.zip.value, fixture);
 
       // assertion: go to notifiedPerson and assert values have changed
-      await selectPageByNumber(loader, fixture, 2);
+      await clickNextButton(fixture);
       await verifyInputFieldValues(loader, [
         {
           selector: TEST_NOTIFIED_PERSON.currentName.selector,

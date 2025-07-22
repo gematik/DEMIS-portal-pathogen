@@ -13,20 +13,3 @@
     *******
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
-
-import { Pipe, PipeTransform } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-
-@Pipe({
-  name: 'sanitizeUrl',
-})
-export class SanitizeUrlPipe implements PipeTransform {
-  constructor(private sanitizer: DomSanitizer) {}
-
-  transform(url: string): string | null {
-    if (url === null) {
-      return null;
-    }
-    return this.sanitizer.bypassSecurityTrustUrl(url).toString();
-  }
-}

@@ -30,21 +30,21 @@ import { isString, merge } from 'lodash-es';
 export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
   const result: any = {};
 
-  if (!!pathogenTest.notifierFacility) {
+  if (pathogenTest.notifierFacility) {
     result.notifierFacility = {
       ...pathogenTest.notifierFacility,
       contacts: transformContactsToPathogenForm(pathogenTest.notifierFacility.contacts),
     };
   }
 
-  if (!!pathogenTest.submittingFacility) {
+  if (pathogenTest.submittingFacility) {
     result.submittingFacility = {
       ...pathogenTest.submittingFacility,
       contacts: transformContactsToPathogenForm(pathogenTest.submittingFacility.contacts),
     };
   }
 
-  if (!!pathogenTest.notifiedPerson) {
+  if (pathogenTest.notifiedPerson) {
     result.notifiedPerson = {
       info: pathogenTest.notifiedPerson?.info,
       residenceAddress: transformAddressWithoutAddressType(pathogenTest.notifiedPerson?.residenceAddress),
@@ -55,11 +55,11 @@ export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
     };
   }
 
-  if (!!pathogenTest.pathogen) {
+  if (pathogenTest.pathogen) {
     result.pathogen = pathogenTest.pathogen;
   }
 
-  if (!!pathogenTest.notificationCategory) {
+  if (pathogenTest.notificationCategory) {
     result.notificationCategory = {
       ...pathogenTest.notificationCategory,
       pathogen:
@@ -69,7 +69,7 @@ export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
     };
   }
 
-  if (!!pathogenTest.pathogenDTO) {
+  if (pathogenTest.pathogenDTO) {
     result.pathogenDTO = {
       codeDisplay: pathogenTest.pathogenDTO.codeDisplay,
       specimenList: pathogenTest.pathogenDTO.specimenList?.map(item => ({
@@ -102,7 +102,7 @@ export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
 }
 
 function transformPerson(pathogenForm: any, result: any) {
-  if (!!pathogenForm.notifiedPerson) {
+  if (pathogenForm.notifiedPerson) {
     const currentAddress = transformAddress(
       pathogenForm.notifiedPerson.currentAddressType === 'primaryAsCurrent'
         ? pathogenForm.notifiedPerson.residenceAddress
@@ -163,7 +163,7 @@ export function transformDiagnostic(pathogenForm: any, result: any, pathogenData
 
 export function transformPathogenFormToPathogenTest(pathogenForm: any, selectedPathogen?: CodeDisplay, pathogenData?: PathogenData): PathogenTest {
   let result: any = {};
-  if (!!pathogenForm.notifierFacility) {
+  if (pathogenForm.notifierFacility) {
     result.notifierFacility = {
       ...pathogenForm.notifierFacility,
       contact: {
@@ -179,7 +179,7 @@ export function transformPathogenFormToPathogenTest(pathogenForm: any, selectedP
 
   result = transformPerson(pathogenForm, result);
 
-  if (!!pathogenForm.submittingFacility) {
+  if (pathogenForm.submittingFacility) {
     result.submittingFacility = {
       ...pathogenForm.submittingFacility,
       contact: {

@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
 
@@ -27,14 +27,13 @@ import { MatButton } from '@angular/material/button';
   selector: 'app-paste-box',
   templateUrl: './paste-box.component.html',
   styleUrls: ['./paste-box.component.scss'],
-  standalone: true,
   imports: [MatButton, MatIcon],
 })
 export class PasteBoxComponent {
-  @Output() paste = new EventEmitter<void>();
-  @Input() buttonId!: string;
+  readonly paste = output<void>();
+  readonly buttonId = input<string>();
 
   doPaste() {
-    this.paste.emit();
+    this.paste.emit(undefined);
   }
 }

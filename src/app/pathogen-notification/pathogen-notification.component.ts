@@ -59,10 +59,16 @@ import { getNotificationTypeByRouterUrl, NotificationType } from './common/routi
   selector: 'app-pathogen-notification',
   templateUrl: './pathogen-notification.component.html',
   styleUrls: ['./pathogen-notification.component.scss'],
-  standalone: true,
   imports: [MatProgressSpinner, ReactiveFormsModule, FormlyModule, MaxHeightContentContainerComponent],
 })
 export class PathogenNotificationComponent implements OnInit, OnDestroy {
+  dialog = inject(MatDialog);
+  private readonly notificationStorageService = inject(PathogenNotificationStorageService);
+  private readonly fhirPathogenNotificationService = inject(FhirPathogenNotificationService);
+  private readonly clipboardDataService = inject(ClipboardDataService);
+  private readonly logger = inject(NGXLogger);
+  private readonly errorDialogService = inject(ErrorDialogService);
+
   form: FormGroup = new FormGroup({});
   options: FormlyFormOptions = {};
   fields: FormlyFieldConfig[] = [];
@@ -78,27 +84,20 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   ];
   model: any = {};
   isLoading: WritableSignal<boolean> = signal(false);
-  private unsubscriber = new Subject<void>();
+  private readonly unsubscriber = new Subject<void>();
   sendFunction: (bo: any) => void;
   federalStateCodeDisplays: CodeDisplay[] = [];
   pathogenCodeDisplays: CodeDisplay[] = [];
   countryCodeDisplays: CodeDisplay[] = [];
   pathogenData: PathogenData;
   notificationType = NotificationType.NominalNotification7_1;
-  private notificationCategoryKey = 'notificationCategory';
-  private defaultFederalState = 'DE-BW';
+  private readonly notificationCategoryKey = 'notificationCategory';
+  private readonly defaultFederalState = 'DE-BW';
   private pathogenIsChangingFromClipboard = false;
   private currentPathogenValue = '';
   readonly router = inject(Router);
 
-  constructor(
-    public dialog: MatDialog,
-    private notificationStorageService: PathogenNotificationStorageService,
-    private fhirPathogenNotificationService: FhirPathogenNotificationService,
-    private clipboardDataService: ClipboardDataService,
-    private logger: NGXLogger,
-    private errorDialogService: ErrorDialogService
-  ) {
+  constructor() {
     this.sendFunction = (pathogenForm: any) => {
       const pathogenTest = transformPathogenFormToPathogenTest(pathogenForm, this.getSelectedPathogenCodeDisplayFromStorage(), this.pathogenData);
       this.fhirPathogenNotificationService.openSubmitDialog(pathogenTest, this.notificationType);
@@ -138,7 +137,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.initializeSelectPathogenFields(selectedFederalStateCode, this.pathogenCodeDisplays);
         this.updatePathogenForm();
 
-        if (!!this.notificationStorageService.getNotifierFacility()) {
+        if (this.notificationStorageService.getNotifierFacility()) {
           this.model.pathogenForm.notifierFacility = this.notificationStorageService.getNotifierFacility();
           // DEMIS-1598: Ensure the old country code '20422' is overwritten
           this.model.pathogenForm.notifierFacility.address.country = 'DE';
@@ -420,7 +419,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     };
   }
 
-  private setPathogenInformation = () => {
+  private readonly setPathogenInformation = () => {
     const materials = this.pathogenData.materials.map(formatCodeDisplayToDisplay);
     const methods = this.pathogenData.methods.map(formatCodeDisplayToDisplay);
     const subPathogens = this.pathogenData.answerSet.map(formatCodeDisplayToDisplay);

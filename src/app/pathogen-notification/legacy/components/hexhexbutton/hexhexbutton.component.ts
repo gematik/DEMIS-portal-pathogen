@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, ElementRef, EventEmitter, HostListener, Output } from '@angular/core';
+import { Component, ElementRef, HostListener, output, inject } from '@angular/core';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -24,9 +24,11 @@ import { environment } from 'src/environments/environment';
   standalone: true,
 })
 export class HexhexbuttonComponent {
-  @Output() paste = new EventEmitter<void>();
+  private readonly targetElement = inject(ElementRef);
 
-  constructor(private targetElement: ElementRef) {
+  readonly paste = output<void>();
+
+  constructor() {
     this.targetElement.nativeElement.classList.add('hexhexbutton');
   }
 
@@ -41,7 +43,7 @@ export class HexhexbuttonComponent {
   }
 
   doPaste() {
-    this.paste.emit();
+    this.paste.emit(undefined);
   }
 
   showHexHex(): boolean {

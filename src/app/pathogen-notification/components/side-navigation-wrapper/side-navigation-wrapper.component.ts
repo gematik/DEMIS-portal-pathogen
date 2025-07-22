@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { MatDrawer, MatDrawerContainer, MatDrawerContent } from '@angular/material/sidenav';
 import { PasteBoxComponent } from '@gematik/demis-portal-core-library';
 import { FormlyFieldConfig } from '@ngx-formly/core';
@@ -31,7 +31,6 @@ import { getNotificationTypeByRouterUrl, NotificationType } from '../../common/r
   selector: 'app-side-navigation-wrapper',
   templateUrl: './side-navigation-wrapper.component.html',
   styleUrls: ['./side-navigation-wrapper.component.scss'],
-  standalone: true,
   imports: [
     MatDrawerContainer,
     MatDrawer,
@@ -43,17 +42,19 @@ import { getNotificationTypeByRouterUrl, NotificationType } from '../../common/r
   ],
 })
 export class SideNavigationWrapperComponent {
-  @Input() currentStep = 0;
-  @Input() maxNumberOfSteps = 0;
-  @Input() currentStepHeadline = '';
-  @Input() steps: FormlyFieldConfig[];
-  @Input() model: any;
+  private readonly pathogenNotificationComponent = inject(PathogenNotificationComponent);
+
+  readonly currentStep = input(0);
+  readonly maxNumberOfSteps = input(0);
+  readonly currentStepHeadline = input('');
+  readonly steps = input<FormlyFieldConfig[]>(undefined);
+  readonly model = input<any>(undefined);
   notificationType = NotificationType.NominalNotification7_1;
   readonly router = inject(Router);
 
   private readonly clipboardDataService = inject(ClipboardDataService);
 
-  constructor(private pathogenNotificationComponent: PathogenNotificationComponent) {
+  constructor() {
     this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
   }
 
@@ -67,7 +68,6 @@ export class SideNavigationWrapperComponent {
   }
 
   async handlePasteBoxClick(clipboardData?: Map<string, string>): Promise<void> {
-    debugger;
     if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
       if (this.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
         const normalizedData = this.clipboardDataService.normalizeClipboardData(clipboardData);

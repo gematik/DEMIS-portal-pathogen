@@ -22,11 +22,12 @@ import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import {
   checkDescribingError,
+  clickBackButton,
   clickNextButton,
-  selectPageByNumber,
   setCheckboxTo,
   setInputFieldValue,
   setTextFieldValuesFor,
+  switchToPage,
   verifyInputFieldValues,
   waitForStability,
 } from '../shared/test-utils';
@@ -148,6 +149,7 @@ describe('Pathogen - Integration Tests', () => {
     describe('Validation submitting facility text fields', () => {
       beforeEach(async () => {
         await clickNextButton(fixture);
+        await waitForStability(fixture);
       });
       it('should be at submitting facility form', async () => {
         expect(fixture.nativeElement.textContent).toContain('Ansprechperson (Einsender)');
@@ -176,12 +178,13 @@ describe('Pathogen - Integration Tests', () => {
         await setTextFieldValuesFor(TEST_PARAMETER_SET_NOTIFIER.contactPerson, loader);
         await setTextFieldValuesFor(TEST_PARAMETER_SET_NOTIFIER.contacts.phoneNumbers, loader);
         await setTextFieldValuesFor(TEST_PARAMETER_SET_NOTIFIER.contacts.emailAddresses, loader);
-        await selectPageByNumber(loader, fixture, 1);
+        // selectPageByNumber method is flaky, so we use switchToPage instead
+        // await selectPageByNumber(loader, fixture, 1);
+        await switchToPage(2, fixture);
       });
 
       it('should copy all data of notifier when checkbox is checked', async () => {
         await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
-
         await verifyInputFieldValues(loader, [
           {
             selector: `#${FIELD_INSTITUTIONAME}`,
@@ -215,6 +218,7 @@ describe('Pathogen - Integration Tests', () => {
       });
 
       it('should not disable department name', async () => {
+        await fixture.whenStable();
         await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
         const departmentNameInput = await getInput(loader, `#${FIELD_DEPARTMENTNAME}`);
         expect(await departmentNameInput.isDisabled()).toBeFalse();
@@ -248,9 +252,8 @@ describe('Pathogen - Integration Tests', () => {
             expectedValue: TEST_PARAMETER_SET_NOTIFIER.facilityInfo[0].value,
           },
         ]);
-        await selectPageByNumber(loader, fixture, 0);
+        await clickBackButton(fixture);
         // adapt data in notifier
-        await waitForStability(fixture);
         const notifierTestFacility = TEST_FACILITY('notifier');
         await setInputFieldValue(loader, notifierTestFacility.institutionName.selector, notifierTestFacility.institutionName.value, fixture);
         await waitForStability(fixture);
@@ -263,8 +266,7 @@ describe('Pathogen - Integration Tests', () => {
         await setInputFieldValue(loader, `#${FIELD_EMAIL_2}`, testEmail, fixture);
 
         // assertion: data should have been changed in submitter as well
-        await selectPageByNumber(loader, fixture, 1);
-        await waitForStability(fixture);
+        await clickNextButton(fixture);
         await verifyInputFieldValues(loader, [
           {
             selector: notifierTestFacility.institutionName.selector,

@@ -15,7 +15,7 @@
  */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { CodeDisplay, PathogenData, PathogenTest } from '../../../api/notification';
@@ -27,7 +27,7 @@ import { FhirNotificationService } from '../legacy/services/fhir-notification.se
 import { catchError } from 'rxjs/operators';
 import { ErrorDialogService } from './error-dialog.service';
 import { MatDialog } from '@angular/material/dialog';
-import { cloneObject, MessageDialogService } from '@gematik/demis-portal-core-library';
+import { cloneObject } from '@gematik/demis-portal-core-library';
 import { isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
 import { NotificationType } from '../common/routing-helper';
 
@@ -35,18 +35,23 @@ import { NotificationType } from '../common/routing-helper';
   providedIn: 'root',
 })
 export class FhirPathogenNotificationService extends FhirNotificationService {
-  constructor(
-    protected http: HttpClient,
-    protected override logger: NGXLogger,
-    private errorDialogService: ErrorDialogService,
-    private messageDialogService: MessageDialogService,
-    private dialog: MatDialog
-  ) {
+  protected http: HttpClient;
+  protected override logger: NGXLogger;
+  private readonly errorDialogService = inject(ErrorDialogService);
+  private readonly dialog = inject(MatDialog);
+
+  constructor() {
+    const http = inject(HttpClient);
+    const logger = inject(NGXLogger);
+
     super(http, logger);
+
+    this.http = http;
+    this.logger = logger;
   }
 
   private static setFhirSpecificsDateFormat(testResults: PathogenTest): PathogenTest {
-    if (!!testResults?.notifiedPerson?.info?.birthDate) {
+    if (testResults?.notifiedPerson?.info?.birthDate) {
       testResults.notifiedPerson.info.birthDate = toFhirDateFormat(testResults.notifiedPerson.info.birthDate);
     }
     if (testResults?.pathogenDTO?.specimenList?.length > 0) {

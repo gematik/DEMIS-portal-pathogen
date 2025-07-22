@@ -75,17 +75,17 @@ export class ClipboardDataService {
     }),
     'S.phone': (value, model) => ({
       submittingFacility: {
-        contacts: addContact('phone', value, model?.submittingFacility?.contacts ? model.submittingFacility.contacts : []),
+        contacts: addContact('phone', value, model?.submittingFacility?.contacts || []),
       },
     }),
     'S.email': (value, model) => ({
       submittingFacility: {
-        contacts: addContact('email', value, model?.submittingFacility?.contacts ? model.submittingFacility.contacts : []),
+        contacts: addContact('email', value, model?.submittingFacility?.contacts || []),
       },
     }),
     'S.phone2': (value, model) => ({
       submittingFacility: {
-        contacts: addContact('phone', value, model?.submittingFacility?.contacts ? model.submittingFacility.contacts : []),
+        contacts: addContact('phone', value, model?.submittingFacility?.contacts || []),
       },
     }),
   };
@@ -121,7 +121,7 @@ export class ClipboardDataService {
     }),
   };
 
-  private PATHOGEN_CLIPBOARD_RULE: ClipboardRules = {
+  private readonly PATHOGEN_CLIPBOARD_RULE: ClipboardRules = {
     'T.notificationCategory': (value, model) => {
       if (value !== model.pathogen) {
         this.pathogenValueIsChanging.next(value);
@@ -336,7 +336,7 @@ export class ClipboardDataService {
     return [model, transformedClipboardData];
   }
 
-  private getSelectedPathogenCodeDisplayFromStorage = () => {
+  private readonly getSelectedPathogenCodeDisplayFromStorage = () => {
     return this.notificationStorageService.getSelectedPathogenCodeDisplay();
   };
 
@@ -424,7 +424,7 @@ export class ClipboardDataService {
   }
 
   augmentCode(code: string, valueSetName: 'materials' | 'methods' | 'answerSet' | 'substances' | 'resitances' | 'resistanceGenes'): string {
-    if (!!this.pathogenData) {
+    if (this.pathogenData) {
       const codeDisplays = this.pathogenData[valueSetName];
       if (!codeDisplays) throw Error(`PT_4711_no-valueset: ${valueSetName}`);
       const cd: CodeDisplay | undefined = codeDisplays.find(cd => cd.code === code);

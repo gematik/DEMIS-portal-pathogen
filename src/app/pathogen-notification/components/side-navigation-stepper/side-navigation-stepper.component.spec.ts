@@ -14,42 +14,37 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { MockBuilder, MockRender } from 'ng-mocks';
 import { SideNavigationStepperComponent } from './side-navigation-stepper.component';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 
 describe('SideNavigationStepperComponent', () => {
-  let component: SideNavigationStepperComponent;
-  let fixture: ComponentFixture<SideNavigationStepperComponent>;
-  const index: number = 4;
+  beforeEach(() =>
+    MockBuilder(SideNavigationStepperComponent).mock(RouterModule).provide({
+      provide: ActivatedRoute,
+      useValue: {},
+    })
+  );
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([]), SideNavigationStepperComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(SideNavigationStepperComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
+  it('should create the component', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     expect(component).toBeTruthy();
   });
 
   it('should have default values for inputs', () => {
-    expect(component.steps).toEqual([]);
-    expect(component.currentStep).toBeUndefined();
-    expect(component.model).toBeUndefined();
+    const fixture = MockRender(SideNavigationStepperComponent, {});
+    const component = fixture.point.componentInstance;
+    expect(component.steps()).toEqual([]);
+    expect(component.currentStep()).toBeUndefined();
+    expect(component.model()).toBeUndefined();
   });
 
   it('should return true for isTouchedAndValid when field is valid and touched', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     const field: FormlyFieldConfig = {
       key: 'test',
       formControl: { valid: true, touched: true } as any,
@@ -58,6 +53,8 @@ describe('SideNavigationStepperComponent', () => {
   });
 
   it('should return false for isTouchedAndValid when field is not valid or not touched', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     const field: FormlyFieldConfig = {
       key: 'test',
       formControl: { valid: false, touched: true } as any,
@@ -66,6 +63,8 @@ describe('SideNavigationStepperComponent', () => {
   });
 
   it('should return true for isTouchedAndValid when field.key is null and fieldGroup is valid and touched', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     const field: FormlyFieldConfig = {
       key: null,
       fieldGroup: [
@@ -82,6 +81,8 @@ describe('SideNavigationStepperComponent', () => {
   });
 
   it('should return true for isTouchedAndValid when field.key is null and fieldGroup is empty', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     const field: FormlyFieldConfig = {
       key: null,
       fieldGroup: [],
@@ -90,41 +91,59 @@ describe('SideNavigationStepperComponent', () => {
   });
 
   it('should navigate on step change', () => {
+    const fixture = MockRender(SideNavigationStepperComponent, {
+      steps: [{ props: { anchor: 'step0' } } as FormlyFieldConfig, { props: { anchor: 'step1' } } as FormlyFieldConfig],
+    });
+    const component = fixture.point.componentInstance;
     const routerSpy = spyOn(component['router'], 'navigate');
     const event: StepperSelectionEvent = { selectedIndex: 1, previouslySelectedIndex: 0 } as any;
-    component.steps = [{ props: { anchor: 'step0' } } as FormlyFieldConfig, { props: { anchor: 'step1' } } as FormlyFieldConfig];
     component.onStepChange(event);
     expect(routerSpy).toHaveBeenCalledWith(['./'], { relativeTo: component['route'], fragment: 'step1' });
   });
 
   it('should return "disabled_step" for isEditable when pathogenDisplay is null', () => {
-    component.model = { notificationCategory: { pathogenDisplay: null } };
-    expect(component.isEditable(index)).toBe('disabled_step');
+    const fixture = MockRender(SideNavigationStepperComponent, {
+      model: { notificationCategory: { pathogenDisplay: null } },
+    });
+    const component = fixture.point.componentInstance;
+    expect(component.isEditable(4)).toBe('disabled_step');
   });
 
-  it('should return null for isEditable when pathogenDisplay is empty', () => {
-    component.model = { notificationCategory: { pathogenDisplay: '' } };
-    expect(component.isEditable(index)).toBe('disabled_step');
+  it('should return "disabled_step" for isEditable when pathogenDisplay is empty', () => {
+    const fixture = MockRender(SideNavigationStepperComponent, {
+      model: { notificationCategory: { pathogenDisplay: '' } },
+    });
+    const component = fixture.point.componentInstance;
+    expect(component.isEditable(4)).toBe('disabled_step');
   });
 
   it('should return null for isEditable when pathogenDisplay is set', () => {
-    component.model = { notificationCategory: { pathogenDisplay: 'Influenza' } };
-    expect(component.isEditable(index)).toBeNull();
+    const fixture = MockRender(SideNavigationStepperComponent, {
+      model: { notificationCategory: { pathogenDisplay: 'Influenza' } },
+    });
+    const component = fixture.point.componentInstance;
+    expect(component.isEditable(4)).toBeNull();
   });
 
   it('should return step key as ID if key is present', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     const step: FormlyFieldConfig = { key: 'stepKey' } as any;
     const stepId = component.getStepId(step);
     expect(stepId).toBe('stepKey');
   });
 
   it('should return step label as ID if key is not present', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     const step: FormlyFieldConfig = { props: { label: 'stepLabel' } } as any;
     const stepId = component.getStepId(step);
     expect(stepId).toBe('stepLabel');
   });
 
   it('should return undefined if neither key nor label is present', () => {
+    const fixture = MockRender(SideNavigationStepperComponent);
+    const component = fixture.point.componentInstance;
     const step: FormlyFieldConfig = {} as any;
     const stepId = component.getStepId(step);
     expect(stepId).toBe('undefined');

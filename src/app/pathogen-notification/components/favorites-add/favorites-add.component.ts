@@ -26,10 +26,11 @@ import { PathogenNotificationComponent } from '../../pathogen-notification.compo
   selector: 'app-favorites-add',
   templateUrl: './favorites-add.component.html',
   styleUrls: ['./favorites-add.component.scss'],
-  standalone: true,
   imports: [MatIcon],
 })
 export class FavoritesAddComponent extends FieldType implements OnInit, OnDestroy {
+  private readonly pathogenNotificationStorageService = inject(PathogenNotificationStorageService);
+
   pathogen: CodeDisplay;
   maxFavorites: number = 5;
   favorites: WritableSignal<CodeDisplay[]> = signal([]);
@@ -41,10 +42,12 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   });
   private readonly isNonNominalNotification7_3: boolean = false;
 
-  private pathogenNotificationComponent: PathogenNotificationComponent = inject(PathogenNotificationComponent);
+  private readonly pathogenNotificationComponent: PathogenNotificationComponent = inject(PathogenNotificationComponent);
 
-  constructor(private pathogenNotificationStorageService: PathogenNotificationStorageService) {
+  constructor() {
     super();
+    const pathogenNotificationStorageService = this.pathogenNotificationStorageService;
+
     this.pathogen = pathogenNotificationStorageService.getSelectedPathogenCodeDisplay();
     this.isNonNominalNotification7_3 = this.pathogenNotificationComponent.isNonNominalNotification7_3();
     this.loadFavorites();

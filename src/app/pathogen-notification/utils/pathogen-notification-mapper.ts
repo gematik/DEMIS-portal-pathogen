@@ -101,7 +101,7 @@ export const updatePathogenForm = (
 
 const removeTemporaryValidationWrapperField = (form: any) => {
   const pathogenDTOGroup = form.get('pathogenForm.pathogenDTO') as unknown as FormGroup;
-  if (!!pathogenDTOGroup) {
+  if (pathogenDTOGroup) {
     pathogenDTOGroup.removeControl('temporaryValidationWrapper');
   }
   return pathogenDTOGroup;

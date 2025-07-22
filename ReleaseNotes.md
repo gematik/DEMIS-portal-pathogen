@@ -2,6 +2,11 @@
 
 # Release portal-pathogen
 
+## Release 1.4.7
+- Updated Angular version
+- Updated Nginx version
+- Updated Portal-Core Library version
+
 ## Release 1.4.6
 - Updated data model
 
@@ -17,7 +22,7 @@
 
 ## Release 1.4.3
 - Updated Portal-Core Library version
-- Updated Nginx Version
+- Updated Nginx version
 - New Color Scheme
 - Bugfix for Checkbox
 - Replaced hardcoded futs path with dynamic path

@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { assetUrl } from '../../../single-spa/asset-url';
@@ -23,12 +23,10 @@ import { assetUrl } from '../../../single-spa/asset-url';
   providedIn: 'root',
 })
 export class IconLoaderService {
-  private readonly ICON_FOLDER_PATH = assetUrl('icons/');
+  private readonly matIconRegistry = inject(MatIconRegistry);
+  private readonly domSanitizer = inject(DomSanitizer);
 
-  constructor(
-    private matIconRegistry: MatIconRegistry,
-    private domSanitizer: DomSanitizer
-  ) {}
+  private readonly ICON_FOLDER_PATH = assetUrl('icons/');
 
   init(): Promise<void> {
     return new Promise(resolve => {
