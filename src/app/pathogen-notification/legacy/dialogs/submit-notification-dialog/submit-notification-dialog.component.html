@@ -51,12 +51,12 @@
   </h1>
   <div class="d-flex flex-column flex-grow-1 pb-1" mat-dialog-content>
     <div id="fail-message">
-      <p>{{ result.message }}</p>
+      <p>{{ result?.message }}</p>
     </div>
 
     <div>
       <mat-accordion>
-        @if (result.messageDetails) {
+        @if (result?.messageDetails) {
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title> Mehr Details</mat-panel-title>

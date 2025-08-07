@@ -70,6 +70,7 @@ export const TEXT_REG_EXP: RegExp = /^[^@\\*?$|=´'"\[\]{}<>]{0,100}$/; // No da
 export const STREET_REG_EXP: RegExp = /^[^@\\*?$|=´"\[\]{}<>]{0,100}$/;
 export const ADDITIONAL_INFO_REG_EXP: RegExp = /^[^\\=´'<>]{0,5000}$/; // No dangerous signs allowed
 export const ZIP_GERMANY_REG_EXP: RegExp = /^\d{5}$/; // 5 Ziffern allowed
+export const ZIP_GERMANY_SHORT_REG_EXP: RegExp = /^\d{3}$/; // 3-stellige Nummer
 export const ZIP_INTERNATIONAL_REG_EXP: RegExp = /(?=^[\w\- ]{3,50}$)(?=.*\d)/;
 export const NAME_REG_EXP: RegExp = /^[^@\\*?$|=´'"\[\]{}<>0-9]{0,100}$/; // from https://wiki.gematik.de/x/JRlpGw
 export const NUMBER_OF_BEDS: RegExp = /^\d{0,6}$/;
@@ -90,6 +91,7 @@ export const NO_SPECIAL_CHARACTERS_ALLOWED_ERROR_MSG: string = 'Es sind keine So
 export const PHONE_ERROR_MSG: string = 'Die Telefonnummer muss mit 0 oder + beginnen, gefolgt von mindestens 6 Ziffern.';
 export const TEXT_ERROR_MSG: string = 'Ihre Eingabe enthält unzulässige Sonderzeichen';
 export const ZIP_GERMANY_ERROR_MSG: string = 'Die Postleitzahl muss aus 5 Ziffern bestehen';
+export const ZIP_GERMANY_SHORT_ERROR_MSG: string = 'Die Postleitzahl muss aus 3 Ziffern bestehen';
 export const ZIP_INTERNATIONAL_ERROR_MSG: string = 'Die Postleitzahl muss aus mindestens 3 Zeichen und einer Ziffer bestehen';
 export const INIT_INFO_VALIDATOR_ERROR_MSG: string = 'Informationen zur Person nicht vollständig!';
 export const ADDITIONAL_INFO_ERROR_MSG: string = 'Ihre Eingabe enthält unzulässige Sonderzeichen.';

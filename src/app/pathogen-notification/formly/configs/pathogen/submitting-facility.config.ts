@@ -127,15 +127,18 @@ function getCurrentAddressType(fieldGroup: FormlyFieldConfig[]) {
   return fieldGroup.find(field => field.key === 'notifiedPerson').fieldGroup[6].fieldGroup.find(field => field.key === 'currentAddressType');
 }
 
+function resetAndAddRepeatFields(submittingFacilityFieldGroups: FormlyFieldConfig[]) {
+  const phoneNumberFields = submittingFacilityFieldGroups.find(field => field.key === 'contacts').fieldGroup.find(field => field.key === 'phoneNumbers');
+  const emailAddressesFields = submittingFacilityFieldGroups.find(field => field.key === 'contacts').fieldGroup.find(field => field.key === 'emailAddresses');
+  phoneNumberFields.props.setFieldCount(1, true);
+  emailAddressesFields.props.setFieldCount(1, true);
+  emailAddressesFields.fieldGroup[0].fieldGroup[0].formControl.setValue('email');
+  phoneNumberFields.fieldGroup[0].fieldGroup[0].formControl.setValue('phone');
+}
+
 function resetAllFields(field: FormlyFieldConfig, root: FormlyFieldConfig) {
   const submittingFacility = field.parent;
   const submittingFacilityFieldGroups = submittingFacility.fieldGroup;
-  const phoneNumbersFieldProps = submittingFacilityFieldGroups
-    .find(field => field.key === 'contacts')
-    .fieldGroup.find(field => field.key === 'phoneNumbers').props;
-  const emailAddressesFieldProps = submittingFacilityFieldGroups
-    .find(field => field.key === 'contacts')
-    .fieldGroup.find(field => field.key === 'emailAddresses').props;
   // DEMIS-2674: Manual field reset because standard reset() fails after clipboard/hexhex input
   submittingFacilityFieldGroups.find(field => field.key === 'facilityInfo').fieldGroup[0].fieldGroup[0].formControl.reset(null);
   const submittingFacilityAddressField = submittingFacilityFieldGroups.find(field => field.key === 'address');
@@ -144,8 +147,7 @@ function resetAllFields(field: FormlyFieldConfig, root: FormlyFieldConfig) {
 
   submittingFacilityFieldGroups.find(field => field.key === 'contact').formControl.reset(null);
 
-  emailAddressesFieldProps.setFieldCount(1, true);
-  phoneNumbersFieldProps.setFieldCount(1, true);
+  resetAndAddRepeatFields(submittingFacilityFieldGroups);
 
   field.parent.formControl.enable();
   if (root.model.notifiedPerson.currentAddressType === AddressType.SubmittingFacility) {

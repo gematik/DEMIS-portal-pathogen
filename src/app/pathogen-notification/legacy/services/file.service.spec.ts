@@ -17,32 +17,33 @@
 import { TestBed } from '@angular/core/testing';
 import { FileService } from './file.service';
 import { NotifiedPersonBasicInfo, PathogenTest } from '../../../../api/notification';
+import { NotificationType } from '../../common/routing-helper';
 
 describe('FileService', () => {
   let service: FileService;
+
+  const notification: PathogenTest = {
+    notifiedPerson: {
+      info: {
+        firstname: 'Max',
+        lastname: 'Meier',
+        birthDate: '05.11.1998',
+      } as NotifiedPersonBasicInfo,
+    },
+  } as PathogenTest;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(FileService);
   });
 
-  it('returns file name for PathogenTest notification type', () => {
-    const notification: PathogenTest = {
-      notifiedPerson: {
-        info: {
-          firstname: 'Max',
-          lastname: 'Meier',
-          birthDate: '05.11.1998',
-        } as NotifiedPersonBasicInfo,
-      },
-    } as PathogenTest;
-
-    const fileName = service.getFileNameByNotificationType(notification);
+  it('returns file name for PathogenTest nominal notification type', () => {
+    const fileName = service.getFileNameByNotificationType(notification, NotificationType.NominalNotification7_1, '12345');
     expect(fileName).toMatch(/^\d{12} Meier, Max 981105\.pdf$/);
   });
 
   it('handles empty birth date gracefully', () => {
-    const notification: PathogenTest = {
+    const notificationEmptyBirthday: PathogenTest = {
       notifiedPerson: {
         info: {
           firstname: 'Max',
@@ -51,8 +52,27 @@ describe('FileService', () => {
         } as NotifiedPersonBasicInfo,
       },
     } as PathogenTest;
+    const fileName = service.getFileNameByNotificationType(notificationEmptyBirthday, NotificationType.NominalNotification7_1, '12345');
 
-    const fileName = service.getFileNameByNotificationType(notification);
     expect(fileName).toMatch(/^\d{12} Meier, Max\.pdf$/);
+  });
+
+  it('returns file name for non-nominal notification type', () => {
+    const notificationId = 'ABC123XYZ';
+    const fileName = service.getFileNameByNotificationType(notification, NotificationType.NonNominalNotification7_3, notificationId);
+
+    expect(fileName).not.toContain('Max');
+    expect(fileName).not.toContain('Meier');
+    expect(fileName).not.toContain('981105');
+    expect(fileName).toMatch(/^\d{12}-ABC123XYZ\.pdf$/);
+  });
+
+  it('handles empty notificationId for non-nominal notification type', () => {
+    const fileName = service.getFileNameByNotificationType(notification, NotificationType.NonNominalNotification7_3, '');
+
+    expect(fileName).not.toContain('Max');
+    expect(fileName).not.toContain('Meier');
+    expect(fileName).not.toContain('981105');
+    expect(fileName).toMatch(/^\d{12}-\.pdf$/);
   });
 });

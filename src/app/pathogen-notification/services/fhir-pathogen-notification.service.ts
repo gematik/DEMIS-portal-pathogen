@@ -39,6 +39,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   protected override logger: NGXLogger;
   private readonly errorDialogService = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);
+  private readonly futsHeaders = environment.futsHeaders;
 
   constructor() {
     const http = inject(HttpClient);
@@ -83,7 +84,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     }
     return this.httpClient
       .get<PathogenData>(path, {
-        headers: environment.headers,
+        headers: this.futsHeaders,
       })
       .pipe(
         catchError(error => {
@@ -116,7 +117,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     }
     return this.httpClient
       .get<CodeDisplay[]>(path, {
-        headers: environment.headers,
+        headers: this.futsHeaders,
       })
       .pipe(
         catchError(error => {
@@ -137,7 +138,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     }
     return this.httpClient
       .get<Array<CodeDisplay>>(path, {
-        headers: environment.headers,
+        headers: this.futsHeaders,
       })
       .pipe(
         catchError(error => {
@@ -152,7 +153,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     const path = environment.countryCodes;
     return this.httpClient
       .get<Array<CodeDisplay>>(path, {
-        headers: environment.headers,
+        headers: this.futsHeaders,
       })
       .pipe(
         catchError(error => {

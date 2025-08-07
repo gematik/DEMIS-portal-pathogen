@@ -2,6 +2,13 @@
 
 # Release portal-pathogen
 
+## Release 1.5.0
+- Implementation of §7.1 follow-up notification (FEATURE_FLAG_FOLLOW_UP_NOTIFICATION)
+- add new API endpoints activated by feature flag FEATURE_FLAG_NEW_API_ENDPOINTS
+- add fhirProfile header for futs requests
+- Switch to errorDialog from CoreLibrary for submit (FEATURE_FLAG_PORTAL_ERROR_DIALOG_ON_SUBMIT)
+- Bugfix for submittingFacility contacts in case of copy checkbox usage
+
 ## Release 1.4.7
 - Updated Angular version
 - Updated Nginx version

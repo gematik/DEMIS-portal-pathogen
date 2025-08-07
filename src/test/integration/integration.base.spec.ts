@@ -39,12 +39,14 @@ import { SideNavigationStepperComponent } from '../../app/pathogen-notification/
 import { FormlyMaterialModule } from '@ngx-formly/material';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
+import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
 export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
     FEATURE_FLAG_PORTAL_REPEAT: true,
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false,
+    FEATURE_FLAG_FOLLOW_UP_NOTIFICATION: false,
     FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: false,
   },
   gatewayPaths: {
@@ -60,7 +62,8 @@ export const mainConfig = {
   production: false,
 };
 
-export function buildMock(activatedRoute = false, isNonnominal: boolean = false) {
+export function buildMock(activatedRoute = false, notificationType: NotificationType = NotificationType.NominalNotification7_1) {
+  const isNonnominal = notificationType === NotificationType.NonNominalNotification7_3;
   const builder = MockBuilder(PathogenNotificationComponent)
     .keep(
       RouterModule.forRoot([
@@ -91,6 +94,8 @@ export function buildMock(activatedRoute = false, isNonnominal: boolean = false)
 
   if (isNonnominal) {
     builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.3/non-nominal')));
+  } else if (notificationType === NotificationType.FollowUpNotification7_1) {
+    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.1/follow-up')));
   }
 
   if (activatedRoute) {

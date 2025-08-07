@@ -19,13 +19,14 @@ import { PathogenNotificationComponent } from '../../app/pathogen-notification/p
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { switchToPage } from '../shared/test-utils';
+import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
 describe('Pathogen - Nonnominal Integration Tests', () => {
   let component: PathogenNotificationComponent;
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
 
-  beforeEach(() => buildMock(true, true));
+  beforeEach(() => buildMock(true, NotificationType.NonNominalNotification7_3));
 
   beforeEach(() => {
     const result = setupIntegrationTests({

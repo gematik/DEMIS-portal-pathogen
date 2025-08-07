@@ -1,0 +1,68 @@
+$color-success: #008075;
+button {
+  font-weight: 700;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 19px;
+  min-width: 100px !important;
+}
+
+p {
+  font-size: 13px;
+}
+
+#dialog-container {
+  border: 1px solid #000;
+  width: 610px;
+  height: 388px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+}
+
+.button-container {
+  justify-content: flex-end;
+}
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+}
+
+
+#dialog-title {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 22px;
+  padding-left: 0;
+}
+
+#dialog-paragraph {
+  margin-top: 0;
+  margin-bottom: 27px;
+}
+
+#final-dialog-paragraph {
+  margin-top: 10px;
+}
+
+form, .form-container {
+  margin-bottom: 27px;
+}
+
+::ng-deep .initial-notification-id-input-field-valid {
+  --mdc-outlined-text-field-outline-color: #{$color-success};
+  --mdc-outlined-text-field-focus-outline-color: #{$color-success};
+  --mdc-outlined-text-field-hover-outline-color: #{$color-success};
+  --mdc-outlined-text-field-label-text-color: #{$color-success};
+  --mdc-outlined-text-field-hover-label-text-color: #{$color-success};
+  --mdc-outlined-text-field-focus-label-text-color: #{$color-success};
+}
+
+::ng-deep .initial-notification-id-input-field-valid .mat-mdc-input-element {
+  color: $color-success !important;
+}

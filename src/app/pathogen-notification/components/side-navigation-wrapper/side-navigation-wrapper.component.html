@@ -8,6 +8,10 @@
         <h1>Erregernachweis</h1>
         <p>Meldung eines Erregernachweises gemäß § 7 Abs. 3 IfSG</p>
       }
+      @if (isFollowUpNotificationEnabled() && notificationType === NotificationType.FollowUpNotification7_1) {
+        <h1>Folgemeldung</h1>
+        <p>Nichtnamentliche Folgemeldung eines Erregernachweises gemäß § 7 Abs. 1 IfSG</p>
+      }
     </div>
     <div>
       <app-side-navigation-stepper

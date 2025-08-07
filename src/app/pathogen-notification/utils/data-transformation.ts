@@ -15,6 +15,7 @@
  */
 
 import {
+  AddressType,
   CodeDisplay,
   ContactPointInfo,
   MethodPathogenDTO,
@@ -26,6 +27,7 @@ import {
 } from '../../../api/notification';
 import { ExtendedSalutationEnum, findCodeDisplayByDisplayValue, getDesignationValueIfAvailable } from '../legacy/common-utils';
 import { isString, merge } from 'lodash-es';
+import { NotificationType } from '../common/routing-helper';
 
 export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
   const result: any = {};
@@ -43,7 +45,6 @@ export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
       contacts: transformContactsToPathogenForm(pathogenTest.submittingFacility.contacts),
     };
   }
-
   if (pathogenTest.notifiedPerson) {
     result.notifiedPerson = {
       info: pathogenTest.notifiedPerson?.info,
@@ -120,6 +121,18 @@ function transformPerson(pathogenForm: any, result: any) {
   return result;
 }
 
+function transformAnonymousPerson(pathogenForm: any, result: any) {
+  if (pathogenForm.notifiedPerson) {
+    const residenceAddress = transformAddress(pathogenForm.notifiedPerson.residenceAddress, AddressType.Primary);
+
+    result.notifiedPerson = {
+      info: pathogenForm.notifiedPerson.info,
+      residenceAddress: residenceAddress,
+    };
+  }
+  return result;
+}
+
 function fillSpecimenList(specimenDTOS: Array<SpecimenDTOForm>, pathogenData: PathogenData) {
   let finalSpecimenList: SpecimenDTO[] = [];
   specimenDTOS.forEach(specimenItem => {
@@ -161,7 +174,12 @@ export function transformDiagnostic(pathogenForm: any, result: any, pathogenData
   return result;
 }
 
-export function transformPathogenFormToPathogenTest(pathogenForm: any, selectedPathogen?: CodeDisplay, pathogenData?: PathogenData): PathogenTest {
+export function transformPathogenFormToPathogenTest(
+  pathogenForm: any,
+  selectedPathogen?: CodeDisplay,
+  pathogenData?: PathogenData,
+  notificationType?: NotificationType
+): PathogenTest {
   let result: any = {};
   if (pathogenForm.notifierFacility) {
     result.notifierFacility = {
@@ -177,7 +195,9 @@ export function transformPathogenFormToPathogenTest(pathogenForm: any, selectedP
     };
   }
 
-  result = transformPerson(pathogenForm, result);
+  if (notificationType === NotificationType.FollowUpNotification7_1) {
+    result = transformAnonymousPerson(pathogenForm, result);
+  } else result = transformPerson(pathogenForm, result);
 
   if (pathogenForm.submittingFacility) {
     result.submittingFacility = {

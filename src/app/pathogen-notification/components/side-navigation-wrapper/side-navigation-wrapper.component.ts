@@ -26,6 +26,7 @@ import { SideNavigationStepperComponent } from '../side-navigation-stepper/side-
 import { ClipboardDataService } from '../../services/clipboard-data.service';
 import { Router } from '@angular/router';
 import { getNotificationTypeByRouterUrl, NotificationType } from '../../common/routing-helper';
+import { isFollowUpNotificationEnabled } from '../../utils/pathogen-notification-mapper';
 
 @Component({
   selector: 'app-side-navigation-wrapper',
@@ -84,4 +85,5 @@ export class SideNavigationWrapperComponent {
   }
 
   protected readonly NotificationType = NotificationType;
+  protected readonly isFollowUpNotificationEnabled = isFollowUpNotificationEnabled;
 }

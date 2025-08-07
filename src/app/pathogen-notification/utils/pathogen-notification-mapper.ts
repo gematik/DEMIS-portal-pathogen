@@ -20,11 +20,17 @@ import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable } from '../l
 import { environment } from '../../../environments/environment';
 import { FormGroup } from '@angular/forms';
 import { FormlyFieldConfig } from '@ngx-formly/core';
+import { NotificationType } from '../common/routing-helper';
 
 export const isNonNominalNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION;
+export const isFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION;
 
-export const initializeSelectPathogenFields = (federalStateCodeDisplays: CodeDisplay[], pathogenCodeDisplays: CodeDisplay[]) => {
-  return selectNotificationCategoryFields(federalStateCodeDisplays, pathogenCodeDisplays.map(formatCodeDisplayToDisplay), []);
+export const initializeSelectPathogenFields = (
+  federalStateCodeDisplays: CodeDisplay[],
+  pathogenCodeDisplays: CodeDisplay[],
+  notificationType: NotificationType
+) => {
+  return selectNotificationCategoryFields(federalStateCodeDisplays, pathogenCodeDisplays.map(formatCodeDisplayToDisplay), [], notificationType);
 };
 
 export const initializeDiagnosticFields = (selectedFederalStateCode: string, model: any) => {
