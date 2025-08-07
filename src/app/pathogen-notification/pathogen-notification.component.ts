@@ -18,7 +18,7 @@ import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@a
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { FormlyFieldConfig, FormlyFormOptions, FormlyModule } from '@ngx-formly/core';
-import { distinctUntilChanged, forkJoin, of, Subject, take, takeUntil } from 'rxjs';
+import { distinctUntilChanged, forkJoin, of, Subject, take, takeUntil, filter } from 'rxjs';
 import { AddressType, CodeDisplay, PathogenData } from '../../api/notification';
 import {
   filterDisplayValues,
@@ -44,6 +44,7 @@ import {
   getResetModel,
   initializeDiagnosticFields,
   initializeSelectPathogenFields,
+  isFollowUpNotificationEnabled,
   isNonNominalNotificationEnabled,
   updatePathogenForm,
 } from './utils/pathogen-notification-mapper';
@@ -54,6 +55,8 @@ import { initialModelForClipboard } from './services/core/clipboard-constants';
 import { Router } from '@angular/router';
 import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
 import { getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
+import { notifiedPersonAnonymousConfigFields } from './formly/configs/pathogen/notified-person-anonymous.config';
+import { FollowUpNotificationIdService } from './services/follow-up-notification-id.service';
 
 @Component({
   selector: 'app-pathogen-notification',
@@ -68,6 +71,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   private readonly clipboardDataService = inject(ClipboardDataService);
   private readonly logger = inject(NGXLogger);
   private readonly errorDialogService = inject(ErrorDialogService);
+  private readonly followUpNotificationIdService = inject(FollowUpNotificationIdService);
 
   form: FormGroup = new FormGroup({});
   options: FormlyFormOptions = {};
@@ -99,7 +103,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.sendFunction = (pathogenForm: any) => {
-      const pathogenTest = transformPathogenFormToPathogenTest(pathogenForm, this.getSelectedPathogenCodeDisplayFromStorage(), this.pathogenData);
+      const pathogenTest = transformPathogenFormToPathogenTest(
+        pathogenForm,
+        this.getSelectedPathogenCodeDisplayFromStorage(),
+        this.pathogenData,
+        this.notificationType
+      );
       this.fhirPathogenNotificationService.openSubmitDialog(pathogenTest, this.notificationType);
     };
   }
@@ -109,9 +118,10 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.changeLoadingState(true);
     const selectedFederalStateCode = this.notificationStorageService.getFederalStateCode() || this.defaultFederalState;
 
-    if (isNonNominalNotificationEnabled()) {
+    if (isNonNominalNotificationEnabled() || isFollowUpNotificationEnabled()) {
       this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
     }
+
     forkJoin([
       this.fhirPathogenNotificationService.fetchCountryCodeDisplays(),
       this.fhirPathogenNotificationService.fetchFederalStateCodeDisplays(this.notificationType),
@@ -128,7 +138,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.countryCodeDisplays = countryCodeDisplays;
         this.notifierFacilityFields = notifierFacilityFormConfigFieldsFull(this.countryCodeDisplays);
         this.submitterFacilityFields = submittingFacilityFields(this.countryCodeDisplays, this.errorDialogService);
-        this.notifiedPersonFields = notifiedPersonFormConfigFields(this.countryCodeDisplays);
+        this.notifiedPersonFields = this.isFollowUpNotification7_1()
+          ? notifiedPersonAnonymousConfigFields(this.countryCodeDisplays)
+          : notifiedPersonFormConfigFields(this.countryCodeDisplays);
         this.pathogenCodeDisplays = pathogenCodeDisplays;
         this.clipboardDataService.setPathogenCodeDisplays(pathogenCodeDisplays);
 
@@ -150,8 +162,13 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
             this.subscribeToFederalStateChanges();
           }
           this.subscribeToPathogenChanges();
-          this.subscribeToCurrentAddressTypeChanges();
+          if (this.notificationType !== NotificationType.FollowUpNotification7_1) {
+            this.subscribeToCurrentAddressTypeChanges();
+          }
         });
+        if (this.notificationType === NotificationType.FollowUpNotification7_1) {
+          this.followUpNotificationIdService.openDialog();
+        }
       });
 
     this.clipboardDataService.pathogenValueIsChanging.subscribe((pathogenValue: string) => {
@@ -164,6 +181,19 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.clipboardDataService.pathogenDataIsChangingFromClipboard.subscribe((pathogenIsChanging: boolean) => {
       this.pathogenIsChangingFromClipboard = pathogenIsChanging;
     });
+
+    if (this.isFollowUpNotification7_1()) {
+      this.followUpNotificationIdService.hasValidNotificationId$
+        .pipe(
+          takeUntil(this.unsubscriber),
+          distinctUntilChanged(),
+          filter(hasValid => hasValid === true)
+        )
+        .subscribe(() => {
+          this.updateAfterPathogenSelection(findCodeDisplayByDisplayValue(this.pathogenCodeDisplays, 'Influenzavirus'));
+          this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
+        });
+    }
   }
 
   populateWithFavoriteSelection(pathogen: CodeDisplay): void {
@@ -205,7 +235,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   initializeSelectPathogenFields(selectedFederalStateCode: string, pathogenCodeDisplays: CodeDisplay[]) {
-    this.selectPathogenFields = initializeSelectPathogenFields(this.federalStateCodeDisplays, pathogenCodeDisplays);
+    this.selectPathogenFields = initializeSelectPathogenFields(this.federalStateCodeDisplays, pathogenCodeDisplays, this.notificationType);
     this.model = initializeDiagnosticFields(selectedFederalStateCode, this.model);
   }
 
@@ -234,7 +264,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           if (!this.model.pathogenForm.isFromClipboard) {
             // reset does not clear data from clipboard
             this.model.pathogenForm.notifiedPerson.currentAddress = undefined;
-            currentAddressField.fieldGroup.forEach(f => {
+            currentAddressField.fieldGroup?.forEach(f => {
               f.formControl?.setValue(f.key === 'country' ? 'DE' : '');
             });
           }
@@ -313,6 +343,10 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   public isNonNominalNotification7_3(): boolean {
     return this.notificationType === NotificationType.NonNominalNotification7_3;
+  }
+
+  public isFollowUpNotification7_1(): boolean {
+    return this.notificationType === NotificationType.FollowUpNotification7_1;
   }
 
   private updateAfterPathogenSelection(selectedPathogenCodeDisplay: CodeDisplay, fromHexHexButton: boolean = false, fromClipboard = false) {
@@ -458,6 +492,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.notificationStorageService.removeSelectedPathogenCodeDisplay();
+    this.followUpNotificationIdService.resetState();
     this.unsubscriber.next();
     this.unsubscriber.complete();
   }

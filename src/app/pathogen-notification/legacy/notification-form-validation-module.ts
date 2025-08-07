@@ -51,6 +51,8 @@ import {
   UI_LUXON_DATE_FORMAT,
   ZIP_GERMANY_ERROR_MSG,
   ZIP_GERMANY_REG_EXP,
+  ZIP_GERMANY_SHORT_ERROR_MSG,
+  ZIP_GERMANY_SHORT_REG_EXP,
   ZIP_INTERNATIONAL_ERROR_MSG,
   ZIP_INTERNATIONAL_REG_EXP,
 } from './common-utils';
@@ -65,6 +67,7 @@ export const NotificationFormValidationModule = FormlyModule.forRoot({
       validation: partialDateInputValidation,
     },
     { name: 'germanZipValidator', validation: germanZipValidation },
+    { name: 'germanShortZipValidator', validation: germanShortZipValidation },
     { name: 'houseNumberValidator', validation: houseNumberValidation },
     {
       name: 'internationalZipValidator',
@@ -181,6 +184,10 @@ export function validateGermanZip(zip: string): any {
   return !!zip ? (matchesRegExp(ZIP_GERMANY_REG_EXP, zip) ? null : setValidationMessage(ZIP_GERMANY_ERROR_MSG)) : null;
 }
 
+export function validateGermanShortZip(zip: string): any {
+  return zip ? (matchesRegExp(ZIP_GERMANY_SHORT_REG_EXP, zip) ? null : setValidationMessage(ZIP_GERMANY_SHORT_ERROR_MSG)) : null;
+}
+
 export function termValidation(term: string): any {
   // following signs not accepted: @ \ * ? $ | = ´ ' " [ ] { } < >
   return !!term ? (matchesRegExp(TEXT_REG_EXP, term) ? null : setValidationMessage(TEXT_ERROR_MSG)) : null;
@@ -288,6 +295,10 @@ function partialDateInputValidation(control: AbstractControl): any {
 
 function germanZipValidation(control: AbstractControl): any {
   return validateGermanZip(control.value);
+}
+
+function germanShortZipValidation(control: AbstractControl): any {
+  return validateGermanShortZip(control.value);
 }
 
 function textValidation(control: AbstractControl): any {

@@ -18,6 +18,7 @@ import { Injectable } from '@angular/core';
 import * as transliterator from 'transliterator';
 import { NotifiedPersonBasicInfo, PathogenTest } from '../../../../api/notification';
 import { formatDateToYYMMDD } from '../common-utils';
+import { NotificationType } from '../../common/routing-helper';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +26,10 @@ import { formatDateToYYMMDD } from '../common-utils';
 export class FileService {
   abbreviation = '.pdf';
 
-  getFileNameByNotificationType(notification: PathogenTest) {
+  getFileNameByNotificationType(notification: PathogenTest, notificationType: NotificationType, notificationId: string): string {
+    if (notificationType === NotificationType.NonNominalNotification7_3) {
+      return this.convertFileNameForNonNominal(notificationId);
+    }
     return this.convertFileNameForPerson(notification.notifiedPerson.info);
   }
 
@@ -67,5 +71,10 @@ export class FileService {
     const birthDate = formatDateToYYMMDD(person.birthDate);
     const birthSuffix = birthDate ? ` ${birthDate}` : '';
     return `${time} ${last}, ${first}${birthSuffix}${this.abbreviation}`;
+  }
+
+  private convertFileNameForNonNominal(notificationId: string) {
+    const time = this.getCurrentTime();
+    return `${time}-${notificationId ?? ''}${this.abbreviation}`;
   }
 }

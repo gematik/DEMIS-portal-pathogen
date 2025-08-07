@@ -22,15 +22,19 @@ import { allowedRoutes } from './pathogen-notification/common/routing-helper';
 
 const routes: Routes = [
   {
+    path: allowedRoutes.nominal,
+    component: PathogenNotificationComponent,
+  },
+  {
+    path: allowedRoutes.followUp,
+    component: PathogenNotificationComponent,
+  },
+  {
     path: allowedRoutes.nonNominal,
     component: PathogenNotificationComponent,
   },
   {
     path: allowedRoutes.anonymous,
-    component: PathogenNotificationComponent,
-  },
-  {
-    path: allowedRoutes.nominal,
     component: PathogenNotificationComponent,
   },
   {

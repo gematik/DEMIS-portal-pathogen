@@ -1,6 +1,6 @@
 {
   "name": "notification-portal-mf-pathogen",
-  "version": "1.2.4-snapshot",
+  "version": "1.4.8-snapshot",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4203",

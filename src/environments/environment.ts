@@ -130,6 +130,10 @@ export class Environment {
   public get laboratoryDataForSpecificCode_7_3(): string {
     return this.config?.pathToFuts + this.config?.futsPaths?.laboratoryDataForSpecificCode_7_3;
   }
+
+  public get futsHeaders(): HttpHeaders {
+    return this.headers.set(this.config?.featureFlags?.FEATURE_FLAG_NEW_API_ENDPOINTS ? 'x-fhir-profile' : 'fhirProfile', 'fhir-profile-snapshots');
+  }
 }
 
 export const environment = new Environment();

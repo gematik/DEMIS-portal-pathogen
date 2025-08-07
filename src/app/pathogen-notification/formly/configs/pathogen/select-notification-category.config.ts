@@ -16,25 +16,28 @@
 
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { CodeDisplay, NotificationLaboratoryCategory } from 'src/api/notification';
-import { PathogenFormInfos } from 'src/app/pathogen-notification/utils/disclaimer-texts';
 import { formlyRow } from '../../../legacy/formly/configs/reusable/commons';
 import { of } from 'rxjs';
 import { FormlyConstants } from '../../../legacy/formly/configs/formly-constants';
 import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/common-utils';
 import { REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
+import { NotificationType } from '../../../common/routing-helper';
+import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
 
 const is7_3Notification = (federalStateCodeDisplays: CodeDisplay[]) => federalStateCodeDisplays.length === 0;
+const isFollowUpNotification = (notificationType: NotificationType) => notificationType === NotificationType.FollowUpNotification7_1;
 
 export const selectNotificationCategoryFields = (
   federalStateCodeDisplays: CodeDisplay[],
   pathogenDisplays: string[],
-  subPathogenDisplays: string[]
+  subPathogenDisplays: string[],
+  notificationType: NotificationType
 ): FormlyFieldConfig[] => {
   return [
     {
       className: FormlyConstants.LAYOUT_HEADER,
-      template: !is7_3Notification(federalStateCodeDisplays) ? PathogenFormInfos.stateSpecificReportingObligations : '',
+      template: specificReportingObligations(notificationType),
       key: 'selectPathogenInfoWrapper',
     },
     {
@@ -65,7 +68,7 @@ export const selectNotificationCategoryFields = (
           required: true,
         },
         expressions: {
-          hide: () => is7_3Notification(federalStateCodeDisplays),
+          hide: () => is7_3Notification(federalStateCodeDisplays) || isFollowUpNotification(notificationType),
         },
       },
     ]),
@@ -83,7 +86,10 @@ export const selectNotificationCategoryFields = (
         },
         expressions: {
           hide: (field: FormlyFieldConfig) => {
-            return !is7_3Notification(federalStateCodeDisplays) && !field.form?.value?.federalStateCodeDisplay;
+            return !is7_3Notification(federalStateCodeDisplays) && !field.form?.value?.federalStateCodeDisplay && !isFollowUpNotification(notificationType);
+          },
+          'props.disabled': () => {
+            return false; //return isFollowUpNotification(notificationType);
           },
         },
         asyncValidators: {
@@ -105,6 +111,7 @@ export const selectNotificationCategoryFields = (
         },
         expressions: {
           'props.disabled': (field: FormlyFieldConfig) => {
+            //TODO form.value.pathogenDisplay is not found when pathogenDisplay Field is disabled
             return !field.form?.value?.pathogenDisplay;
           },
         },
@@ -166,7 +173,7 @@ export const selectNotificationCategoryFields = (
           '<span>Bitte geben Sie die Meldungs-ID der Initialmeldung an, ' +
           'die Sie korrigieren oder ergänzen möchten oder der vorläufigen Meldung, <br> wenn Sie nun den endgültigen Befund melden.</span><br><br>',
         expressions: {
-          className: initialNotificationIdClassName,
+          className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
         },
       },
       {
@@ -181,9 +188,9 @@ export const selectNotificationCategoryFields = (
           validation: ['textValidator', 'nonBlankValidator'],
         },
         expressions: {
-          className: initialNotificationIdClassName,
+          className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
           'props.disabled': (field: FormlyFieldConfig) => {
-            return !field.form?.value?.pathogen;
+            return isFollowUpNotification(notificationType) || !field.form?.value?.pathogen;
           },
         },
       },
@@ -218,8 +225,8 @@ const isGrayedOutSelection = (condition: boolean) => {
   return `${conditionalClass} ${FormlyConstants.COLMD10}`.trim();
 };
 
-const initialNotificationIdClassName = (ffc: FormlyFieldConfig): string => {
-  return isGrayedOutSelection(ffc.form?.value?.reportStatus !== ReportStatusEnum.Amended);
+const initialNotificationIdClassName = (ffc: FormlyFieldConfig, notificationType: NotificationType): string => {
+  return isGrayedOutSelection(ffc.form?.value?.reportStatus !== ReportStatusEnum.Amended || isFollowUpNotification(notificationType));
 };
 
 const reportClassName = (ffc: FormlyFieldConfig): string => {

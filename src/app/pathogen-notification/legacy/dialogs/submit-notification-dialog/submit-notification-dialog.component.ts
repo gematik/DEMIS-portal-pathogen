@@ -15,7 +15,7 @@
  */
 
 import { Component, ChangeDetectorRef, SecurityContext, TemplateRef, ViewChild, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { NGXLogger } from 'ngx-logger';
 import { OkResponse, PathogenTest } from 'src/api/notification';
@@ -41,6 +41,8 @@ import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { NotificationType } from '../../../common/routing-helper';
+import { environment } from '../../../../../environments/environment';
+import { MessageDialogService } from '@gematik/demis-portal-core-library';
 
 export interface SubmitNotificationDialogData {
   notification: PathogenTest;
@@ -97,6 +99,8 @@ export class SubmitNotificationDialogComponent {
   displayedColumns: string[] = ['field', 'message'];
   fileName?: string;
   notificationType: NotificationType;
+  dialogRef = inject(MatDialogRef<SubmitNotificationDialogComponent>);
+  messageDialogService = inject(MessageDialogService);
 
   constructor(private readonly cdr: ChangeDetectorRef) {
     // Hotfix for DEMIS-3774s
@@ -122,7 +126,7 @@ export class SubmitNotificationDialogComponent {
         const href = 'data:application/actet-stream;base64,' + content;
         this.pdfDownload = this.sanitizer.bypassSecurityTrustUrl(href);
         if (response.body.status === 'All OK') {
-          this.fileName = this.fileService.getFileNameByNotificationType(this.notification);
+          this.fileName = this.fileService.getFileNameByNotificationType(this.notification, this.notificationType, response.body?.notificationId);
           this.triggerDownload(href);
           this.buildSuccessResult(response.body);
           this.activeTemplate = this.responseSuccessTemplate;
@@ -160,13 +164,27 @@ export class SubmitNotificationDialogComponent {
   }
 
   private setResultToError(response: any) {
-    this.result = {
-      type: MessageType.ERROR,
-      message: 'Es ist ein Fehler aufgetreten.',
-      messageDetails: response?.message,
-      locations: [],
-      validationErrors: response?.validationErrors,
-    } as ErrorResult;
+    if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG_ON_SUBMIT) {
+      const errorMessage = this.messageDialogService.extractMessageFromError(response);
+      this.dialogRef.close(); //closes the underlying dialog "Meldung wird gesendet"
+      this.messageDialogService.showErrorDialog({
+        errorTitle: 'Meldung konnte nicht zugestellt werden!',
+        errors: [
+          {
+            text: errorMessage,
+            queryString: errorMessage || '',
+          },
+        ],
+      });
+    } else {
+      this.result = {
+        type: MessageType.ERROR,
+        message: 'Es ist ein Fehler aufgetreten.',
+        messageDetails: response?.message,
+        locations: [],
+        validationErrors: response?.validationErrors,
+      } as ErrorResult;
+    }
   }
 
   private triggerDownload(url: string) {
