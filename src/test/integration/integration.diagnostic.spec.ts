@@ -25,6 +25,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
 import { checkDescribingError, clickAddDiagnosticButton, clickAddSpecimenButton, clickDeleteButton, getStepHeader, switchToPage } from '../shared/test-utils';
 import {
+  ADD_BUTTON_CLIPBOARD,
   ERROR_EXTRACTION_DATE,
   FIELD_EXTRACTION_DATE_DEPRECATED,
   FIELD_FEDERAL_STATE,
@@ -55,6 +56,7 @@ import { MethodPathogenDTO } from '../../api/notification';
 import { RESULT_OPTION_LIST } from '../../app/pathogen-notification/legacy/formly-options-lists';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 import { buildMock, setupIntegrationTests } from './integration.base.spec';
+import { lastValueFrom, of } from 'rxjs';
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 
 describe('Pathogen - Diagnostic Integration Tests', () => {
@@ -160,6 +162,22 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
 
       expect(await interpretation.getValue()).toBe(VALUE_EMPTY);
       expect(await interpretation.isDisabled()).toBe(true);
+    });
+
+    it('should make pathogen selectable also when no diagnostic data was in clipboard string', async () => {
+      // enter some non-diagnostic related clipboard data
+      const clipboardString = 'URL P.family=Power';
+      const p = lastValueFrom(of(clipboardString));
+      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
+
+      // select diagnostic autocomplete fields
+      await selectAutocompleteOption(pathogenDisplay, PATHOGEN_DISPLAY);
+      fixture.detectChanges();
+      await switchToPage(4, fixture);
+      expect(await pathogen.getValue()).toBe('');
+      await selectAutocompleteOption(pathogen, TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.answerSet[0].display);
+      expect(await pathogen.getValue()).toBe(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.answerSet[0].display);
     });
 
     describe('Diagnostic only', () => {

@@ -2,6 +2,14 @@
 
 # Release portal-pathogen
 
+# Release 1.5.1
+- Fixed a bug, where validation errors where not shown
+- Removed a date mapping function in favor of an updated version of the datepicker
+- Improved notificationId info text
+- Upgraded dependencies
+- Added test:coverage npm script to run a single test run with coverage report
+- fixed clipboard data bug which disables request for pathogen data based on notificationCategory changes
+
 ## Release 1.5.0
 - Implementation of §7.1 follow-up notification (FEATURE_FLAG_FOLLOW_UP_NOTIFICATION)
 - add new API endpoints activated by feature flag FEATURE_FLAG_NEW_API_ENDPOINTS

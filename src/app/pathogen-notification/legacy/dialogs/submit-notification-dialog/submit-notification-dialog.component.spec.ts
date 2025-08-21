@@ -29,7 +29,6 @@ describe('SubmitNotificationDialogComponent', () => {
   });
 
   it('should create', () => {
-    const env = environment as any;
     const mockFhirService = jasmine.createSpyObj('FhirNotificationService', ['sendNotification']);
     mockFhirService.sendNotification.and.returnValue(
       of({
@@ -80,7 +79,7 @@ describe('SubmitNotificationDialogComponent', () => {
 
     const mockFhirService = jasmine.createSpyObj('FhirNotificationService', ['sendNotification']);
     const errorResponse = { message: 'Fehler', validationErrors: [] };
-    mockFhirService.sendNotification.and.returnValue(throwError({ error: errorResponse }));
+    mockFhirService.sendNotification.and.returnValue(throwError(() => ({ error: errorResponse })));
 
     const mockData: SubmitNotificationDialogData = {
       notification: { notifiedPerson: { info: 'test' } } as any,
@@ -129,7 +128,7 @@ describe('SubmitNotificationDialogComponent', () => {
 
     const mockFhirService = jasmine.createSpyObj('FhirNotificationService', ['sendNotification']);
     const errorResponse = { message: 'Fehler', validationErrors: [] };
-    mockFhirService.sendNotification.and.returnValue(throwError({ error: errorResponse }));
+    mockFhirService.sendNotification.and.returnValue(throwError(() => ({ error: errorResponse })));
 
     const mockData: SubmitNotificationDialogData = {
       notification: { notifiedPerson: { info: 'test' } } as any,
