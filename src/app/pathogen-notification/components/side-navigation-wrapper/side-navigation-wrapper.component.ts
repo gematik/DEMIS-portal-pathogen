@@ -70,12 +70,7 @@ export class SideNavigationWrapperComponent {
 
   async handlePasteBoxClick(clipboardData?: Map<string, string>): Promise<void> {
     if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
-      if (this.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
-        const normalizedData = this.clipboardDataService.normalizeClipboardData(clipboardData);
-        this.clipboardDataService.clipboardData.set(Array.from(normalizedData.entries()) as string[][]);
-      } else {
-        this.clipboardDataService.clipboardData.set(Array.from(clipboardData.entries()) as string[][]);
-      }
+      this.clipboardDataService.clipboardData.set(Array.from(clipboardData.entries()) as string[][]);
     }
     await this.pathogenNotificationComponent.populatePathogenFormWithClipboardData(true);
   }

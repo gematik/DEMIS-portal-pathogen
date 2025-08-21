@@ -22,7 +22,7 @@ import { AddressType, CodeDisplay, PathogenData, PathogenTest } from '../../../a
 import { matchesRegExp } from '../legacy/notification-form-validation-module';
 import { ErrorMessageDialogComponent } from '../legacy/dialogs/message-dialog/error-message-dialog.component';
 import { MessageType } from '../legacy/models/ui/message';
-import { formatCodeDisplayToDisplay, germanToIsoFormat, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
+import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
 import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenForm } from '../utils/data-transformation';
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
 import { addContact, ClipboardErrorTexts, ClipboardRules, FACILITY_RULES, initialModelForClipboard, PERSON_RULES } from './core/clipboard-constants';
@@ -153,6 +153,7 @@ export class ClipboardDataService {
       model = this.setModelWithBackendInformation(model, transformedClipboardData);
     }
     model = this.removeUnusedModelValues(model);
+    this.pathogenDataIsChangingFromClipboard.next(false);
 
     return model;
   }
@@ -436,19 +437,5 @@ export class ClipboardDataService {
     }
     this.logger.error('PathogenData is undefined');
     return '';
-  }
-
-  normalizeClipboardData(clipboardData: Map<string, string>) {
-    const normalized = new Map<string, string>();
-
-    for (const [key, value] of clipboardData.entries()) {
-      if (typeof value === 'string') {
-        normalized.set(key, germanToIsoFormat(value));
-      } else {
-        normalized.set(key, value);
-      }
-    }
-
-    return normalized;
   }
 }

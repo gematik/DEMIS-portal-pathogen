@@ -50,7 +50,7 @@ mat-panel-title {
 }
 
 #accordion-wrapper {
-  transform:scaleX(99.8%)
+  transform: scaleX(99.8%)
 }
 
 .hidden-field,
@@ -64,9 +64,9 @@ mat-panel-title {
   z-index: -1;
 }
 
-formly-field.grayed-out-element formly-wrapper-mat-form-field mat-form-field .mat-mdc-text-field-wrapper , formly-field.grayed-out-element formly-template {
-    color: var(--color-black) !important;
-    opacity: 0.5;
+formly-field.grayed-out-element formly-wrapper-mat-form-field mat-form-field .mat-mdc-text-field-wrapper, formly-field.grayed-out-element formly-template {
+  color: var(--color-neutral-medium) !important;
+  opacity: 0.5;
 }
 
 ::ng-deep .mat-mdc-button {

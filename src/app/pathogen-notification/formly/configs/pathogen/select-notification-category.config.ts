@@ -171,7 +171,7 @@ export const selectNotificationCategoryFields = (
         className: '',
         template:
           '<span>Bitte geben Sie die Meldungs-ID der Initialmeldung an, ' +
-          'die Sie korrigieren oder ergänzen möchten oder der vorläufigen Meldung, <br> wenn Sie nun den endgültigen Befund melden.</span><br><br>',
+          'die Sie korrigieren oder ergänzen möchten oder der vorläufigen Meldung, <br> wenn Sie nun den endgültigen Befund melden. Die Meldungs-ID wird von DEMIS bei jeder Meldung erzeugt und auf der Meldungsquittung als UUID oder als QR-Code angezeigt.</span><br><br>',
         expressions: {
           className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
         },
@@ -182,7 +182,7 @@ export const selectNotificationCategoryFields = (
         type: 'input',
         props: {
           label: 'Initiale Meldungs-ID',
-          placeholder: 'Meldungs-ID auf die Bezug genommen wird',
+          placeholder: 'Meldungs-ID, auf die sich bezogen wird',
         },
         validators: {
           validation: ['textValidator', 'nonBlankValidator'],
