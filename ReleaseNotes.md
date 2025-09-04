@@ -2,6 +2,9 @@
 
 # Release portal-pathogen
 
+# Release 1.5.2
+- Use submit- and spinner-dialog from Portal-Core (FEATURE_FLAG_PORTAL_SUBMIT)
+
 # Release 1.5.1
 - Fixed a bug, where validation errors where not shown
 - Removed a date mapping function in favor of an updated version of the datepicker

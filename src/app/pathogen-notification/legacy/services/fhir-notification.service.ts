@@ -24,6 +24,9 @@ import { environment } from '../../../../environments/environment';
 import { isNonNominalNotificationEnabled } from '../../utils/pathogen-notification-mapper';
 import { NotificationType } from '../../common/routing-helper';
 
+/**
+ * @deprecated Can be removed as soon as feature flag "FEATURE_FLAG_PORTAL_SUBMIT" is active on all stages
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -41,13 +44,9 @@ export abstract class FhirNotificationService {
     return environment.headers;
   }
 
-  sendBundle(bundle: any) {
-    return this.httpClient.post(this.url, bundle, {
-      headers: FhirNotificationService.getHeaders(),
-      observe: 'response',
-    });
-  }
-
+  /**
+   * @deprecated Use {@link submitNotification} instead, once FEATURE_FLAG_PORTAL_SUBMIT will be removed
+   */
   sendNotification(notification: PathogenTest, notificationType: NotificationType) {
     // https://service.gematik.de/browse/DSC2-4453  Anforderung 2
     const trimmedNotification: PathogenTest = trimStrings(notification);
@@ -69,6 +68,9 @@ export abstract class FhirNotificationService {
     }
   }
 
+  /**
+   * @deprecated Use {@link submitNotification} instead, once FEATURE_FLAG_PORTAL_SUBMIT will be removed
+   */
   private confirmSendPathogenNotification(pathogenTest: PathogenTest, notificationType: NotificationType): Observable<HttpResponse<any>> {
     let fullUrl = this.getNotificationUrl(notificationType);
     return this.httpClient.post(fullUrl, JSON.stringify(pathogenTest), {

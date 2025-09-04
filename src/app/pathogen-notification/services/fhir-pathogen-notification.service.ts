@@ -14,11 +14,11 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
-import { Observable, of } from 'rxjs';
-import { CodeDisplay, PathogenData, PathogenTest } from '../../../api/notification';
+import { finalize, Observable, of } from 'rxjs';
+import { CodeDisplay, PathogenData, PathogenTest, ValidationError } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
 import { toFhirDateFormat } from '../legacy/common-utils';
 
@@ -27,9 +27,10 @@ import { FhirNotificationService } from '../legacy/services/fhir-notification.se
 import { catchError } from 'rxjs/operators';
 import { ErrorDialogService } from './error-dialog.service';
 import { MatDialog } from '@angular/material/dialog';
-import { cloneObject } from '@gematik/demis-portal-core-library';
+import { cloneObject, MessageDialogService, SubmitDialogProps, trimStrings } from '@gematik/demis-portal-core-library';
 import { isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
 import { NotificationType } from '../common/routing-helper';
+import { FileService } from '../legacy/services/file.service';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +41,8 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   private readonly errorDialogService = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly futsHeaders = environment.futsHeaders;
+  private readonly messageDialogService = inject(MessageDialogService);
+  private readonly fileService = inject(FileService);
 
   constructor() {
     const http = inject(HttpClient);
@@ -49,6 +52,10 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
 
     this.http = http;
     this.logger = logger;
+  }
+
+  private static getEnvironmentHeaders(): HttpHeaders {
+    return environment.headers;
   }
 
   private static setFhirSpecificsDateFormat(testResults: PathogenTest): PathogenTest {
@@ -164,6 +171,9 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       );
   };
 
+  /**
+   * @deprecated Use {@link submitNotification} instead, once FEATURE_FLAG_PORTAL_SUBMIT will be removed
+   */
   openSubmitDialog(pathogenTest: PathogenTest, notificationType: NotificationType): void {
     this.dialog.open(SubmitNotificationDialogComponent, {
       disableClose: true,
@@ -178,6 +188,60 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     });
   }
 
+  submitNotification(notification: PathogenTest, notificationType: NotificationType) {
+    this.messageDialogService.showSpinnerDialog({ message: 'Meldung wird gesendet' });
+
+    notification = this.prepareNotification(notification);
+    let fullUrl = this.getNotificationUrl(notificationType);
+    this.httpClient
+      .post(fullUrl, JSON.stringify(notification), {
+        headers: FhirPathogenNotificationService.getEnvironmentHeaders(),
+        observe: 'response',
+      })
+      .pipe(
+        finalize(() => {
+          this.messageDialogService.closeSpinnerDialog();
+        })
+      )
+      .subscribe({
+        next: (response: HttpResponse<any>) => {
+          const submitDialogData: SubmitDialogProps = this.createSubmitDialogData(response, notification, notificationType);
+          this.messageDialogService.showSubmitDialog(submitDialogData);
+        },
+        error: err => {
+          this.logger.error('error', err);
+          const errors = this.extractErrorDetails(err);
+          this.messageDialogService.showErrorDialog({
+            errorTitle: 'Meldung konnte nicht zugestellt werden!',
+            errors,
+          });
+        },
+      });
+  }
+
+  private prepareNotification(notification: PathogenTest): PathogenTest {
+    const trimmedNotification: PathogenTest = trimStrings(notification);
+    let clonedNotificationObject: PathogenTest = cloneObject(trimmedNotification);
+    clonedNotificationObject = this.removeUnusedFormlyFields(clonedNotificationObject);
+
+    if (!environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
+      clonedNotificationObject = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject);
+    }
+    return clonedNotificationObject;
+  }
+
+  private createSubmitDialogData(response: HttpResponse<any>, notification: PathogenTest, notificationType: NotificationType): SubmitDialogProps {
+    const content = encodeURIComponent(response.body.content);
+    const href = 'data:application/actet-stream;base64,' + content;
+    return {
+      authorEmail: response.body.authorEmail,
+      fileName: this.fileService.getFileNameByNotificationType(notification, notificationType, response.body.notificationId),
+      href: href,
+      notificationId: response.body.notificationId,
+      timestamp: response.body.timestamp,
+    };
+  }
+
   override sendNotification(notification: PathogenTest, type: NotificationType) {
     let clonedNotificationObject: PathogenTest = cloneObject(notification);
 
@@ -186,6 +250,25 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       clonedNotificationObject = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject);
     }
     return super.sendNotification(clonedNotificationObject, type);
+  }
+
+  private extractErrorDetails(err: any): { text: string; queryString: string }[] {
+    const response = err?.error ?? err;
+    const errorMessage = this.messageDialogService.extractMessageFromError(response);
+    const validationErrors = response?.validationErrors || [];
+    if (validationErrors.length > 0) {
+      return validationErrors.map((ve: ValidationError) => ({
+        text: ve.message,
+        queryString: ve.message || '',
+      }));
+    } else {
+      return [
+        {
+          text: errorMessage,
+          queryString: errorMessage || '',
+        },
+      ];
+    }
   }
 
   private removeUnusedFormlyFields(testResults: PathogenTest) {

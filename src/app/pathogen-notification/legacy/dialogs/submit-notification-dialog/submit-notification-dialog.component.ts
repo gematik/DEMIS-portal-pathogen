@@ -50,6 +50,9 @@ export interface SubmitNotificationDialogData {
   notificationType: NotificationType;
 }
 
+/**
+ * @deprecated Can be removed as soon as feature flag "FEATURE_FLAG_PORTAL_SUBMIT" is active on all stages
+ */
 @Component({
   selector: 'app-submit-notification-dialog',
   templateUrl: './submit-notification-dialog.component.html',

@@ -25,12 +25,16 @@ import { NGXLoggerMock } from 'ngx-logger/testing';
 import { NotificationLaboratoryCategory, PathogenTest } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
 import { NotificationType } from '../common/routing-helper';
+import { MessageDialogService } from '@gematik/demis-portal-core-library';
+import { FileService } from '../legacy/services/file.service';
 
 describe('FhirPathogenNotificationService', () => {
   let service: FhirPathogenNotificationService;
   let httpMock: HttpTestingController;
   let logger: NGXLogger;
   let errorDialogService: ErrorDialogService;
+  let messageDialogService: jasmine.SpyObj<MessageDialogService>;
+  let fileService: jasmine.SpyObj<FileService>;
 
   beforeEach(async () => {
     environment.pathogenConfig = {
@@ -60,6 +64,15 @@ describe('FhirPathogenNotificationService', () => {
   });
 
   beforeEach(() => {
+    messageDialogService = jasmine.createSpyObj<MessageDialogService>('MessageDialogService', [
+      'showSpinnerDialog',
+      'closeSpinnerDialog',
+      'showSubmitDialog',
+      'showErrorDialog',
+      'extractMessageFromError',
+    ]);
+    fileService = jasmine.createSpyObj<FileService>('FileService', ['getFileNameByNotificationType']);
+
     TestBed.configureTestingModule({
       imports: [MatDialogModule],
       providers: [
@@ -68,6 +81,8 @@ describe('FhirPathogenNotificationService', () => {
         ErrorDialogService,
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: MessageDialogService, useValue: messageDialogService },
+        { provide: FileService, useValue: fileService },
       ],
     });
 
@@ -197,5 +212,111 @@ describe('FhirPathogenNotificationService', () => {
 
     expect(service['removeUnusedFormlyFields'] as any).toHaveBeenCalledWith(notificationWithRemovedFields);
     expect(FhirPathogenNotificationService['setFhirSpecificsDateFormat'] as any).toHaveBeenCalledWith(notificationWithRemovedFields);
+  });
+
+  it('should submitNotification successfully and show submit dialog', () => {
+    const mockNotification = { notificationCategory: {}, submittingFacility: {} } as unknown as PathogenTest;
+    const mockUrl = '/mock/submit/url';
+    const responseBody = {
+      authorEmail: 'author@example.org',
+      content: 'YmFzZTY0Y29udGVudA==',
+      notificationId: 'ABC-123',
+      timestamp: '2025-03-03T12:00:00Z',
+    };
+
+    spyOn<any>(service, 'getNotificationUrl').and.returnValue(mockUrl);
+    fileService.getFileNameByNotificationType.and.returnValue('notification.pdf');
+
+    service.submitNotification(mockNotification, NotificationType.NominalNotification7_1);
+
+    const req = httpMock.expectOne(mockUrl);
+    expect(req.request.method).toBe('POST');
+    req.flush(responseBody);
+
+    expect(messageDialogService.showSpinnerDialog).toHaveBeenCalled();
+    expect(messageDialogService.closeSpinnerDialog).toHaveBeenCalled();
+
+    expect(fileService.getFileNameByNotificationType).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      NotificationType.NominalNotification7_1,
+      responseBody.notificationId
+    );
+
+    expect(messageDialogService.showSubmitDialog).toHaveBeenCalled();
+    const submitArg = messageDialogService.showSubmitDialog.calls.mostRecent().args[0];
+    expect(submitArg.authorEmail).toBe(responseBody.authorEmail);
+    expect(submitArg.notificationId).toBe(responseBody.notificationId);
+    expect(submitArg.timestamp).toBe(responseBody.timestamp);
+    expect(submitArg.fileName).toBe('notification.pdf');
+
+    const expectedHrefPrefix = 'data:application/actet-stream;base64,';
+    const expectedEncodedContent = encodeURIComponent(responseBody.content);
+    expect(submitArg.href.startsWith(expectedHrefPrefix)).toBeTrue();
+    expect(submitArg.href).toContain(expectedEncodedContent);
+  });
+
+  it('should submitNotification and handle backend validation errors', () => {
+    const mockNotification = { notificationCategory: {}, submittingFacility: {} } as unknown as PathogenTest;
+    const mockUrl = '/mock/submit/url';
+    spyOn<any>(service, 'getNotificationUrl').and.returnValue(mockUrl);
+    messageDialogService.extractMessageFromError.and.returnValue('should-not-be-used');
+
+    const validationErrors = [{ message: 'Error A' }, { message: 'Error B' }];
+
+    service.submitNotification(mockNotification, NotificationType.NominalNotification7_1);
+
+    const req = httpMock.expectOne(mockUrl);
+    expect(req.request.method).toBe('POST');
+    req.flush({ validationErrors }, { status: 400, statusText: 'Bad Request' });
+
+    expect(messageDialogService.showSpinnerDialog).toHaveBeenCalled();
+    expect(messageDialogService.closeSpinnerDialog).toHaveBeenCalled();
+
+    expect(messageDialogService.showErrorDialog).toHaveBeenCalled();
+    const errorArg = messageDialogService.showErrorDialog.calls.mostRecent().args[0];
+    expect(errorArg.errorTitle).toBe('Meldung konnte nicht zugestellt werden!');
+    expect(errorArg.errors).toEqual([
+      { text: 'Error A', queryString: 'Error A' },
+      { text: 'Error B', queryString: 'Error B' },
+    ]);
+  });
+
+  it('should submitNotification and handle generic error (no validationErrors)', () => {
+    const mockNotification = { notificationCategory: {}, submittingFacility: {} } as unknown as PathogenTest;
+    const mockUrl = '/mock/submit/url';
+    spyOn<any>(service, 'getNotificationUrl').and.returnValue(mockUrl);
+    messageDialogService.extractMessageFromError.and.returnValue('Generic failure');
+
+    service.submitNotification(mockNotification, NotificationType.NominalNotification7_1);
+
+    const req = httpMock.expectOne(mockUrl);
+    expect(req.request.method).toBe('POST');
+    req.flush({}, { status: 500, statusText: 'Server Error' });
+
+    expect(messageDialogService.showSpinnerDialog).toHaveBeenCalled();
+    expect(messageDialogService.closeSpinnerDialog).toHaveBeenCalled();
+
+    expect(messageDialogService.showErrorDialog).toHaveBeenCalled();
+    const errorArg = messageDialogService.showErrorDialog.calls.mostRecent().args[0];
+    expect(errorArg.errorTitle).toBe('Meldung konnte nicht zugestellt werden!');
+    expect(errorArg.errors).toEqual([{ text: 'Generic failure', queryString: 'Generic failure' }]);
+  });
+
+  it('extractErrorDetails should map validation errors', () => {
+    const validationErrors = [{ message: 'VE1' }, { message: 'VE2' }];
+    const err = { error: { validationErrors } };
+    const result = (service as any).extractErrorDetails(err);
+    expect(result).toEqual([
+      { text: 'VE1', queryString: 'VE1' },
+      { text: 'VE2', queryString: 'VE2' },
+    ]);
+  });
+
+  it('extractErrorDetails should fall back to extracted message when no validation errors', () => {
+    messageDialogService.extractMessageFromError.and.returnValue('Fallback message');
+    const err = { error: { any: 'thing' } };
+    const result = (service as any).extractErrorDetails(err);
+    expect(messageDialogService.extractMessageFromError).toHaveBeenCalled();
+    expect(result).toEqual([{ text: 'Fallback message', queryString: 'Fallback message' }]);
   });
 });
