@@ -1,6 +1,6 @@
 {
   "name": "notification-portal-mf-pathogen",
-  "version": "1.5.1-snapshot",
+  "version": "1.5.2-snapshot",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4203",
@@ -28,7 +28,7 @@
     "@angular/platform-browser": "19.2.14",
     "@angular/platform-browser-dynamic": "19.2.14",
     "@angular/router": "19.2.14",
-    "@gematik/demis-portal-core-library": "2.2.0",
+    "@gematik/demis-portal-core-library": "2.2.1",
     "@ngx-formly/core": "6.3.12",
     "@ngx-formly/material": "6.3.12",
     "lodash-es": "4.17.21",

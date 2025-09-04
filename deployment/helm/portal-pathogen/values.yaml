@@ -43,6 +43,7 @@ config:
     FEATURE_FLAG_PORTAL_REPEAT: false
     FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: false
     FEATURE_FLAG_NEW_API_ENDPOINTS: false
+    FEATURE_FLAG_PORTAL_SUBMIT: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true

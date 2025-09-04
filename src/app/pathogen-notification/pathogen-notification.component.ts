@@ -57,6 +57,7 @@ import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-l
 import { getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
 import { notifiedPersonAnonymousConfigFields } from './formly/configs/pathogen/notified-person-anonymous.config';
 import { FollowUpNotificationIdService } from './services/follow-up-notification-id.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-pathogen-notification',
@@ -109,7 +110,11 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.pathogenData,
         this.notificationType
       );
-      this.fhirPathogenNotificationService.openSubmitDialog(pathogenTest, this.notificationType);
+      if (environment.featureFlags?.FEATURE_FLAG_PORTAL_SUBMIT) {
+        this.fhirPathogenNotificationService.submitNotification(pathogenTest, this.notificationType);
+      } else {
+        this.fhirPathogenNotificationService.openSubmitDialog(pathogenTest, this.notificationType);
+      }
     };
   }
 
