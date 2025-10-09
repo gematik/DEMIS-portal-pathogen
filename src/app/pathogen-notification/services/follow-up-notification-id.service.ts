@@ -18,6 +18,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { FollowUpNotificationIdDialogComponent } from '../components/follow-up-notification-id-dialog/follow-up-notification-id-dialog.component';
+import { FhirPathogenNotificationService, FollowUpNotificationCategory } from './fhir-pathogen-notification.service';
 
 export interface DialogResult {
   validatedId?: number;
@@ -29,10 +30,12 @@ export interface DialogResult {
 })
 export class FollowUpNotificationIdService {
   private readonly dialog = inject(MatDialog);
+  private readonly fhirPathogenNotificationService = inject(FhirPathogenNotificationService);
 
-  readonly validatedNotificationId = signal<number | undefined>(undefined);
+  readonly validatedNotificationId = signal<string | undefined>(undefined);
   readonly validationStatus = signal<boolean | undefined>(undefined);
   readonly hasValidNotificationId = signal<boolean | undefined>(false);
+  readonly followUpNotificationCategory = signal<string | undefined>(undefined);
 
   readonly hasValidNotificationId$ = toObservable(this.hasValidNotificationId);
 
@@ -59,16 +62,20 @@ export class FollowUpNotificationIdService {
     }
   }
 
-  validateNotificationId(id: number): void {
-    //TODO: implement backend validation here
+  validateNotificationId(id: string): void {
     this.validationStatus.set(undefined);
-    if (id < 0) {
-      this.validationStatus.set(false);
-      this.validatedNotificationId.set(undefined);
-      return;
-    }
-    this.validatedNotificationId.set(id);
-    this.validationStatus.set(true);
+    this.fhirPathogenNotificationService.fetchFollowUpNotificationCategory(id).subscribe({
+      next: (response: FollowUpNotificationCategory) => {
+        this.validationStatus.set(true);
+        this.validatedNotificationId.set(id);
+        this.followUpNotificationCategory.set(response.notificationCategory);
+      },
+      error: () => {
+        this.validationStatus.set(false);
+        this.validatedNotificationId.set(undefined);
+        this.followUpNotificationCategory.set(undefined);
+      },
+    });
   }
 
   resetState(): void {

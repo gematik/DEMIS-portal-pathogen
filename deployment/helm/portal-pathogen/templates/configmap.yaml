@@ -3,6 +3,7 @@
 {{- $endpointsRoot := ternary .Values.config.newApiEndpoints .Values.config (eq (.Values.config.featureFlags.FEATURE_FLAG_NEW_API_ENDPOINTS | toString) "true" ) }}
 {{- $_ = set $configMapData "pathToGateway" $endpointsRoot.pathToGateway }}
 {{- $_ = set $configMapData "pathToFuts" $endpointsRoot.pathToFuts }}
+{{- $_ = set $configMapData "pathToDestinationLookup" $endpointsRoot.pathToDestinationLookup }}
 {{- $_ = set $configMapData "gatewayPaths" (deepCopy $endpointsRoot.gatewayPaths | mergeOverwrite (deepCopy .Values.config.gatewayPaths) ) }}
 {{- $_ = set $configMapData "futsPaths" .Values.config.futsPaths }}
 {{- $_ = set $configMapData "featureFlags" .Values.config.featureFlags }}

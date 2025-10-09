@@ -16,7 +16,7 @@
 
 export enum FormlyConstants {
   LAYOUT_FULL_LINE = 'col-md-12 align-self-start',
-  LAYOUT_HEADER = 'col-sm-12 mt-sm-3',
+  LAYOUT_HEADER = 'col-sm-10 mt-sm-3',
   LAYOUT_TEXT = 'col-sm-12 mb-sm-3',
   QUESTIONS_CLASS = 'col-md-12 formly--inline',
   COLMD3 = 'col-md-3',

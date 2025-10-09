@@ -67,6 +67,16 @@ describe('FileService', () => {
     expect(fileName).toMatch(/^\d{12}-ABC123XYZ\.pdf$/);
   });
 
+  it('returns file name for follow-up notification type', () => {
+    const notificationId = 'ABC123XYZ';
+    const fileName = service.getFileNameByNotificationType(notification, NotificationType.FollowUpNotification7_1, notificationId);
+
+    expect(fileName).not.toContain('Max');
+    expect(fileName).not.toContain('Meier');
+    expect(fileName).not.toContain('981105');
+    expect(fileName).toMatch(/^\d{12}-ABC123XYZ\.pdf$/);
+  });
+
   it('handles empty notificationId for non-nominal notification type', () => {
     const fileName = service.getFileNameByNotificationType(notification, NotificationType.NonNominalNotification7_3, '');
 

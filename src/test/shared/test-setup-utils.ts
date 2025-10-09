@@ -57,6 +57,7 @@ export function getFhirPathogenNotificationService(isNonNominal: boolean = false
     fetchDiagnosticsBasedOnPathogenSelection: jasmine
       .createSpy('fetchDiagnosticsBasedOnPathogenSelection')
       .and.callFake(() => of(diagnosticBasedOnPathogenSelection)),
+    fetchFollowUpNotificationCategory: jasmine.createSpy('fetchFollowUpNotificationCategory').and.returnValue(of({ notificationCategory: 'invp' })),
   } as Partial<FhirPathogenNotificationService>;
 }
 

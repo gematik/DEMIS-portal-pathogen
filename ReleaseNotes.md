@@ -2,6 +2,17 @@
 
 # Release portal-pathogen
 
+# Release 1.6.0
+- Added GET call to fetch notificationCategory based on notificationId (follow-up)
+- Improve UX of autocomplete fields
+- Removed FEATURE_FLAG_PORTAL_REPEAT
+- Improved enable/disable handling for pathogen and subpathogen selection
+- add configmap checksum as annotation to force pod restart on configmap change
+- Finalize follow up notification logic and design
+- Fix change detection issue for 7.3 notification
+- Update @gematik/demis-portal-core-library to 2.2.3
+- Add new clipboard key for laboratoryOrderId
+
 # Release 1.5.2
 - Use submit- and spinner-dialog from Portal-Core (FEATURE_FLAG_PORTAL_SUBMIT)
 

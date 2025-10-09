@@ -35,11 +35,13 @@ export const selectNotificationCategoryFields = (
   notificationType: NotificationType
 ): FormlyFieldConfig[] => {
   return [
-    {
-      className: FormlyConstants.LAYOUT_HEADER,
-      template: specificReportingObligations(notificationType),
-      key: 'selectPathogenInfoWrapper',
-    },
+    formlyRow([
+      {
+        className: FormlyConstants.LAYOUT_HEADER,
+        template: specificReportingObligations(notificationType),
+        key: 'selectPathogenInfoWrapper',
+      },
+    ]),
     {
       id: 'favoriteAddPathogen',
       key: 'favoriteAddPathogen',
@@ -47,6 +49,7 @@ export const selectNotificationCategoryFields = (
         {
           key: 'favoritePathogen',
           type: 'demis-favorites-list',
+          expressions: { hide: () => isFollowUpNotification(notificationType) },
         },
       ],
     },
@@ -82,14 +85,13 @@ export const selectNotificationCategoryFields = (
           label: 'Meldepflichtiger Krankheitserreger',
           filter: (term: string) => of(term ? filterDisplayValues(term, pathogenDisplays) : pathogenDisplays.slice()),
           required: true,
-          clearable: true,
         },
         expressions: {
           hide: (field: FormlyFieldConfig) => {
             return !is7_3Notification(federalStateCodeDisplays) && !field.form?.value?.federalStateCodeDisplay && !isFollowUpNotification(notificationType);
           },
           'props.disabled': () => {
-            return false; //return isFollowUpNotification(notificationType);
+            return isFollowUpNotification(notificationType);
           },
         },
         asyncValidators: {
@@ -107,13 +109,9 @@ export const selectNotificationCategoryFields = (
           label: 'Nachgewiesene Erregerspezies',
           filter: (term: string) => applyFilter(term, subPathogenDisplays),
           required: true,
-          clearable: true,
         },
         expressions: {
-          'props.disabled': (field: FormlyFieldConfig) => {
-            //TODO form.value.pathogenDisplay is not found when pathogenDisplay Field is disabled
-            return !field.form?.value?.pathogenDisplay;
-          },
+          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
         },
         asyncValidators: {
           validation: ['optionMatches'],
@@ -139,9 +137,7 @@ export const selectNotificationCategoryFields = (
           options: REPORT_STATUS_OPTION_LIST,
         },
         expressions: {
-          'props.disabled': (field: FormlyFieldConfig) => {
-            return !field.form?.value?.pathogen;
-          },
+          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogen,
         },
       },
     ]),
@@ -160,9 +156,7 @@ export const selectNotificationCategoryFields = (
           validation: ['additionalInfoTextValidator', 'nonBlankValidator'],
         },
         expressions: {
-          'props.disabled': (field: FormlyFieldConfig) => {
-            return !field.form?.value?.pathogen;
-          },
+          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogen,
         },
       },
     ]),
@@ -189,9 +183,7 @@ export const selectNotificationCategoryFields = (
         },
         expressions: {
           className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
-          'props.disabled': (field: FormlyFieldConfig) => {
-            return isFollowUpNotification(notificationType) || !field.form?.value?.pathogen;
-          },
+          'props.disabled': (field: FormlyFieldConfig) => isFollowUpNotification(notificationType) || !localModel(field).pathogen,
         },
       },
     ]),
@@ -209,9 +201,7 @@ export const selectNotificationCategoryFields = (
           validation: ['textValidator', 'nonBlankValidator'],
         },
         expressions: {
-          'props.disabled': (field: FormlyFieldConfig) => {
-            return !field.form?.value?.pathogen;
-          },
+          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogen,
         },
       },
     ]),
@@ -220,15 +210,20 @@ export const selectNotificationCategoryFields = (
 
 export const applyFilter = (term: string, data: string[]) => of(term ? filterDisplayValues(term, data) : data.slice());
 
+// Helper to reliably access the local model (works even if other groups are disabled)
+const localModel = (ffc: FormlyFieldConfig) => ffc.parent?.model || {};
+
 const isGrayedOutSelection = (condition: boolean) => {
   const conditionalClass = condition ? 'grayed-out-element' : '';
   return `${conditionalClass} ${FormlyConstants.COLMD10}`.trim();
 };
 
 const initialNotificationIdClassName = (ffc: FormlyFieldConfig, notificationType: NotificationType): string => {
-  return isGrayedOutSelection(ffc.form?.value?.reportStatus !== ReportStatusEnum.Amended || isFollowUpNotification(notificationType));
+  const model = localModel(ffc);
+  return isGrayedOutSelection(model.reportStatus !== ReportStatusEnum.Amended || isFollowUpNotification(notificationType));
 };
 
 const reportClassName = (ffc: FormlyFieldConfig): string => {
-  return isGrayedOutSelection(!ffc.form?.value?.pathogen);
+  const model = localModel(ffc);
+  return isGrayedOutSelection(!model.pathogen);
 };

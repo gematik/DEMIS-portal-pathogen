@@ -32,7 +32,6 @@ p {
   margin-top: auto;
 }
 
-
 #dialog-title {
   display: flex;
   align-items: center;
@@ -50,10 +49,15 @@ p {
   margin-top: 10px;
 }
 
+#final-dialog-paragraph-error {
+  margin-top: 40px;
+}
+
 form, .form-container {
   margin-bottom: 27px;
 }
 
+/** Input Field Styles **/
 ::ng-deep .initial-notification-id-input-field-valid {
   --mdc-outlined-text-field-outline-color: #{$color-success};
   --mdc-outlined-text-field-focus-outline-color: #{$color-success};
@@ -65,4 +69,16 @@ form, .form-container {
 
 ::ng-deep .initial-notification-id-input-field-valid .mat-mdc-input-element {
   color: $color-success !important;
+}
+
+::ng-deep .initial-notification-id-input-field-invalid .mat-mdc-input-element {
+  color: red !important;
+}
+
+.icon-valid {
+  color: $color-success
+}
+
+.icon-invalid {
+  color: red;
 }

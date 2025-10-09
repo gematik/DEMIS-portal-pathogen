@@ -126,7 +126,7 @@ export class SubmitNotificationDialogComponent {
     this.data.fhirService.sendNotification(this.notification, this.notificationType).subscribe({
       next: response => {
         const content = encodeURIComponent(response.body.content);
-        const href = 'data:application/actet-stream;base64,' + content;
+        const href = 'data:application/octet-stream;base64,' + content;
         this.pdfDownload = this.sanitizer.bypassSecurityTrustUrl(href);
         if (response.body.status === 'All OK') {
           this.fileName = this.fileService.getFileNameByNotificationType(this.notification, this.notificationType, response.body?.notificationId);

@@ -44,6 +44,7 @@ interface Configuration {
   ngxLoggerConfig: NgxLoggerConfig;
   pathToFuts: string;
   futsPaths: FutsPaths;
+  pathToDestinationLookup: string;
 }
 
 export class Environment {
@@ -105,6 +106,10 @@ export class Environment {
 
   private get gatewayPaths(): GatewayPaths {
     return this.config?.gatewayPaths;
+  }
+
+  public get pathToDestinationLookup(): string {
+    return this.config?.pathToDestinationLookup;
   }
 
   public get pathToFederalStates_7_1(): string {

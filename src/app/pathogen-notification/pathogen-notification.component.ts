@@ -14,11 +14,11 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { FormlyFieldConfig, FormlyFormOptions, FormlyModule } from '@ngx-formly/core';
-import { distinctUntilChanged, forkJoin, of, Subject, take, takeUntil, filter } from 'rxjs';
+import { distinctUntilChanged, filter, forkJoin, of, Subject, take, takeUntil } from 'rxjs';
 import { AddressType, CodeDisplay, PathogenData } from '../../api/notification';
 import {
   filterDisplayValues,
@@ -73,6 +73,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   private readonly logger = inject(NGXLogger);
   private readonly errorDialogService = inject(ErrorDialogService);
   private readonly followUpNotificationIdService = inject(FollowUpNotificationIdService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   form: FormGroup = new FormGroup({});
   options: FormlyFormOptions = {};
@@ -110,6 +111,8 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.pathogenData,
         this.notificationType
       );
+      //DEMIS-4242, fixes issue where change detection didn't work for 7.3 notifications
+      this.changeDetector.detectChanges();
       if (environment.featureFlags?.FEATURE_FLAG_PORTAL_SUBMIT) {
         this.fhirPathogenNotificationService.submitNotification(pathogenTest, this.notificationType);
       } else {
@@ -186,19 +189,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.clipboardDataService.pathogenDataIsChangingFromClipboard.subscribe((pathogenIsChanging: boolean) => {
       this.pathogenIsChangingFromClipboard = pathogenIsChanging;
     });
-
-    if (this.isFollowUpNotification7_1()) {
-      this.followUpNotificationIdService.hasValidNotificationId$
-        .pipe(
-          takeUntil(this.unsubscriber),
-          distinctUntilChanged(),
-          filter(hasValid => hasValid === true)
-        )
-        .subscribe(() => {
-          this.updateAfterPathogenSelection(findCodeDisplayByDisplayValue(this.pathogenCodeDisplays, 'Influenzavirus'));
-          this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
-        });
-    }
+    this.handleFollowUpNotification7_1();
   }
 
   populateWithFavoriteSelection(pathogen: CodeDisplay): void {
@@ -253,6 +244,35 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       this.selectPathogenFields,
       this.diagnosticFormFields
     );
+  }
+
+  private handleFollowUpNotification7_1() {
+    if (this.isFollowUpNotification7_1()) {
+      this.followUpNotificationIdService.hasValidNotificationId$
+        .pipe(
+          takeUntil(this.unsubscriber),
+          distinctUntilChanged(),
+          filter(hasValid => hasValid === true)
+        )
+        .subscribe(() => {
+          const codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, this.followUpNotificationIdService.followUpNotificationCategory());
+          if (codeDisplay) {
+            this.updateAfterPathogenSelection(
+              findCodeDisplayByCodeValue(this.pathogenCodeDisplays, this.followUpNotificationIdService.followUpNotificationCategory())
+            );
+          } else {
+            this.errorDialogService.openErrorDialogAndRedirectToHome(
+              'Der gespeicherte Erreger ' +
+                this.followUpNotificationIdService.followUpNotificationCategory() +
+                ' für die ID ' +
+                this.followUpNotificationIdService.validatedNotificationId +
+                ' wird für die §7.1er Meldungen nicht unterstützt.',
+              'Fehler'
+            );
+          }
+          this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
+        });
+    }
   }
 
   subscribeToCurrentAddressTypeChanges() {
@@ -469,6 +489,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.getSubPathogenSelectionField().props.filter = (term: string) => applyFilter(term, subPathogens);
 
     this.diagnosticFormFields = pathogenSpecimenFields(
+      this.notificationType,
       materials,
       methods,
       resistanceGenes,

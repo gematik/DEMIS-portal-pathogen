@@ -23,6 +23,7 @@ config:
   ## these are physical routes, relative to the pod URL of this micro frontend, not angular ones
   pathToGateway: ../gateway/notification
   pathToFuts: ../fhir-ui-data-model-translation
+  pathToDestinationLookup: ../destination-lookup/v1
   gatewayPaths:
     pathogen: /api/ng/notification/pathogen
     pathogen_7_1: /api/ng/notification/pathogen/7.1
@@ -40,7 +41,6 @@ config:
     FEATURE_FLAG_PORTAL_PASTEBOX: false
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false
     FEATURE_FLAG_FOLLOW_UP_NOTIFICATION: false
-    FEATURE_FLAG_PORTAL_REPEAT: false
     FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: false
     FEATURE_FLAG_NEW_API_ENDPOINTS: false
     FEATURE_FLAG_PORTAL_SUBMIT: false
@@ -50,6 +50,7 @@ config:
   newApiEndpoints:
     pathToFuts: ../../translation/ui-data-model/v6/fhir
     pathToGateway: ../../gateway/pathogen
+    pathToDestinationLookup: ../../destination-lookup/v1
     gatewayPaths:
       pathogen: /notification/pathogen
       pathogen_7_1: /notification/pathogen/7.1

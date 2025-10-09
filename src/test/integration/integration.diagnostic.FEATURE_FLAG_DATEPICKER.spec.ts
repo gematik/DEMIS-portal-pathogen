@@ -23,7 +23,15 @@ import { getHtmlButtonElement } from '../shared/html-element-utils';
 import { getAutocomplete, getButton, getInput, getRadioGroup, getSelect, selectAutocompleteOption, selectRadioOption } from '../shared/material-harness-utils';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
-import { checkDescribingError, clickAddDiagnosticButton, clickAddSpecimenButton, clickDeleteButton, getStepHeader, switchToPage } from '../shared/test-utils';
+import {
+  checkDescribingError,
+  clickAddDiagnosticButton,
+  clickAddSpecimenButton,
+  clickDeleteButton,
+  getStepHeader,
+  setInputFieldValue,
+  switchToPage,
+} from '../shared/test-utils';
 import {
   ERROR_EXTRACTION_DATE,
   FIELD_EXTRACTION_DATE,
@@ -32,6 +40,7 @@ import {
   FIELD_INTERPRETATION,
   FIELD_MATERIAL,
   FIELD_METHOD,
+  FIELD_METHOD_0,
   FIELD_PATHOGEN,
   FIELD_PATHOGEN_DISPLAY,
   FIELD_RECEIVED_DATE,
@@ -84,7 +93,7 @@ describe('Pathogen - Diagnostic Integration Tests with FEATURE_FLAG_PORTAL_PATHO
     parameters.forEach(({ field, value, expectedResult }) => {
       it(`for the field: '${field}', the value: '${value}' should throw the error: '${expectedResult}'`, async () => {
         const autocomplete = await getAutocomplete(loader, `#${field}`);
-        await selectAutocompleteOption(autocomplete, value);
+        await setInputFieldValue(loader, `#${field}`, value, fixture);
         await checkDescribingError(fixture, autocomplete, expectedResult);
       });
     });
@@ -167,10 +176,7 @@ describe('Pathogen - Diagnostic Integration Tests with FEATURE_FLAG_PORTAL_PATHO
 
     describe('Diagnostic only', () => {
       beforeEach(async () => {
-        await selectAutocompleteOption(pathogenDisplay, PATHOGEN_DISPLAY);
-        fixture.detectChanges();
-        expect(await pathogenDisplay.isFocused()).toBe(false);
-        expect(await pathogenDisplay.getValue()).toBe(PATHOGEN_DISPLAY);
+        await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, PATHOGEN_DISPLAY, fixture);
         await switchToPage(5, fixture);
         expect(getStepHeader(fixture)).toBe(' Schritt 5 von 5 ');
         expect(await getButton(loader, '#btn-weitere-probe-hinzufügen')).toBeTruthy();
@@ -198,8 +204,8 @@ describe('Pathogen - Diagnostic Integration Tests with FEATURE_FLAG_PORTAL_PATHO
       async function fillFirstSpecimen() {
         await extractionDate.setValue(VALID_DATE_BEFORE);
         await receivedDate.setValue(VALID_DATE_AFTER);
-        await selectAutocompleteOption(material, MATERIAL_VALUE_INVP);
-        await selectAutocompleteOption(method, METHOD_VALUE_INVP);
+        await setInputFieldValue(loader, `#${FIELD_MATERIAL}`, MATERIAL_VALUE_INVP, fixture);
+        await setInputFieldValue(loader, `#${FIELD_METHOD_0}`, METHOD_VALUE_INVP, fixture);
         await selectRadioOption(result, RESULT_OPTION_LIST[0].label);
       }
 
@@ -227,10 +233,8 @@ describe('Pathogen - Diagnostic Integration Tests with FEATURE_FLAG_PORTAL_PATHO
       it('should add diagnostic on button click and remove it', async () => {
         await fillFirstSpecimen();
         await clickAddDiagnosticButton(fixture);
-        const method1 = await getAutocomplete(loader, `#${FIELD_METHOD}_1`);
         const result1 = await getRadioGroup(loader, `#${FIELD_RESULT}_1`);
-        await selectAutocompleteOption(method1, METHOD_VALUE_2_INVP);
-        expect(await method1.getValue()).toBe(METHOD_VALUE_2_INVP);
+        await setInputFieldValue(loader, `#${FIELD_METHOD}_1`, METHOD_VALUE_2_INVP, fixture);
         await selectRadioOption(result1, RESULT_OPTION_LIST[1].label);
         await clickDeleteButton(fixture, 'methodPathogenList_1');
       });
