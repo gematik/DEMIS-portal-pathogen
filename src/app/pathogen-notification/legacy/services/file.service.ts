@@ -27,7 +27,7 @@ export class FileService {
   abbreviation = '.pdf';
 
   getFileNameByNotificationType(notification: PathogenTest, notificationType: NotificationType, notificationId: string): string {
-    if (notificationType === NotificationType.NonNominalNotification7_3) {
+    if (notificationType === NotificationType.NonNominalNotification7_3 || notificationType === NotificationType.FollowUpNotification7_1) {
       return this.convertFileNameForNonNominal(notificationId);
     }
     return this.convertFileNameForPerson(notification.notifiedPerson.info);

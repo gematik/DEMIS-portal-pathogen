@@ -25,8 +25,12 @@ import { FormlyConstants } from '../../../legacy/formly/configs/formly-constants
 import { formlyRow } from '../../../legacy/formly/configs/reusable/commons';
 import { environment } from '../../../../../environments/environment';
 import { EXTRACTION_START_ERROR_MSG } from '../../../common/pathogen-formly-validation-module';
+import { NotificationType } from '../../../common/routing-helper';
+
+const isFollowUpNotification = (notificationType: NotificationType) => notificationType === NotificationType.FollowUpNotification7_1;
 
 export const pathogenSpecimenFields = (
+  notificationType: NotificationType,
   materialDisplays: string[],
   methodDisplays: string[],
   resistanceGeneDisplays?: string[],
@@ -48,6 +52,7 @@ export const pathogenSpecimenFields = (
         {
           key: 'favoritePathogen',
           type: 'demis-favorites-add-list',
+          expressions: { hide: () => isFollowUpNotification(notificationType) },
         },
       ],
     },

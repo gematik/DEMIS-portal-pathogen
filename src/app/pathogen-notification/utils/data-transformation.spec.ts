@@ -33,6 +33,7 @@ describe('DataTransformation', () => {
       },
       pathToGateway: '../gateway/notification',
       pathToFuts: '../fhir-ui-data-model-translation',
+      pathToDestinationLookup: '/destination-lookup/v1',
       production: false,
     };
   });

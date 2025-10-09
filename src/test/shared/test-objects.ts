@@ -68,6 +68,7 @@ import {
   CLIPBOARD_VALUE_INITIAL_NOTIFICATION_ID,
   CLIPBOARD_VALUE_INSTITUTION_NAME,
   CLIPBOARD_VALUE_INTERPRETATION_TEXT,
+  CLIPBOARD_VALUE_LABORATORY_ORDER_ID,
   CLIPBOARD_VALUE_MATERIAL,
   CLIPBOARD_VALUE_METHOD,
   CLIPBOARD_VALUE_NOTIFICATION_CATEGORY,
@@ -97,6 +98,7 @@ import {
   FIELD_INIT_NOTIFICATION_ID,
   FIELD_INSTITUTIONAME,
   FIELD_INTERPRETATION,
+  FIELD_LAB_ORDER_ID,
   FIELD_MATERIAL,
   FIELD_METHOD_0,
   FIELD_NOTIFIER_FACILITY_ADDRESS_CITY,
@@ -136,6 +138,7 @@ export interface TestDataNotificationCategoryPage {
   reportStatus: TestDataStructure;
   initialNotificationId: TestDataStructure;
   interpretation: TestDataStructure;
+  laboratoryOrderId: TestDataStructure;
 }
 
 export interface TestDataDiagnosticPage {
@@ -396,6 +399,12 @@ export const TEST_NOTIFICATION_CATEGORY: TestDataNotificationCategoryPage = {
     value: CLIPBOARD_VALUE_INTERPRETATION_TEXT,
     clipboardDataKey: 'T.interpretationText',
     clipboardValue: CLIPBOARD_VALUE_INTERPRETATION_TEXT,
+  },
+  laboratoryOrderId: {
+    selector: `#${FIELD_LAB_ORDER_ID}`,
+    value: CLIPBOARD_VALUE_LABORATORY_ORDER_ID,
+    clipboardDataKey: 'T.serviceRequest',
+    clipboardValue: CLIPBOARD_VALUE_LABORATORY_ORDER_ID,
   },
 };
 

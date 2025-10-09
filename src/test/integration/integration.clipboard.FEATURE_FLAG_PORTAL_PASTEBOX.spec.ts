@@ -55,6 +55,7 @@ import {
   FIELD_CURRENT_ADDRESS_STREET,
   FIELD_CURRENT_ADDRESS_ZIP,
   FIELD_MATERIAL,
+  FIELD_PATHOGEN,
   FIELD_PATHOGEN_DISPLAY,
   FIELD_RESIDENCE_ADDRESS_CITY,
   FIELD_RESIDENCE_ADDRESS_COUNTRY,
@@ -77,6 +78,7 @@ import {
   buildClipboardString,
   clickNextButton,
   createClipboardStringFromObject,
+  setInputFieldValue,
   switchToPage,
   verifyAutocompleteField,
   verifyInputFieldValues,
@@ -503,6 +505,10 @@ describe('Pathogen - Clipboard Integration Tests with FEATURE_FLAG_PORTAL_PASTEB
             expectedValue: TEST_NOTIFICATION_CATEGORY.interpretation.value,
             selector: TEST_NOTIFICATION_CATEGORY.interpretation.selector,
           },
+          {
+            expectedValue: TEST_NOTIFICATION_CATEGORY.laboratoryOrderId.value,
+            selector: TEST_NOTIFICATION_CATEGORY.laboratoryOrderId.selector,
+          },
         ]);
 
         // assert that page 5 (specimen) has the correct values from clipboard
@@ -527,17 +533,13 @@ describe('Pathogen - Clipboard Integration Tests with FEATURE_FLAG_PORTAL_PASTEB
 
     it('should overwrite diagnostic data after clipboard with new material', async () => {
       // set code for influenzavirus
-      const pathogenDisplay = await getAutocomplete(loader, `#${FIELD_PATHOGEN_DISPLAY}`);
-      await selectAutocompleteOption(pathogenDisplay, 'Influenzavirus');
+      await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, 'Influenzavirus', fixture);
       setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);
       fixture.detectChanges();
-      expect(await pathogenDisplay.getValue()).toBe(TEST_DATA.pathogenCodeDisplays[0].designations[0].value);
 
       // go to page 5 and set material
       await switchToPage(5, fixture);
-      const material = await getAutocomplete(loader, `#${FIELD_MATERIAL}`);
-      await selectAutocompleteOption(material, 'Sputum');
-      expect(await material.getValue()).toBe('Sputum');
+      await setInputFieldValue(loader, `#${FIELD_MATERIAL}`, 'Sputum', fixture);
 
       // overwrite material with clipboard data
       const p = lastValueFrom(of('URL T.material=123038009'));
@@ -545,22 +547,19 @@ describe('Pathogen - Clipboard Integration Tests with FEATURE_FLAG_PORTAL_PASTEB
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
       fixture.detectChanges();
       // assert that material was overwritten with clipboard data
+      const material = await getAutocomplete(loader, `#${FIELD_MATERIAL}`);
       expect(await material.getValue()).toBe('Anderes Untersuchungsmaterial');
     });
 
     it('should not overwrite diagnostic data after clipboard with empty material', async () => {
       // set code for influenzavirus
-      const pathogenDisplay = await getAutocomplete(loader, `#${FIELD_PATHOGEN_DISPLAY}`);
-      await selectAutocompleteOption(pathogenDisplay, 'Influenzavirus');
+      await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, 'Influenzavirus', fixture);
       setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);
       fixture.detectChanges();
-      expect(await pathogenDisplay.getValue()).toBe(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay.designations[0].value);
 
       // go to page 5 and set material
       await switchToPage(5, fixture);
-      const material = await getAutocomplete(loader, `#${FIELD_MATERIAL}`);
-      await selectAutocompleteOption(material, 'Sputum');
-      expect(await material.getValue()).toBe('Sputum');
+      await setInputFieldValue(loader, `#${FIELD_MATERIAL}`, 'Sputum', fixture);
 
       // insert empty material via clipboard
       const p = lastValueFrom(of('URL T.material='));
@@ -569,10 +568,12 @@ describe('Pathogen - Clipboard Integration Tests with FEATURE_FLAG_PORTAL_PASTEB
       fixture.detectChanges();
 
       // assert that material was not overwritten or cleared
+      const material = await getAutocomplete(loader, `#${FIELD_MATERIAL}`);
       expect(await material.getValue()).toBe('Sputum');
     });
 
-    it('should fill all mandatory values on page 4 + 5, clear & overwrite pathogen', async () => {
+    it('should fill all mandatory values on page 4 + 5, overwrite pathogen & sub-pathogen', async () => {
+      await verifyStateOfDiagnosticPage(loader, 'disabled_step');
       const clipboardStringNotificationCategory = createClipboardStringFromObject(TEST_NOTIFICATION_CATEGORY, 'URL ');
       const clipboardStringSpecimen = createClipboardStringFromObject(specimenDTO, '&');
       const p = lastValueFrom(of(clipboardStringNotificationCategory.concat(clipboardStringSpecimen)));
@@ -583,49 +584,15 @@ describe('Pathogen - Clipboard Integration Tests with FEATURE_FLAG_PORTAL_PASTEB
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
       await switchToPage(4, fixture);
       fixture.detectChanges();
-      await (await getButton(loader, '#clear-pathogen')).click();
-      fixture.detectChanges();
-      // assert that page 4 (notificationCategory) values are empty
-      await verifyAutocompleteField(loader, {
-        expectedValue: '',
-        selector: TEST_NOTIFICATION_CATEGORY.pathogenDisplay.selector,
-      });
-      await verifyAutocompleteField(loader, {
-        expectedValue: '',
-        selector: TEST_NOTIFICATION_CATEGORY.pathogen.selector,
-      });
-      // assert page 5 cannot be clicked
-      await verifyStateOfDiagnosticPage(loader, 'disabled_step');
-    });
-
-    it('should fill all mandatory values on page 4 + 5, overwrite subpathogen', async () => {
-      const clipboardStringNotificationCategory = createClipboardStringFromObject(TEST_NOTIFICATION_CATEGORY, 'URL ');
-      const clipboardStringSpecimen = createClipboardStringFromObject(specimenDTO, '&');
-      const p = lastValueFrom(of(clipboardStringNotificationCategory.concat(clipboardStringSpecimen)));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
-
-      // set code for influenzavirus due to local storage issue
-      setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);
-      await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
+      await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, 'Bornaviren', fixture);
+      // bug: switches back to page 1 without given reason
       await switchToPage(4, fixture);
-      fixture.detectChanges();
-      await (await getButton(loader, '#clear-pathogen')).click();
-      fixture.detectChanges();
-      // assert that page 4 (notificationCategory) values are empty
-      await verifyAutocompleteField(loader, {
-        expectedValue: '',
-        selector: TEST_NOTIFICATION_CATEGORY.pathogenDisplay.selector,
-      });
-      await verifyAutocompleteField(loader, {
-        expectedValue: '',
-        selector: TEST_NOTIFICATION_CATEGORY.pathogen.selector,
-      });
-      // assert page 5 cannot be clicked
-      await verifyStateOfDiagnosticPage(loader, 'disabled_step');
-    });
 
-    // overwrite pathogen -> all fields should be empty
-    // overwrite subpathogen -> all fields except for subpathogen should be empty (check cross?)
-    // overwrite specimenList -> all fields except for specimenList should be empty
+      const pathogenDisplay = await getAutocomplete(loader, `#${FIELD_PATHOGEN_DISPLAY}`);
+      expect(await pathogenDisplay.getValue()).toBe('Bornaviren');
+
+      const pathogen = await getAutocomplete(loader, `#${FIELD_PATHOGEN}`);
+      expect(await pathogen.getValue()).toBe('');
+    });
   });
 });

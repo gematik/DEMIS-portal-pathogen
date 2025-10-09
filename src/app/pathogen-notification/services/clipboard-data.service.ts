@@ -100,6 +100,7 @@ export class ClipboardDataService {
     'T.reportStatus': value => ({ notificationCategory: { reportStatus: value } }),
     'T.interpretationText': value => ({ notificationCategory: { interpretation: value } }),
     'T.relatesTo': value => ({ notificationCategory: { initialNotificationId: value } }),
+    'T.serviceRequest': value => ({ notificationCategory: { laboratoryOrderId: value } }),
     'T.collectedDate': value => ({ pathogenDTO: { specimenList: [{ specimenDTO: { extractionDate: value } }] } }),
     'T.receivedDate': value => ({ pathogenDTO: { specimenList: [{ specimenDTO: { receivedDate: value } }] } }),
     'T.material': value => ({
@@ -208,6 +209,7 @@ export class ClipboardDataService {
       'T.interpretation',
       'T.reportStatus',
       'T.interpretationText',
+      'T.serviceRequest',
       'T.relatesTo',
     ];
     return notificationRules.some(rule => transformedClipboardData.some(([key]) => key === rule));

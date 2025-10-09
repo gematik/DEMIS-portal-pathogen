@@ -20,13 +20,17 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { getDialog, getInput, getButton } from '../shared/material-harness-utils';
+import { getButton, getDialog, getIcon, getInput } from '../shared/material-harness-utils';
 import { waitForStability } from '../shared/test-utils';
+import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
+import { TestBed } from '@angular/core/testing';
+import { of, throwError } from 'rxjs';
 
 describe('Pathogen - Follow Up Integration Tests', () => {
   let component: PathogenNotificationComponent;
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+  let fhirService: FhirPathogenNotificationService;
 
   const initialNotificationIdSelector = '#initialNotificationIdInput';
 
@@ -42,6 +46,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
     component = result.component;
     loader = result.loader;
     fixture.detectChanges();
+    fhirService = TestBed.inject(FhirPathogenNotificationService);
   });
 
   it('should create', () => {
@@ -62,71 +67,89 @@ describe('Pathogen - Follow Up Integration Tests', () => {
     expect(title).toMatch('Folgemeldung');
   });
 
-  it('should have input field for notification ID in dialog', async () => {
-    const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    const input = await getInput(documentRootLoader, initialNotificationIdSelector);
-    expect(input).toBeTruthy();
-    expect(await input.getPlaceholder()).toBe('Bitte eingeben');
-  });
+  describe('Initial Notification Id Popup Tests', () => {
+    it('should have input field for notification ID in dialog', async () => {
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      expect(input).toBeTruthy();
+      expect(await input.getPlaceholder()).toBe('Bitte eingeben');
+    });
 
-  it('should have "Zurück zur Startseite" button in dialog', async () => {
-    const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    const backButton = await getButton(documentRootLoader, '#btn-back-to-homepage');
-    expect(backButton).toBeTruthy();
-    expect(await backButton.getText()).toBe('Zurück zur Startseite');
-  });
+    it('should have "Zurück zur Startseite" button in dialog', async () => {
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const backButton = await getButton(documentRootLoader, '#btn-back-to-homepage');
+      expect(backButton).toBeTruthy();
+      expect(await backButton.getText()).toBe('Zurück zur Startseite');
+    });
 
-  it('should have "Überprüfen" button in dialog when no valid ID', async () => {
-    const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    const input = await getInput(documentRootLoader, initialNotificationIdSelector);
-    await input.setValue('123');
+    it('should have "Überprüfen" button in dialog when no valid ID', async () => {
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      await input.setValue('123');
 
-    const checkButton = await getButton(documentRootLoader, '#btn-check-id');
-    expect(checkButton).toBeTruthy();
-    expect(await checkButton.getText()).toBe('Überprüfen');
-  });
+      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
+      expect(checkButton).toBeTruthy();
+      expect(await checkButton.getText()).toBe('Überprüfen');
+    });
 
-  it('should show "Weiter" button when validation is successful', async () => {
-    const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    const input = await getInput(documentRootLoader, initialNotificationIdSelector);
-    //TODO needs to be adjusted once backend validation is implemented
-    await input.setValue('123');
+    it('should show "Weiter" button when validation is successful', async () => {
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-    const checkButton = await getButton(documentRootLoader, '#btn-check-id');
-    await checkButton.click();
-    fixture.detectChanges();
+      (fhirService.fetchFollowUpNotificationCategory as jasmine.Spy).and.returnValue(of({ notificationCategory: 'invp' }));
 
-    const nextButton = await getButton(documentRootLoader, '#btn-next');
-    expect(nextButton).toBeTruthy();
-    expect(await nextButton.getText()).toBe('Weiter');
-  });
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      await input.setValue('123');
 
-  it('should show validation error when input is invalid', async () => {
-    const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    const input = await getInput(documentRootLoader, initialNotificationIdSelector);
-    //TODO needs to be adjusted once backend validation is implemented
-    await input.setValue('-1');
-    await input.blur();
+      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
+      await checkButton.click();
+      await waitForStability(fixture);
 
-    const checkButton = await getButton(documentRootLoader, '#btn-check-id');
-    await checkButton.click();
-    fixture.detectChanges();
-    await waitForStability(fixture);
+      const validIcon = await getIcon(documentRootLoader, '.icon-valid');
+      expect(validIcon).toBeTruthy();
 
-    const dialogContainer = document.querySelector('.mat-mdc-dialog-container');
-    expect(dialogContainer).toBeTruthy();
+      const nextButton = await getButton(documentRootLoader, '#btn-next');
+      expect(nextButton).toBeTruthy();
+      expect(await nextButton.getText()).toBe('Weiter');
+    });
 
-    const errorMessage = dialogContainer.querySelector('formly-validation-message');
-    expect(errorMessage).toBeTruthy();
-    expect(errorMessage.textContent).toContain('Die von Ihnen angegebene ID konnte nicht gefunden werden');
-  });
+    it('should show validation error when input is invalid and show warning icon', async () => {
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-  it('should disable "Überprüfen" button when input is empty', async () => {
-    const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    const input = await getInput(documentRootLoader, initialNotificationIdSelector);
-    await input.setValue('');
+      (fhirService.fetchFollowUpNotificationCategory as jasmine.Spy).and.returnValue(throwError(() => new Error('Not Found')));
 
-    const checkButton = await getButton(documentRootLoader, '#btn-check-id');
-    expect(await checkButton.isDisabled()).toBeTruthy();
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      await input.setValue('-1');
+      await input.blur();
+
+      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
+      await checkButton.click();
+      await waitForStability(fixture);
+
+      const dialogContainer = document.querySelector('.mat-mdc-dialog-container');
+      expect(dialogContainer).toBeTruthy();
+
+      const errorMessage = dialogContainer.querySelector('mat-error');
+      expect(errorMessage).toBeTruthy();
+      expect(errorMessage.textContent).toContain('Die von Ihnen angegebene ID konnte nicht gefunden werden');
+
+      const invalidIcon = await getIcon(documentRootLoader, '.icon-invalid');
+      expect(invalidIcon).toBeTruthy();
+    });
+
+    it('should disable "Überprüfen" button & show required error when input is empty', async () => {
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      await input.setValue('');
+      await input.blur();
+
+      const dialogContainer = document.querySelector('.mat-mdc-dialog-container');
+      expect(dialogContainer).toBeTruthy();
+      const errorMessage = dialogContainer.querySelector('mat-error');
+      expect(errorMessage).toBeTruthy();
+      expect(errorMessage.textContent).toContain('Meldungs-ID ist erforderlich');
+
+      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
+      expect(await checkButton.isDisabled()).toBeTruthy();
+    });
   });
 });

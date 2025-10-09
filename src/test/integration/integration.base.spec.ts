@@ -44,7 +44,6 @@ import { NotificationType } from '../../app/pathogen-notification/common/routing
 export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
-    FEATURE_FLAG_PORTAL_REPEAT: true,
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false,
     FEATURE_FLAG_FOLLOW_UP_NOTIFICATION: false,
     FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: false,
@@ -59,6 +58,7 @@ export const mainConfig = {
   },
   pathToGateway: '../gateway/notification',
   pathToFuts: '../fhir-ui-data-model-translation',
+  pathToDestinationLookup: '/destination-lookup/v1',
   production: false,
 };
 

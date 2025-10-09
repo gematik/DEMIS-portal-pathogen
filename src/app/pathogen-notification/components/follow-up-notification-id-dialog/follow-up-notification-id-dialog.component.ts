@@ -17,14 +17,30 @@
 import { Component, effect, inject } from '@angular/core';
 import { MatDialogActions, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
-import { FormlyModule, FormlyFieldConfig } from '@ngx-formly/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FollowUpNotificationIdService } from '../../services/follow-up-notification-id.service';
+import { MatError, MatFormField, MatInput, MatLabel, MatSuffix } from '@angular/material/input';
+import { NgClass, NgIf } from '@angular/common';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'follow-up-notification-id-dialog',
-  imports: [MatDialogTitle, MatButton, MatDialogActions, FormlyModule, ReactiveFormsModule, RouterLink],
+  imports: [
+    MatDialogTitle,
+    MatButton,
+    MatDialogActions,
+    ReactiveFormsModule,
+    RouterLink,
+    MatFormField,
+    MatLabel,
+    MatError,
+    NgClass,
+    NgIf,
+    MatInput,
+    MatIcon,
+    MatSuffix,
+  ],
   templateUrl: './follow-up-notification-id-dialog.component.html',
   styleUrl: './follow-up-notification-id-dialog.component.scss',
   standalone: true,
@@ -36,40 +52,43 @@ export class FollowUpNotificationIdDialogComponent {
 
   readonly validationStatus = this.followUpNotificationIdService.validationStatus;
 
+  initialNotificationIdControl = new FormControl('', [Validators.required]);
+
   constructor() {
     effect(() => {
       const isValid = this.validationStatus();
-      const field = this.form?.get(this.key);
-      if (field && isValid === false) {
-        this.fields[0].form.get(this.key).setErrors({ custom: true });
-      } else if (field && isValid === true) this.fields[0].form.get(this.key).setErrors(null);
+      if (!isValid) {
+        this.initialNotificationIdControl.setErrors({ invalid: true });
+      } else {
+        this.initialNotificationIdControl.setErrors(null);
+      }
     });
   }
 
-  form = new FormGroup({});
-  model = {};
-  fields: FormlyFieldConfig[] = [
-    {
-      id: this.key,
-      key: this.key,
-      type: 'input',
-      props: {
-        label: 'Initiale Meldungs-ID',
-        placeholder: 'Bitte eingeben',
-        required: true,
-      },
-      validators: {
-        validation: ['textValidator', 'nonBlankValidator'],
-      },
-      validation: {
-        messages: {
-          custom:
-            'Die von Ihnen angegebene ID konnte nicht gefunden werden. Überprüfen Sie die ID oder stellen Sie sicher, dass die Erstmeldung nicht älter als \n' +
-            '30 Tage ist. Alternativ setzen Sie bitte die Meldung namentlich ab.',
-        },
-      },
-    },
-  ];
+  getValidationStyle() {
+    const status = this.validationStatus();
+    if (status === true) {
+      return 'valid';
+    } else if (status === null || !this.initialNotificationIdControl.errors) {
+      return 'notvalidated';
+    } else if (status === false) {
+      return 'invalid';
+    }
+    return '';
+  }
+
+  getInputClass(): string {
+    return 'initial-notification-id-input-field-' + this.getValidationStyle();
+  }
+
+  validateNotificationId(id: string): void {
+    this.followUpNotificationIdService.validateNotificationId(id);
+  }
+
+  isTextInputValid() {
+    const c = this.initialNotificationIdControl;
+    return !!c && c.valid && (c.touched || c.dirty);
+  }
 
   closeDialog(): void {
     this.followUpNotificationIdService.closeDialog();
@@ -77,14 +96,6 @@ export class FollowUpNotificationIdDialogComponent {
 
   navigateToWelcomePage() {
     this.closeDialog();
-    this.router.navigate(['/welcome']);
-  }
-
-  validateNotificationId(id: number): void {
-    this.followUpNotificationIdService.validateNotificationId(id);
-  }
-
-  isTextInputValid() {
-    return !this.form.get(this.key)?.value || this.form.get(this.key).invalid;
+    this.router.navigate(['']).then(() => this.router.navigate(['/welcome']));
   }
 }

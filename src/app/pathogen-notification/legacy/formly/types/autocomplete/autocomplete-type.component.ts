@@ -39,7 +39,9 @@ import { ReactiveFormsModule } from '@angular/forms';
       [formControl]="formControl"
       [formlyAttributes]="field"
       [placeholder]="props.placeholder"
-      [errorStateMatcher]="errorStateMatcher" />
+      [errorStateMatcher]="errorStateMatcher"
+      (click)="onClick()"
+      (blur)="onBlur()" />
     @if (props['clearable'] && formControl.value) {
       <span id="close-icon">
         <button id="clear-pathogen" matSuffix mat-icon-button aria-label="Clear" (click)="formControl.setValue('')">
@@ -47,7 +49,7 @@ import { ReactiveFormsModule } from '@angular/forms';
         </button>
       </span>
     }
-    <mat-autocomplete #auto="matAutocomplete">
+    <mat-autocomplete #auto="matAutocomplete" (opened)="onAutocompleteOpened()">
       @for (value of filter | async; track value) {
         <mat-option [value]="value">
           {{ value }}
@@ -63,13 +65,16 @@ export class AutocompleteTypeComponent extends FieldType<FieldTypeConfig> implem
   @ViewChild(MatAutocompleteTrigger) autocomplete!: MatAutocompleteTrigger;
 
   filter!: Observable<any>;
+  private previousValue?: any;
 
   ngOnInit() {
-    this.filter = this.formControl.valueChanges.pipe(
-      startWith((this.formControl.value as string) || ''),
-      //@ts-ignore
-      switchMap(term => this.props.filter(term))
-    );
+    this.setupFilter();
+    // if user types something (non-empty), discard stored previous value.
+    this.formControl.valueChanges.subscribe(v => {
+      if (v !== '') {
+        this.previousValue = undefined;
+      }
+    });
   }
 
   ngAfterViewInit() {
@@ -78,8 +83,38 @@ export class AutocompleteTypeComponent extends FieldType<FieldTypeConfig> implem
       (<any>this.autocomplete)._formField = this.formField;
     }
   }
-}
 
-/**  Copyright 2018 Google Inc. All Rights Reserved.
- Use of this source code is governed by an MIT-style license that
- can be found in the LICENSE file at http://angular.io/license */
+  onClick() {
+    this.attemptReset();
+  }
+
+  onAutocompleteOpened() {
+    // covers keyboard/focus open without click.
+    this.attemptReset();
+  }
+
+  private setupFilter() {
+    this.filter = this.formControl.valueChanges.pipe(
+      startWith((this.formControl.value as string) || ''),
+      switchMap(term => this.props.filter(term))
+    );
+  }
+
+  private attemptReset() {
+    const current = this.formControl.value;
+    if (current) {
+      this.previousValue = current;
+      // valueChange should only trigger when user makes a change
+      this.formControl.setValue('', { emitEvent: false });
+      this.setupFilter();
+    }
+  }
+
+  onBlur() {
+    //set previous value back if nothing was selected
+    if ((this.formControl.value === '' || this.formControl.value == null) && this.previousValue !== undefined) {
+      this.formControl.setValue(this.previousValue, { emitEvent: false });
+    }
+    this.previousValue = undefined;
+  }
+}

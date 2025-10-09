@@ -15,7 +15,7 @@
  */
 
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable, NgZone } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
 import { finalize, Observable, of } from 'rxjs';
 import { CodeDisplay, PathogenData, PathogenTest, ValidationError } from '../../../api/notification';
@@ -32,6 +32,10 @@ import { isNonNominalNotificationEnabled } from '../utils/pathogen-notification-
 import { NotificationType } from '../common/routing-helper';
 import { FileService } from '../legacy/services/file.service';
 
+export interface FollowUpNotificationCategory {
+  notificationCategory: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -43,6 +47,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
   private readonly futsHeaders = environment.futsHeaders;
   private readonly messageDialogService = inject(MessageDialogService);
   private readonly fileService = inject(FileService);
+  private readonly ngZone = inject(NgZone); // ensure we can force change detection
 
   constructor() {
     const http = inject(HttpClient);
@@ -171,6 +176,26 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       );
   };
 
+  fetchFollowUpNotificationCategory(notificationId: string) {
+    const path = `${environment.pathToDestinationLookup}/notification/${notificationId}/notificationCategory`;
+    return this.httpClient
+      .get<FollowUpNotificationCategory>(path, {
+        headers: FhirPathogenNotificationService.getEnvironmentHeaders(),
+      })
+      .pipe(
+        catchError(error => {
+          if (this.isServerError(error.status)) {
+            this.logger.error('Error fetching notification', error);
+            this.errorDialogService.openErrorDialogAndRedirectToHome(
+              error,
+              'Es gibt ein internes Problem beim Abohlen der Meldung. Bitte probieren Sie es später nochmal.'
+            );
+          }
+          throw error;
+        })
+      );
+  }
+
   /**
    * @deprecated Use {@link submitNotification} instead, once FEATURE_FLAG_PORTAL_SUBMIT will be removed
    */
@@ -198,22 +223,27 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
         headers: FhirPathogenNotificationService.getEnvironmentHeaders(),
         observe: 'response',
       })
+      //DEMIS-4242, ngZone fixes issue where change detection didn't work for 7.3 notifications
       .pipe(
         finalize(() => {
-          this.messageDialogService.closeSpinnerDialog();
+          this.ngZone.run(() => this.messageDialogService.closeSpinnerDialog());
         })
       )
       .subscribe({
         next: (response: HttpResponse<any>) => {
-          const submitDialogData: SubmitDialogProps = this.createSubmitDialogData(response, notification, notificationType);
-          this.messageDialogService.showSubmitDialog(submitDialogData);
+          this.ngZone.run(() => {
+            const submitDialogData: SubmitDialogProps = this.createSubmitDialogData(response, notification, notificationType);
+            this.messageDialogService.showSubmitDialog(submitDialogData);
+          });
         },
         error: err => {
-          this.logger.error('error', err);
-          const errors = this.extractErrorDetails(err);
-          this.messageDialogService.showErrorDialog({
-            errorTitle: 'Meldung konnte nicht zugestellt werden!',
-            errors,
+          this.ngZone.run(() => {
+            this.logger.error('error', err);
+            const errors = this.extractErrorDetails(err);
+            this.messageDialogService.showErrorDialog({
+              errorTitle: 'Meldung konnte nicht zugestellt werden!',
+              errors,
+            });
           });
         },
       });
@@ -232,7 +262,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
 
   private createSubmitDialogData(response: HttpResponse<any>, notification: PathogenTest, notificationType: NotificationType): SubmitDialogProps {
     const content = encodeURIComponent(response.body.content);
-    const href = 'data:application/actet-stream;base64,' + content;
+    const href = 'data:application/octet-stream;base64,' + content;
     return {
       authorEmail: response.body.authorEmail,
       fileName: this.fileService.getFileNameByNotificationType(notification, notificationType, response.body.notificationId),
@@ -269,6 +299,10 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
         },
       ];
     }
+  }
+
+  private isServerError(status: number): boolean {
+    return Number.isInteger(status) && status >= 500 && status <= 599;
   }
 
   private removeUnusedFormlyFields(testResults: PathogenTest) {
