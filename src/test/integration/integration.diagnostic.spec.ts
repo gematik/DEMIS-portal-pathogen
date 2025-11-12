@@ -23,19 +23,27 @@ import { getHtmlButtonElement } from '../shared/html-element-utils';
 import { getAutocomplete, getButton, getInput, getRadioGroup, getSelect, selectAutocompleteOption, selectRadioOption } from '../shared/material-harness-utils';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
-import { checkDescribingError, clickAddDiagnosticButton, clickAddSpecimenButton, clickDeleteButton, getStepHeader, switchToPage } from '../shared/test-utils';
 import {
-  ADD_BUTTON_CLIPBOARD,
+  checkDescribingError,
+  clickAddDiagnosticButton,
+  clickAddSpecimenButton,
+  clickDeleteButton,
+  getStepHeader,
+  setInputFieldValue,
+  switchToPage,
+} from '../shared/test-utils';
+import {
   ERROR_EXTRACTION_DATE,
-  FIELD_EXTRACTION_DATE_DEPRECATED,
+  FIELD_EXTRACTION_DATE,
   FIELD_FEDERAL_STATE,
   FIELD_INIT_NOTIFICATION_ID,
   FIELD_INTERPRETATION,
   FIELD_MATERIAL,
   FIELD_METHOD,
+  FIELD_METHOD_0,
   FIELD_PATHOGEN,
   FIELD_PATHOGEN_DISPLAY,
-  FIELD_RECEIVED_DATE_DEPRECATED,
+  FIELD_RECEIVED_DATE,
   FIELD_REPORT_STATUS,
   FIELD_RESULT,
   MATERIAL_VALUE_INVP,
@@ -55,8 +63,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MethodPathogenDTO } from '../../api/notification';
 import { RESULT_OPTION_LIST } from '../../app/pathogen-notification/legacy/formly-options-lists';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
-import { buildMock, setupIntegrationTests } from './integration.base.spec';
-import { lastValueFrom, of } from 'rxjs';
+import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 
 describe('Pathogen - Diagnostic Integration Tests', () => {
@@ -66,7 +73,7 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
 
   let fetchCountryCodeDisplaysSpy: jasmine.Spy;
   let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysSpy: jasmine.Spy;
+  let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
   let getNotifierFacilitySpy: jasmine.Spy;
   let fetchDiagnosticsBasedOnPathogenSelectionSpy: jasmine.Spy;
   let getSelectedPathogenCodeDisplaySpy: jasmine.Spy;
@@ -86,7 +93,7 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
     parameters.forEach(({ field, value, expectedResult }) => {
       it(`for the field: '${field}', the value: '${value}' should throw the error: '${expectedResult}'`, async () => {
         const autocomplete = await getAutocomplete(loader, `#${field}`);
-        await selectAutocompleteOption(autocomplete, value);
+        await setInputFieldValue(loader, `#${field}`, value, fixture);
         await checkDescribingError(fixture, autocomplete, expectedResult);
       });
     });
@@ -102,7 +109,7 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
 
     fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
     fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplays as jasmine.Spy;
+    fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as jasmine.Spy;
     getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
     getSelectedPathogenCodeDisplaySpy = TestBed.inject(PathogenNotificationStorageService).getSelectedPathogenCodeDisplay as jasmine.Spy;
     fetchDiagnosticsBasedOnPathogenSelectionSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as jasmine.Spy;
@@ -164,33 +171,14 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
       expect(await interpretation.isDisabled()).toBe(true);
     });
 
-    it('should make pathogen selectable also when no diagnostic data was in clipboard string', async () => {
-      // enter some non-diagnostic related clipboard data
-      const clipboardString = 'URL P.family=Power';
-      const p = lastValueFrom(of(clipboardString));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
-      await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-
-      // select diagnostic autocomplete fields
-      await selectAutocompleteOption(pathogenDisplay, PATHOGEN_DISPLAY);
-      fixture.detectChanges();
-      await switchToPage(4, fixture);
-      expect(await pathogen.getValue()).toBe('');
-      await selectAutocompleteOption(pathogen, TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.answerSet[0].display);
-      expect(await pathogen.getValue()).toBe(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.answerSet[0].display);
-    });
-
     describe('Diagnostic only', () => {
       beforeEach(async () => {
-        await selectAutocompleteOption(pathogenDisplay, PATHOGEN_DISPLAY);
-        fixture.detectChanges();
-        expect(await pathogenDisplay.isFocused()).toBe(false);
-        expect(await pathogenDisplay.getValue()).toBe(PATHOGEN_DISPLAY);
+        await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, PATHOGEN_DISPLAY, fixture);
         await switchToPage(5, fixture);
         expect(getStepHeader(fixture)).toBe(' Schritt 5 von 5 ');
         expect(await getButton(loader, '#btn-weitere-probe-hinzufügen')).toBeTruthy();
-        extractionDate = await getInput(loader, `#${FIELD_EXTRACTION_DATE_DEPRECATED}`);
-        receivedDate = await getInput(loader, `#${FIELD_RECEIVED_DATE_DEPRECATED}`);
+        extractionDate = await getInput(loader, `#${FIELD_EXTRACTION_DATE}`);
+        receivedDate = await getInput(loader, `#${FIELD_RECEIVED_DATE}`);
         material = await getAutocomplete(loader, `#${FIELD_MATERIAL}`);
         method = await getAutocomplete(loader, `#${FIELD_METHOD}_0`);
         result = await getRadioGroup(loader, `#${FIELD_RESULT}_0`);
@@ -213,8 +201,8 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
       async function fillFirstSpecimen() {
         await extractionDate.setValue(VALID_DATE_BEFORE);
         await receivedDate.setValue(VALID_DATE_AFTER);
-        await selectAutocompleteOption(material, MATERIAL_VALUE_INVP);
-        await selectAutocompleteOption(method, METHOD_VALUE_INVP);
+        await setInputFieldValue(loader, `#${FIELD_MATERIAL}`, MATERIAL_VALUE_INVP, fixture);
+        await setInputFieldValue(loader, `#${FIELD_METHOD_0}`, METHOD_VALUE_INVP, fixture);
         await selectRadioOption(result, RESULT_OPTION_LIST[0].label);
       }
 
@@ -242,10 +230,8 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
       it('should add diagnostic on button click and remove it', async () => {
         await fillFirstSpecimen();
         await clickAddDiagnosticButton(fixture);
-        const method1 = await getAutocomplete(loader, `#${FIELD_METHOD}_1`);
         const result1 = await getRadioGroup(loader, `#${FIELD_RESULT}_1`);
-        await selectAutocompleteOption(method1, METHOD_VALUE_2_INVP);
-        expect(await method1.getValue()).toBe(METHOD_VALUE_2_INVP);
+        await setInputFieldValue(loader, `#${FIELD_METHOD}_1`, METHOD_VALUE_2_INVP, fixture);
         await selectRadioOption(result1, RESULT_OPTION_LIST[1].label);
         await clickDeleteButton(fixture, 'methodPathogenList_1');
       });
@@ -291,9 +277,8 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
           await receivedDate.blur();
           await checkDescribingError(fixture, receivedDate, ERROR_EXTRACTION_DATE);
         });
-
-        testValidationFor(TEST_PARAMETER_VALIDATION.diagnostic.receivedDateDeprecated);
-        testValidationFor(TEST_PARAMETER_VALIDATION.diagnostic.extractionDateDeprecated);
+        testValidationFor(TEST_PARAMETER_VALIDATION.diagnostic.receivedDate);
+        testValidationFor(TEST_PARAMETER_VALIDATION.diagnostic.extractionDate);
         testValidationForAutocomplete(TEST_PARAMETER_VALIDATION.diagnostic.material);
         testValidationForAutocomplete(TEST_PARAMETER_VALIDATION.diagnostic.method);
       });

@@ -53,11 +53,13 @@ export function getFhirPathogenNotificationService(isNonNominal: boolean = false
     fetchFederalStateCodeDisplays: jasmine
       .createSpy('fetchFederalStateCodeDisplays')
       .and.returnValue(isNonNominal ? of([]) : of(TEST_DATA.federalStateCodeDisplays)),
-    fetchPathogenCodeDisplays: jasmine.createSpy('fetchPathogenCodeDisplaysForFederalState').and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
+    fetchPathogenCodeDisplaysByTypeAndState: jasmine
+      .createSpy('fetchPathogenCodeDisplaysByTypeAndStateForFederalState')
+      .and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
     fetchDiagnosticsBasedOnPathogenSelection: jasmine
       .createSpy('fetchDiagnosticsBasedOnPathogenSelection')
       .and.callFake(() => of(diagnosticBasedOnPathogenSelection)),
-    fetchFollowUpNotificationCategory: jasmine.createSpy('fetchFollowUpNotificationCategory').and.returnValue(of({ notificationCategory: 'invp' })),
+    fetchAllPathogenCodeDisplays7_1: jasmine.createSpy('fetchAllPathogenCodeDisplays7_1').and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
   } as Partial<FhirPathogenNotificationService>;
 }
 

@@ -63,7 +63,7 @@ const lifecycles = singleSpaAngular({
     });
 
     appPromise.then(appRef => {
-      if (environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION || environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION) {
+      if (environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION || environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN) {
         router = appRef.injector.get(Router);
         syncUrlWithRouter();
       }

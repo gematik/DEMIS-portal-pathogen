@@ -14,37 +14,9 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { FormlyFieldConfig, FormlyFieldProps } from '@ngx-formly/core';
-import { FormlyConstants } from '../formly-constants';
+import { FormlyFieldConfig } from '@ngx-formly/core';
 import { tap } from 'rxjs/operators';
 import { AddressType } from '../../../../../../api/notification';
-
-export const formlyInputField = (config: {
-  key: string;
-  className: string;
-  props: FormlyFieldProps;
-  validators?: string[];
-  id?: string;
-}): FormlyFieldConfig => {
-  return {
-    id: config.id ? config.id : config.key,
-    key: config.key,
-    className: config.className,
-    type: 'input',
-    props: config.props,
-    validators: {
-      validation: config.validators ? config.validators : ['textValidator', 'nonBlankValidator'],
-    },
-  };
-};
-
-export const formlyRow = (fieldConfig: FormlyFieldConfig[], key?: string, className: string = FormlyConstants.ROW) => {
-  return {
-    key: key ? key : undefined,
-    fieldGroupClassName: className,
-    fieldGroup: fieldConfig,
-  } as FormlyFieldConfig;
-};
 
 const condition = (field: FormlyFieldConfig, isNotifier: boolean) => {
   if (isNotifier) {

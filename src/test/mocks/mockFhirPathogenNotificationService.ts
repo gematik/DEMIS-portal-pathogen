@@ -79,7 +79,7 @@
 //       );
 //   }
 //
-//   fetchPathogenCodeDisplaysForFederalState(federalStateCode: string): Observable<CodeDisplay[]> {
+//   fetchPathogenCodeDisplaysByTypeAndStateForFederalState(federalStateCode: string): Observable<CodeDisplay[]> {
 //     const path = `/fhir-ui-data-model-translation/laboratory/federalState/${federalStateCode}`;
 //     return of([
 //       {

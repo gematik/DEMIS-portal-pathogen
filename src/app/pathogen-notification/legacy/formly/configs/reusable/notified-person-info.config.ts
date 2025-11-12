@@ -17,10 +17,9 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { TEXT_MAX_LENGTH, UI_DATE_FORMAT_GER } from '../../../common-utils';
 import { GENDER_OPTION_LIST } from '../../../formly-options-lists';
-import { FormlyConstants } from '../formly-constants';
-import { formlyInputField, formlyRow } from './commons';
 import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
 import { environment } from '../../../../../../environments/environment';
+import { formlyInputField, formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
 
 const INFO_KEY = 'info';
 
@@ -77,33 +76,21 @@ export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
   ),
   formlyRow(
     [
-      environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER
-        ? {
-            id: 'birthDate',
-            key: 'birthDate',
-            className: FormlyConstants.COLMD5,
-            type: 'datepicker',
-            wrappers: [],
-            props: {
-              label: 'Geburtsdatum',
-              allowedPrecisions: ['day'],
-              required: false,
-              minDate: new Date('1870-01-01'),
-              maxDate: new Date(),
-              multiYear: true,
-            },
-          }
-        : formlyInputField({
-            key: 'birthDate',
-            className: FormlyConstants.COLMD5,
-            props: {
-              placeholder: UI_DATE_FORMAT_GER,
-              maxLength: 10,
-              label: 'Geburtsdatum',
-              required: false,
-            },
-            validators: ['dateInputValidator'],
-          }),
+      {
+        id: 'birthDate',
+        key: 'birthDate',
+        className: FormlyConstants.COLMD5,
+        type: 'datepicker',
+        wrappers: [],
+        props: {
+          label: 'Geburtsdatum',
+          allowedPrecisions: ['day'],
+          required: false,
+          minDate: new Date('1870-01-01'),
+          maxDate: new Date(),
+          multiYear: true,
+        },
+      },
     ],
     INFO_KEY
   ),

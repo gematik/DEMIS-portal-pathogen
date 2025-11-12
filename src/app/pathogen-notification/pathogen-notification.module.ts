@@ -37,9 +37,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterModule } from '@angular/router';
-import { FormlyModule } from '@ngx-formly/core';
-import { FormlySelectModule } from '@ngx-formly/core/select';
-import { FormlyMaterialModule } from '@ngx-formly/material';
+import { provideFormlyCore } from '@ngx-formly/core';
+import { withFormlyMaterial } from '@ngx-formly/material';
 import { FormlyMatDatepickerModule } from '@ngx-formly/material/datepicker';
 import { PathogenFormValidationModule } from './common/pathogen-formly-validation-module';
 import { FavoritesAddComponent } from './components/favorites-add/favorites-add.component';
@@ -51,7 +50,6 @@ import { HexhexbuttonComponent } from './legacy/components/hexhexbutton/hexhexbu
 // TODO: Remove this component, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
 import { PasteBoxComponent as DeprecatedPasteBoxComponent } from './legacy/components/paste-box/paste-box.component';
 import { ErrorMessageDialogComponent } from './legacy/dialogs/message-dialog/error-message-dialog.component';
-import { SubmitNotificationDialogComponent } from './legacy/dialogs/submit-notification-dialog/submit-notification-dialog.component';
 import { AutocompleteTypeComponent } from './legacy/formly/types/autocomplete/autocomplete-type.component';
 import { RepeatComponent } from './legacy/formly/types/repeat/repeat.component';
 import { ExpansionPanelWrapperComponent } from './legacy/formly/wrappers/expansion-panel-wrapper/expansion-panel.wrapper';
@@ -65,50 +63,12 @@ import { FhirPathogenNotificationService } from './services/fhir-pathogen-notifi
 import { ClipboardDataService } from './services/clipboard-data.service';
 import { DemisPortalSharedModule, FormlyDatepickerComponent, FormlyRepeaterComponent, PasteBoxComponent } from '@gematik/demis-portal-core-library';
 import { defaultAppearanceExtension, defaultPlaceholderExtension } from './utils/formly-extensions';
+import { withFormlyFieldSelect } from '@ngx-formly/material/select';
 
 @NgModule({
   imports: [
     NotificationFormValidationModule,
     PathogenFormValidationModule,
-    FormlyModule.forRoot({
-      types: [
-        { name: 'repeater', component: FormlyRepeaterComponent },
-        { name: 'datepicker', component: FormlyDatepickerComponent },
-        { name: 'repeat', component: RepeatComponent },
-        {
-          name: 'autocomplete',
-          component: AutocompleteTypeComponent,
-          wrappers: ['form-field'],
-        },
-        {
-          name: 'demis-formly-tab-navigation',
-          component: FormWrapperComponent,
-        },
-        {
-          name: 'demis-favorites-list',
-          component: FavoritesListComponent,
-        },
-        {
-          name: 'demis-favorites-add-list',
-          component: FavoritesAddComponent,
-        },
-      ],
-      wrappers: [
-        { name: 'validation', component: ValidationWrapperComponent },
-        { name: 'expansion-panel', component: ExpansionPanelWrapperComponent },
-      ],
-      validationMessages: [{ name: 'required', message: 'Diese Angabe wird benötigt' }],
-      extensions: [
-        {
-          name: 'default-placeholder',
-          extension: defaultPlaceholderExtension,
-        },
-        {
-          name: 'default-appearance',
-          extension: defaultAppearanceExtension,
-        },
-      ],
-    }),
     MatDialogModule,
     MatExpansionModule,
     MatOptionModule,
@@ -125,9 +85,7 @@ import { defaultAppearanceExtension, defaultPlaceholderExtension } from './utils
     RouterLink,
     CommonModule,
     CommonModule,
-    FormlyMaterialModule,
     FormlyMatDatepickerModule,
-    FormlySelectModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatTabsModule,
@@ -152,12 +110,57 @@ import { defaultAppearanceExtension, defaultPlaceholderExtension } from './utils
     DeprecatedPasteBoxComponent,
     HexhexbuttonComponent,
     ErrorMessageDialogComponent,
-    SubmitNotificationDialogComponent,
     FavoritesListComponent,
     FavoritesAddComponent,
     DemisPortalSharedModule,
     PasteBoxComponent,
   ],
-  providers: [FhirPathogenNotificationService, ClipboardDataService],
+  providers: [
+    FhirPathogenNotificationService,
+    ClipboardDataService,
+    provideFormlyCore([
+      {
+        types: [
+          { name: 'repeater', component: FormlyRepeaterComponent },
+          { name: 'datepicker', component: FormlyDatepickerComponent },
+          { name: 'repeat', component: RepeatComponent },
+          {
+            name: 'autocomplete',
+            component: AutocompleteTypeComponent,
+            wrappers: ['form-field'],
+          },
+          {
+            name: 'demis-formly-tab-navigation',
+            component: FormWrapperComponent,
+          },
+          {
+            name: 'demis-favorites-list',
+            component: FavoritesListComponent,
+          },
+          {
+            name: 'demis-favorites-add-list',
+            component: FavoritesAddComponent,
+          },
+        ],
+        wrappers: [
+          { name: 'validation', component: ValidationWrapperComponent },
+          { name: 'expansion-panel', component: ExpansionPanelWrapperComponent },
+        ],
+        validationMessages: [{ name: 'required', message: 'Diese Angabe wird benötigt' }],
+        extensions: [
+          {
+            name: 'default-placeholder',
+            extension: defaultPlaceholderExtension,
+          },
+          {
+            name: 'default-appearance',
+            extension: defaultAppearanceExtension,
+          },
+        ],
+      },
+      ...withFormlyMaterial(),
+      withFormlyFieldSelect(),
+    ]),
+  ],
 })
 export class PathogenNotificationModule {}

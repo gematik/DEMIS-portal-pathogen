@@ -24,6 +24,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { NotificationType } from './common/routing-helper';
 import { buildMock, setupIntegrationTests } from '../../test/integration/integration.base.spec';
+import { FollowUpNotificationIdService } from '@gematik/demis-portal-core-library';
 
 describe('PathogenNotificationComponent', () => {
   let component: PathogenNotificationComponent;
@@ -32,7 +33,7 @@ describe('PathogenNotificationComponent', () => {
 
   let fetchCountryCodeDisplaysSpy: jasmine.Spy;
   let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysSpy: jasmine.Spy;
+  let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
   let getNotifierFacilitySpy: jasmine.Spy;
 
   beforeEach(async () => await buildMock());
@@ -45,7 +46,7 @@ describe('PathogenNotificationComponent', () => {
 
     fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
     fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplays as jasmine.Spy;
+    fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as jasmine.Spy;
     getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
 
     fixture.detectChanges();
@@ -70,9 +71,9 @@ describe('PathogenNotificationComponent', () => {
   });
 
   it('should fetch and set pathogenCodeDisplays on init', () => {
-    fetchPathogenCodeDisplaysSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
+    fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
     component.ngOnInit();
-    expect(fetchPathogenCodeDisplaysSpy).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BW');
+    expect(fetchPathogenCodeDisplaysByTypeAndStateSpy).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BW');
     expect(component.pathogenCodeDisplays).toEqual(TEST_DATA.pathogenCodeDisplays);
   });
 
@@ -87,5 +88,72 @@ describe('PathogenNotificationComponent', () => {
     component.ngOnInit();
     expect(getNotifierFacilitySpy).toHaveBeenCalled();
     expect(component.model.pathogenForm.notifierFacility).toEqual(undefined);
+  });
+
+  describe('updateFormForHexHex', () => {
+    let followUpNotificationIdService: FollowUpNotificationIdService;
+
+    beforeEach(() => {
+      followUpNotificationIdService = TestBed.inject(FollowUpNotificationIdService);
+    });
+
+    it('should set initialNotificationId from followUpNotificationIdService when notificationType is FollowUpNotification7_1', () => {
+      const testNotificationId = 'TEST-NOTIFICATION-ID-12345';
+      component.notificationType = NotificationType.FollowUpNotification7_1;
+      followUpNotificationIdService.validatedNotificationId.set(testNotificationId);
+
+      component.model = { pathogenForm: { notificationCategory: {} } };
+
+      spyOn(component.form, 'markAllAsTouched');
+
+      component['updateFormForHexHex']();
+
+      expect(component.model.pathogenForm.notificationCategory.initialNotificationId).toBe(testNotificationId);
+      expect(component.form.markAllAsTouched).toHaveBeenCalled();
+    });
+
+    it('should not set initialNotificationId when notificationType is not FollowUpNotification7_1', () => {
+      const testNotificationId = 'TEST-NOTIFICATION-ID-12345';
+      component.notificationType = NotificationType.NominalNotification7_1;
+      followUpNotificationIdService.validatedNotificationId.set(testNotificationId);
+
+      component.model = { pathogenForm: { notificationCategory: {} } };
+
+      spyOn(component.form, 'markAllAsTouched');
+
+      component['updateFormForHexHex']();
+
+      expect(component.model.pathogenForm.notificationCategory.initialNotificationId).toBeUndefined();
+      expect(component.form.markAllAsTouched).toHaveBeenCalled();
+    });
+
+    it('should not set initialNotificationId when notificationType is NonNominalNotification7_3', () => {
+      const testNotificationId = 'TEST-NOTIFICATION-ID-12345';
+      component.notificationType = NotificationType.NonNominalNotification7_3;
+      followUpNotificationIdService.validatedNotificationId.set(testNotificationId);
+
+      component.model = { pathogenForm: { notificationCategory: {} } };
+
+      spyOn(component.form, 'markAllAsTouched');
+
+      component['updateFormForHexHex']();
+
+      expect(component.model.pathogenForm.notificationCategory.initialNotificationId).toBeUndefined();
+      expect(component.form.markAllAsTouched).toHaveBeenCalled();
+    });
+
+    it('should set initialNotificationId to undefined when followUpNotificationIdService returns undefined', () => {
+      component.notificationType = NotificationType.FollowUpNotification7_1;
+      followUpNotificationIdService.validatedNotificationId.set(undefined);
+
+      component.model = { pathogenForm: { notificationCategory: {} } };
+
+      spyOn(component.form, 'markAllAsTouched');
+
+      component['updateFormForHexHex']();
+
+      expect(component.model.pathogenForm.notificationCategory.initialNotificationId).toBeUndefined();
+      expect(component.form.markAllAsTouched).toHaveBeenCalled();
+    });
   });
 });

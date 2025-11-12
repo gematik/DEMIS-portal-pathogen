@@ -16,7 +16,7 @@
 
 import { Component, inject, input } from '@angular/core';
 import { MatDrawer, MatDrawerContainer, MatDrawerContent } from '@angular/material/sidenav';
-import { PasteBoxComponent } from '@gematik/demis-portal-core-library';
+import { PasteBoxComponent, SectionHeaderComponent } from '@gematik/demis-portal-core-library';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { environment } from 'src/environments/environment';
 import { HexhexbuttonComponent } from '../../legacy/components/hexhexbutton/hexhexbutton.component';
@@ -40,6 +40,7 @@ import { isFollowUpNotificationEnabled } from '../../utils/pathogen-notification
     DeprecatedPasteBoxComponent,
     MatDrawerContent,
     PasteBoxComponent,
+    SectionHeaderComponent,
   ],
 })
 export class SideNavigationWrapperComponent {
@@ -64,8 +65,8 @@ export class SideNavigationWrapperComponent {
     return environment.featureFlags?.FEATURE_FLAG_PORTAL_PASTEBOX ?? false;
   }
 
-  get FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER() {
-    return environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER ?? false;
+  get FEATURE_FLAG_PORTAL_PAGE_STRUCTURE() {
+    return environment.featureFlags?.FEATURE_FLAG_PORTAL_PAGE_STRUCTURE ?? false;
   }
 
   async handlePasteBoxClick(clipboardData?: Map<string, string>): Promise<void> {

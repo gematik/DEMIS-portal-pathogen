@@ -24,7 +24,6 @@ import { getButton, getDialog, getIcon, getInput } from '../shared/material-harn
 import { waitForStability } from '../shared/test-utils';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
 
 describe('Pathogen - Follow Up Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -39,7 +38,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
   beforeEach(() => {
     const result = setupIntegrationTests({
       ...mainConfig,
-      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_FOLLOW_UP_NOTIFICATION: true },
+      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: true },
     });
 
     fixture = result.fixture;
@@ -92,30 +91,8 @@ describe('Pathogen - Follow Up Integration Tests', () => {
       expect(await checkButton.getText()).toBe('Überprüfen');
     });
 
-    it('should show "Weiter" button when validation is successful', async () => {
-      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-
-      (fhirService.fetchFollowUpNotificationCategory as jasmine.Spy).and.returnValue(of({ notificationCategory: 'invp' }));
-
-      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
-      await input.setValue('123');
-
-      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
-      await checkButton.click();
-      await waitForStability(fixture);
-
-      const validIcon = await getIcon(documentRootLoader, '.icon-valid');
-      expect(validIcon).toBeTruthy();
-
-      const nextButton = await getButton(documentRootLoader, '#btn-next');
-      expect(nextButton).toBeTruthy();
-      expect(await nextButton.getText()).toBe('Weiter');
-    });
-
     it('should show validation error when input is invalid and show warning icon', async () => {
       const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-
-      (fhirService.fetchFollowUpNotificationCategory as jasmine.Spy).and.returnValue(throwError(() => new Error('Not Found')));
 
       const input = await getInput(documentRootLoader, initialNotificationIdSelector);
       await input.setValue('-1');

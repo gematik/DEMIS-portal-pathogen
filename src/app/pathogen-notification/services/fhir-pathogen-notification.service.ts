@@ -21,29 +21,20 @@ import { finalize, Observable, of } from 'rxjs';
 import { CodeDisplay, PathogenData, PathogenTest, ValidationError } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
 import { toFhirDateFormat } from '../legacy/common-utils';
-
-import { SubmitNotificationDialogComponent } from '../legacy/dialogs/submit-notification-dialog/submit-notification-dialog.component';
-import { FhirNotificationService } from '../legacy/services/fhir-notification.service';
 import { catchError } from 'rxjs/operators';
 import { ErrorDialogService } from './error-dialog.service';
-import { MatDialog } from '@angular/material/dialog';
 import { cloneObject, MessageDialogService, SubmitDialogProps, trimStrings } from '@gematik/demis-portal-core-library';
 import { isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
 import { NotificationType } from '../common/routing-helper';
 import { FileService } from '../legacy/services/file.service';
 
-export interface FollowUpNotificationCategory {
-  notificationCategory: string;
-}
-
 @Injectable({
   providedIn: 'root',
 })
-export class FhirPathogenNotificationService extends FhirNotificationService {
-  protected http: HttpClient;
-  protected override logger: NGXLogger;
+export class FhirPathogenNotificationService {
+  protected httpClient: HttpClient;
+  protected logger: NGXLogger;
   private readonly errorDialogService = inject(ErrorDialogService);
-  private readonly dialog = inject(MatDialog);
   private readonly futsHeaders = environment.futsHeaders;
   private readonly messageDialogService = inject(MessageDialogService);
   private readonly fileService = inject(FileService);
@@ -53,29 +44,12 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     const http = inject(HttpClient);
     const logger = inject(NGXLogger);
 
-    super(http, logger);
-
-    this.http = http;
+    this.httpClient = http;
     this.logger = logger;
   }
 
   private static getEnvironmentHeaders(): HttpHeaders {
     return environment.headers;
-  }
-
-  private static setFhirSpecificsDateFormat(testResults: PathogenTest): PathogenTest {
-    if (testResults?.notifiedPerson?.info?.birthDate) {
-      testResults.notifiedPerson.info.birthDate = toFhirDateFormat(testResults.notifiedPerson.info.birthDate);
-    }
-    if (testResults?.pathogenDTO?.specimenList?.length > 0) {
-      for (let specimen of testResults.pathogenDTO.specimenList) {
-        specimen.receivedDate = toFhirDateFormat(specimen.receivedDate);
-        if (specimen.extractionDate) {
-          specimen.extractionDate = toFhirDateFormat(specimen.extractionDate);
-        }
-      }
-    }
-    return testResults;
   }
 
   fetchDiagnosticsBasedOnPathogenSelection(pathogenCode: string, type: NotificationType): Observable<PathogenData> {
@@ -111,7 +85,7 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       );
   }
 
-  fetchPathogenCodeDisplays(type: NotificationType, federalStateCode?: string): Observable<CodeDisplay[]> {
+  fetchPathogenCodeDisplaysByTypeAndState(type: NotificationType, federalStateCode?: string): Observable<CodeDisplay[]> {
     let path: string;
     if (isNonNominalNotificationEnabled()) {
       switch (type) {
@@ -133,8 +107,24 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       })
       .pipe(
         catchError(error => {
-          this.logger.error('Error fetching pathogen code displays', error);
+          const federalStateInfo = federalStateCode ? ` and federal state: ${federalStateCode}` : '';
+          this.logger.error(`Error fetching pathogen code displays for notification type ${type}${federalStateInfo}`, error);
           this.errorDialogService.openErrorDialogAndRedirectToHome(error, 'Meldetatbestände konnten nicht abgerufen werden.');
+          throw error;
+        })
+      );
+  }
+
+  fetchAllPathogenCodeDisplays7_1(): Observable<CodeDisplay[]> {
+    const path = `${environment.pathToFuts}/laboratory/7.1`;
+    return this.httpClient
+      .get<CodeDisplay[]>(path, {
+        headers: this.futsHeaders,
+      })
+      .pipe(
+        catchError(error => {
+          this.logger.error('Error fetching §7.1 pathogen code displays', error);
+          this.errorDialogService.openErrorDialogAndRedirectToHome(error, '§7.1 Meldetatbestände konnten nicht abgerufen werden.');
           throw error;
         })
       );
@@ -175,43 +165,6 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
         })
       );
   };
-
-  fetchFollowUpNotificationCategory(notificationId: string) {
-    const path = `${environment.pathToDestinationLookup}/notification/${notificationId}/notificationCategory`;
-    return this.httpClient
-      .get<FollowUpNotificationCategory>(path, {
-        headers: FhirPathogenNotificationService.getEnvironmentHeaders(),
-      })
-      .pipe(
-        catchError(error => {
-          if (this.isServerError(error.status)) {
-            this.logger.error('Error fetching notification', error);
-            this.errorDialogService.openErrorDialogAndRedirectToHome(
-              error,
-              'Es gibt ein internes Problem beim Abohlen der Meldung. Bitte probieren Sie es später nochmal.'
-            );
-          }
-          throw error;
-        })
-      );
-  }
-
-  /**
-   * @deprecated Use {@link submitNotification} instead, once FEATURE_FLAG_PORTAL_SUBMIT will be removed
-   */
-  openSubmitDialog(pathogenTest: PathogenTest, notificationType: NotificationType): void {
-    this.dialog.open(SubmitNotificationDialogComponent, {
-      disableClose: true,
-      maxWidth: '50vw',
-      minHeight: '40vh',
-      panelClass: 'app-submit-notification-dialog-panel',
-      data: {
-        notification: pathogenTest,
-        fhirService: this,
-        notificationType: notificationType,
-      },
-    });
-  }
 
   submitNotification(notification: PathogenTest, notificationType: NotificationType) {
     this.messageDialogService.showSpinnerDialog({ message: 'Meldung wird gesendet' });
@@ -254,9 +207,6 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     let clonedNotificationObject: PathogenTest = cloneObject(trimmedNotification);
     clonedNotificationObject = this.removeUnusedFormlyFields(clonedNotificationObject);
 
-    if (!environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
-      clonedNotificationObject = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject);
-    }
     return clonedNotificationObject;
   }
 
@@ -270,16 +220,6 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
       notificationId: response.body.notificationId,
       timestamp: response.body.timestamp,
     };
-  }
-
-  override sendNotification(notification: PathogenTest, type: NotificationType) {
-    let clonedNotificationObject: PathogenTest = cloneObject(notification);
-
-    clonedNotificationObject = this.removeUnusedFormlyFields(clonedNotificationObject);
-    if (!environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
-      clonedNotificationObject = FhirPathogenNotificationService.setFhirSpecificsDateFormat(clonedNotificationObject);
-    }
-    return super.sendNotification(clonedNotificationObject, type);
   }
 
   private extractErrorDetails(err: any): { text: string; queryString: string }[] {
@@ -301,14 +241,26 @@ export class FhirPathogenNotificationService extends FhirNotificationService {
     }
   }
 
-  private isServerError(status: number): boolean {
-    return Number.isInteger(status) && status >= 500 && status <= 599;
-  }
-
   private removeUnusedFormlyFields(testResults: PathogenTest) {
     delete testResults.notificationCategory['federalStateCodeDisplay'];
     delete testResults.notificationCategory['pathogenDisplay'];
     delete testResults.submittingFacility['copyAddressCheckBox'];
     return testResults;
+  }
+
+  getNotificationUrl(type: NotificationType): string {
+    const url = environment.pathToGateway;
+
+    if (!isNonNominalNotificationEnabled()) {
+      return url + environment.pathToPathogen;
+    }
+    switch (type) {
+      case NotificationType.NonNominalNotification7_3:
+        return url + environment.pathToPathogen_7_3_nonNominal;
+      case NotificationType.NominalNotification7_1:
+        return url + environment.pathToPathogen_7_1;
+      default:
+        return url + environment.pathToPathogen;
+    }
   }
 }

@@ -17,9 +17,9 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { ContactPointInfo } from '../../../../../../api/notification';
 import { EMAIL_MAX_LENGTH, PHONE_MAX_LENGTH } from '../../../common-utils';
-import { FormlyConstants } from '../formly-constants';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import UsageEnum = ContactPointInfo.UsageEnum;
+import { FormlyConstants } from '@gematik/demis-portal-core-library';
 
 export const contactsFormConfigFields: (needsContact: boolean, hospitalizationPerson?: boolean) => FormlyFieldConfig[] = (
   needsContact,

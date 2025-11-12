@@ -21,11 +21,10 @@ import { isoToGermanFormat, UI_DATE_FORMAT_GER } from '../../../legacy/common-ut
 
 import { PathogenFormInfos } from 'src/app/pathogen-notification/utils/disclaimer-texts';
 import { RESISTANCE_GENE_RESULT_OPTION_LIST, RESISTANCE_RESULT_OPTION_LIST, RESULT_OPTION_LIST } from '../../../legacy/formly-options-lists';
-import { FormlyConstants } from '../../../legacy/formly/configs/formly-constants';
-import { formlyRow } from '../../../legacy/formly/configs/reusable/commons';
 import { environment } from '../../../../../environments/environment';
 import { EXTRACTION_START_ERROR_MSG } from '../../../common/pathogen-formly-validation-module';
 import { NotificationType } from '../../../common/routing-helper';
+import { formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
 
 const isFollowUpNotification = (notificationType: NotificationType) => notificationType === NotificationType.FollowUpNotification7_1;
 
@@ -85,12 +84,8 @@ export const pathogenSpecimenFields = (
                 let receivedDatePart: string;
                 const receivedDateValue = field.model?.receivedDate;
                 if (receivedDateValue) {
-                  if (environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER) {
-                    const dateString = typeof receivedDateValue === 'string' ? receivedDateValue : receivedDateValue.toString();
-                    receivedDatePart = ` vom ${isoToGermanFormat(dateString)}`;
-                  } else {
-                    receivedDatePart = ` vom ${field.model.receivedDate}`;
-                  }
+                  const dateString = typeof receivedDateValue === 'string' ? receivedDateValue : receivedDateValue.toString();
+                  receivedDatePart = ` vom ${isoToGermanFormat(dateString)}`;
                 } else receivedDatePart = '';
 
                 const materialPart = field.model?.material ? ` aus ${field.model.material}` : '';
@@ -102,75 +97,39 @@ export const pathogenSpecimenFields = (
             },
             fieldGroup: [
               formlyRow([
-                environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER
-                  ? {
-                      id: 'extractionDate',
-                      key: 'extractionDate',
-                      className: FormlyConstants.COLMD6,
-                      type: 'datepicker',
-                      wrappers: [],
-                      props: {
-                        label: 'Entnahmedatum',
-                        allowedPrecisions: ['day'],
-                        maxDate: new Date(),
-                      },
-                    }
-                  : {
-                      id: 'extractionDate',
-                      key: 'extractionDate',
-                      type: 'input',
-                      className: FormlyConstants.COLMD6,
-                      props: {
-                        label: 'Entnahmedatum',
-                        required: false,
-                        maxLength: 10,
-                        placeholder: UI_DATE_FORMAT_GER,
-                        change: (field: FormlyFieldConfig) => {
-                          const parentFormControl = field?.parent?.formControl as FormControl;
-                          triggerReceivedDateValidation(parentFormControl);
-                        },
-                      },
-                      validators: {
-                        validation: ['dateInputValidator'],
-                      },
+                {
+                  id: 'extractionDate',
+                  key: 'extractionDate',
+                  className: FormlyConstants.COLMD6,
+                  type: 'datepicker',
+                  wrappers: [],
+                  props: {
+                    label: 'Entnahmedatum',
+                    allowedPrecisions: ['day'],
+                    maxDate: new Date(),
+                  },
+                },
+                {
+                  id: 'receivedDate',
+                  key: 'receivedDate',
+                  className: FormlyConstants.COLMD6,
+                  type: 'datepicker',
+                  wrappers: [],
+                  props: {
+                    label: 'Eingangsdatum',
+                    required: true,
+                    allowedPrecisions: ['day'],
+                    maxDate: new Date(),
+                  },
+                  expressions: {
+                    'props.minDate': (field: FormlyFieldConfig) => field.form?.get('extractionDate')?.value ?? null,
+                  },
+                  validation: {
+                    messages: {
+                      minDate: EXTRACTION_START_ERROR_MSG,
                     },
-                environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER
-                  ? {
-                      id: 'receivedDate',
-                      key: 'receivedDate',
-                      className: FormlyConstants.COLMD6,
-                      type: 'datepicker',
-                      wrappers: [],
-                      props: {
-                        label: 'Eingangsdatum',
-                        required: true,
-                        allowedPrecisions: ['day'],
-                        maxDate: new Date(),
-                      },
-                      expressions: {
-                        'props.minDate': (field: FormlyFieldConfig) => field.form?.get('extractionDate')?.value ?? null,
-                      },
-                      validation: {
-                        messages: {
-                          minDate: EXTRACTION_START_ERROR_MSG,
-                        },
-                      },
-                    }
-                  : {
-                      id: 'receivedDate',
-                      key: 'receivedDate',
-                      type: 'input',
-                      className: FormlyConstants.COLMD6,
-                      props: {
-                        label: 'Eingangsdatum',
-                        required: true,
-                        maxLength: 10,
-                        placeholder: UI_DATE_FORMAT_GER,
-                      },
-                      validators: {
-                        validation: ['dateInputValidator', 'receivedDateStartDateValidator'],
-                      },
-                    },
+                  },
+                },
               ]),
               formlyRow([
                 {

@@ -26,8 +26,8 @@ import {
   findCodeDisplayByDisplayValue,
   formatCodeDisplayToDisplay,
   getDesignationValueIfAvailable,
+  mapCodeDisplaysToOptionList,
 } from './legacy/common-utils';
-import { FormlyConstants } from './legacy/formly/configs/formly-constants';
 import { notifierFacilityFormConfigFieldsFull } from './legacy/formly/configs/reusable/notifier-facility.config';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from './services/pathogen-notification-storage.service';
@@ -53,10 +53,14 @@ import { dummyDataForPathogenForm, pathogenTestDummyData } from './utils/dummy-d
 import { pathogenSpecimenFields } from './formly/configs/pathogen/pathogen-specimen.config';
 import { initialModelForClipboard } from './services/core/clipboard-constants';
 import { Router } from '@angular/router';
-import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
-import { getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
-import { notifiedPersonAnonymousConfigFields } from './formly/configs/pathogen/notified-person-anonymous.config';
-import { FollowUpNotificationIdService } from './services/follow-up-notification-id.service';
+import {
+  FollowUpNotificationIdService,
+  FormlyConstants,
+  MaxHeightContentContainerComponent,
+  notifiedPersonAnonymousConfigFields,
+} from '@gematik/demis-portal-core-library';
+import { allowedRoutes, getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
+import { GENDER_OPTION_LIST } from './legacy/formly-options-lists';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -113,11 +117,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       );
       //DEMIS-4242, fixes issue where change detection didn't work for 7.3 notifications
       this.changeDetector.detectChanges();
-      if (environment.featureFlags?.FEATURE_FLAG_PORTAL_SUBMIT) {
-        this.fhirPathogenNotificationService.submitNotification(pathogenTest, this.notificationType);
-      } else {
-        this.fhirPathogenNotificationService.openSubmitDialog(pathogenTest, this.notificationType);
-      }
+      this.fhirPathogenNotificationService.submitNotification(pathogenTest, this.notificationType);
     };
   }
 
@@ -133,7 +133,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     forkJoin([
       this.fhirPathogenNotificationService.fetchCountryCodeDisplays(),
       this.fhirPathogenNotificationService.fetchFederalStateCodeDisplays(this.notificationType),
-      this.fhirPathogenNotificationService.fetchPathogenCodeDisplays(this.notificationType, selectedFederalStateCode),
+      this.fhirPathogenNotificationService.fetchPathogenCodeDisplaysByTypeAndState(this.notificationType, selectedFederalStateCode),
     ])
       .pipe(
         take(1),
@@ -147,7 +147,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.notifierFacilityFields = notifierFacilityFormConfigFieldsFull(this.countryCodeDisplays);
         this.submitterFacilityFields = submittingFacilityFields(this.countryCodeDisplays, this.errorDialogService);
         this.notifiedPersonFields = this.isFollowUpNotification7_1()
-          ? notifiedPersonAnonymousConfigFields(this.countryCodeDisplays)
+          ? notifiedPersonAnonymousConfigFields(mapCodeDisplaysToOptionList(this.countryCodeDisplays), GENDER_OPTION_LIST)
           : notifiedPersonFormConfigFields(this.countryCodeDisplays);
         this.pathogenCodeDisplays = pathogenCodeDisplays;
         this.clipboardDataService.setPathogenCodeDisplays(pathogenCodeDisplays);
@@ -175,7 +175,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           }
         });
         if (this.notificationType === NotificationType.FollowUpNotification7_1) {
-          this.followUpNotificationIdService.openDialog();
+          this.getPathogenCodeDisplaysAndOpenFollowUpDialog();
         }
       });
 
@@ -275,6 +275,23 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     }
   }
 
+  getPathogenCodeDisplaysAndOpenFollowUpDialog() {
+    this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays7_1().subscribe({
+      next: (response: CodeDisplay[]) => {
+        this.followUpNotificationIdService.openDialog({
+          dialogData: {
+            routerLink: '/' + allowedRoutes.nominal,
+            linkTextContent: 'eines namentlichen Erregernachweises nach §7.1 IfSG',
+            pathToDestinationLookup: environment.pathToDestinationLookup,
+            errorUnsupportedNotificationCategory:
+              'Aktuell sind Nichtnamentliche Folgemeldungen eines Erregernachweises gemäß § 7 Abs. 1 IfSG nur für eine § 7 Abs. 1 IfSG Initialmeldung möglich.',
+          },
+          notificationCategoryCodes: response.map(codeDisplays => codeDisplays.code),
+        });
+      },
+    });
+  }
+
   subscribeToCurrentAddressTypeChanges() {
     const currentAddressField = this.notifiedPersonFields[6].fieldGroup.find(field => field.key === 'currentAddress');
     const currentAddressTypeField = this.notifiedPersonFields[6].fieldGroup.find(field => field.key === 'currentAddressType');
@@ -345,7 +362,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     selectedFederalStateCode = selectedFederalStateCode ?? this.defaultFederalState; // necessary if not in clipboard data
     this.notificationStorageService.setFederalStateCode(selectedFederalStateCode);
     this.fhirPathogenNotificationService
-      .fetchPathogenCodeDisplays(this.notificationType, selectedFederalStateCode)
+      .fetchPathogenCodeDisplaysByTypeAndState(this.notificationType, selectedFederalStateCode)
       .pipe(take(1))
       .subscribe((pathogenCodeDisplays: CodeDisplay[]) => {
         this.pathogenCodeDisplays = pathogenCodeDisplays;
@@ -426,16 +443,16 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   private updateFormForHexHex() {
-    if (this.isNonNominalNotification7_3()) {
-      this.model.pathogenForm = dummyDataForPathogenForm(true);
-    } else {
-      this.model.pathogenForm = dummyDataForPathogenForm(false);
-    }
+    this.model.pathogenForm = dummyDataForPathogenForm(this.notificationType);
+
     //fix for a bug where the pathogen field was not populated if it was cleared by user
     if (this.isNonNominalNotification7_3()) {
       this.setValueForPathogenSelectionField('HIV');
     } else {
       this.setValueForPathogenSelectionField('Influenzavirus');
+    }
+    if (this.notificationType === NotificationType.FollowUpNotification7_1) {
+      this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
     }
     this.form.markAllAsTouched();
   }

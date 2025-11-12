@@ -14,7 +14,7 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { formlyRow } from './commons';
+import { formlyRow } from '@gematik/demis-portal-core-library';
 
 export const oneTimeCodeConfigField = formlyRow([
   {

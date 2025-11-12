@@ -15,23 +15,23 @@
  */
 
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { FormlyConstants } from '../../../legacy/formly/configs/formly-constants';
 import { addressFormConfigFields } from '../../../legacy/formly/configs/reusable/address.config';
 import { AddressType, CodeDisplay } from '../../../../../api/notification';
 import {
   copyAddress,
-  formlyInputField,
-  formlyRow,
   notifierFacilitySourceIsInvalid,
   updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled,
   updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled,
 } from '../../../legacy/formly/configs/reusable/commons';
+import { formlyInputField, formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
 import { TEXT_MAX_LENGTH } from '../../../legacy/common-utils';
 import { practitionerInfoFormConfigFields } from '../../../legacy/formly/configs/reusable/practitioner-info.config';
 import { contactsFormConfigFields } from '../../../legacy/formly/configs/reusable/contacts.config';
 import { ErrorDialogService } from '../../../services/error-dialog.service';
 
 export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dialogService: ErrorDialogService): FormlyFieldConfig[] => {
+  let isResettingCheckbox = false;
+
   return [
     {
       className: '',
@@ -47,10 +47,17 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
         label: 'Einrichtung und Ansprechperson aus Formularbereich "Meldende Person" übernehmen',
         required: false,
         change: field => {
+          // guard against programmatic reset when validation fails
+          if (isResettingCheckbox) {
+            isResettingCheckbox = false;
+            return;
+          }
+
           const root = field.parent.parent;
           const notifierFacilitySource = root.model.notifierFacility;
-          if (field.model.copyAddressCheckBox) {
+          if (field.formControl.value) {
             if (notifierFacilitySourceIsInvalid(notifierFacilitySource, field)) {
+              isResettingCheckbox = true;
               field.formControl.setValue(false);
               dialogService.showBasicClosableErrorDialog(
                 'Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.',
