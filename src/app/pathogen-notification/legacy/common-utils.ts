@@ -22,6 +22,7 @@ import { DateTime } from 'luxon';
 import { v4 as uuid_v4 } from 'uuid';
 
 import { CodeDisplay, Designation, NotifiedPersonBasicInfo, PractitionerInfo } from '../../../api/notification';
+import { selectOption } from '@gematik/demis-portal-core-library/lib/formly/commons';
 // CONST:..................................
 
 /*** id: de-DE ***/
@@ -349,6 +350,12 @@ export function filterDisplayValues(term: string, data: string[]): string[] {
   const escapedTerm = escapeRegExp(term);
   const regex = new RegExp(escapedTerm, 'i');
   return data.filter(text => regex.test(text));
+}
+
+export function mapCodeDisplaysToOptionList(codeDisplays: CodeDisplay[]): selectOption[] {
+  return codeDisplays.map(value => {
+    return { value: value.code, label: getDesignationValueIfAvailable(value) };
+  });
 }
 
 export function getDesignationValueIfAvailable(codeDisplay?: CodeDisplay): string | undefined {

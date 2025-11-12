@@ -16,9 +16,8 @@
 
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { CodeDisplay, NotificationLaboratoryCategory } from 'src/api/notification';
-import { formlyRow } from '../../../legacy/formly/configs/reusable/commons';
 import { of } from 'rxjs';
-import { FormlyConstants } from '../../../legacy/formly/configs/formly-constants';
+import { FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
 import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/common-utils';
 import { REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;

@@ -22,9 +22,9 @@ import {
   NotificationLaboratoryCategory,
   NotifiedPersonBasicInfo,
 } from '../../../api/notification';
-import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, UI_DATE_FORMAT_ENG, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
+import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
 import { transformPathogenTestToPathogenForm } from './data-transformation';
-import { environment } from '../../../environments/environment';
+import { NotificationType } from '../common/routing-helper';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import UsageEnum = ContactPointInfo.UsageEnum;
 import GenderEnum = NotifiedPersonBasicInfo.GenderEnum;
@@ -32,7 +32,7 @@ import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 
 const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
-  const todayDate = environment.featureFlags?.FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER ? newDate(DATE_FORMAT) : newDate(UI_DATE_FORMAT_ENG);
+  const todayDate = newDate(DATE_FORMAT);
   const pathogenDataNonNominalWithDate = pathogenDataNonNominal(todayDate);
   return {
     notifierFacility: {
@@ -131,7 +131,7 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
           federalStateCodeDisplay: 'DE-BW',
           pathogenDisplay: 'Influenzavirus',
           pathogen: 'Influenza A-Virus' as unknown as CodeDisplay,
-          reportStatus: ReportStatusEnum.Preliminary,
+          reportStatus: ReportStatusEnum.Final,
         },
     pathogenDTO: isNonNominal
       ? pathogenDataNonNominalWithDate.pathogenDTO
@@ -168,7 +168,7 @@ const pathogenDataNonNominal = (todayDate: string) => {
     notificationCategory: {
       pathogenDisplay: 'HIV',
       pathogen: 'Humanes Immundefizienz-Virus' as unknown as CodeDisplay,
-      reportStatus: ReportStatusEnum.Preliminary,
+      reportStatus: ReportStatusEnum.Final,
     },
     pathogenDTO: {
       codeDisplay: {
@@ -205,11 +205,25 @@ export const pathogenFormDummyData = (isNonNominal: boolean): any => {
   return transformPathogenTestToPathogenForm(pathogenTestDummyData(isNonNominal));
 };
 
-export const dummyDataForPathogenForm = (isNonNominal: boolean) => {
+export const pathogenFormDummyDataNotifiedPersonAnonymous = {
+  residenceAddress: {
+    country: 'DE',
+    zip: '123',
+  },
+  info: {
+    gender: 'MALE',
+    birthDate: '2008-06',
+  },
+};
+
+export const dummyDataForPathogenForm = (notificationType: NotificationType) => {
+  const isNonNominal = notificationType === NotificationType.NonNominalNotification7_3;
+  const isFollowUp = notificationType === NotificationType.FollowUpNotification7_1;
+
   return {
     notifierFacility: pathogenFormDummyData(isNonNominal).notifierFacility,
     submittingFacility: pathogenFormDummyData(isNonNominal).submittingFacility,
-    notifiedPerson: pathogenFormDummyData(isNonNominal).notifiedPerson,
+    notifiedPerson: isFollowUp ? pathogenFormDummyDataNotifiedPersonAnonymous : pathogenFormDummyData(isNonNominal).notifiedPerson,
     notificationCategory: pathogenFormDummyData(isNonNominal).notificationCategory,
     pathogenDTO: pathogenFormDummyData(isNonNominal).pathogenDTO,
   };

@@ -70,7 +70,7 @@ describe('Pathogen - Integration Tests', () => {
 
   let fetchCountryCodeDisplaysSpy: jasmine.Spy;
   let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysSpy: jasmine.Spy;
+  let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
   let getNotifierFacilitySpy: jasmine.Spy;
   let fetchDiagnosticsBasedOnPathogenSelectionSpy: jasmine.Spy;
   let getSelectedPathogenCodeDisplaySpy: jasmine.Spy;

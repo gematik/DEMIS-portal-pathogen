@@ -23,7 +23,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { NotificationType } from '../common/routing-helper';
 
 export const isNonNominalNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION;
-export const isFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION;
+export const isFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN;
 
 export const initializeSelectPathogenFields = (
   federalStateCodeDisplays: CodeDisplay[],
@@ -58,7 +58,6 @@ export const updatePathogenForm = (
         {
           key: 'notifierFacility',
           props: {
-            title: 'Erregernachweis melden - Meldende Person',
             label: 'Meldende Person',
             anchor: 'notified-facility-form',
           },
@@ -67,7 +66,6 @@ export const updatePathogenForm = (
         {
           key: 'submittingFacility',
           props: {
-            title: 'Erregernachweis melden - Einsendende Person',
             label: 'Einsendende Person',
             anchor: 'submitting-facility-form',
           },
@@ -76,7 +74,6 @@ export const updatePathogenForm = (
         {
           key: 'notifiedPerson',
           props: {
-            title: 'Erregernachweis melden - Betroffene Person',
             label: 'Betroffene Person',
             anchor: 'notified-person-form',
           },
@@ -85,7 +82,6 @@ export const updatePathogenForm = (
         {
           key: 'notificationCategory',
           props: {
-            title: 'Erregernachweis melden - Meldetatbestand',
             label: 'Meldetatbestand',
             anchor: 'select-pathogen-form',
           },
@@ -94,7 +90,6 @@ export const updatePathogenForm = (
         {
           key: 'pathogenDTO',
           props: {
-            title: 'Erregernachweis melden - Diagnostik',
             label: 'Diagnostik',
             anchor: 'diagnostic-form',
           },

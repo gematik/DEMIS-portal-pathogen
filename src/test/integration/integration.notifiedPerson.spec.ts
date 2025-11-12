@@ -39,16 +39,13 @@ import {
   ADD_BUTTON_EMAIL,
   ADD_BUTTON_PHONE,
   ADDRESS_TYPE_OTHER_FACILITY,
-  ERROR_INVALID_DATE,
-  ERROR_INVALID_DATE_DEPRECATED,
-  FIELD_BIRTH_DATE_DEPRECATED,
   FIELD_COPY_ADDRESS,
   FIELD_EMAIL_CY,
   FIELD_PHONE_NUMBER_CY,
 } from '../shared/test-constants';
 import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
-import { buildMock, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
 
 describe('Pathogen - Notified Person Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -57,7 +54,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
 
   let fetchCountryCodeDisplaysSpy: jasmine.Spy;
   let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysSpy: jasmine.Spy;
+  let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
   let getNotifierFacilitySpy: jasmine.Spy;
   let fetchDiagnosticsBasedOnPathogenSelectionSpy: jasmine.Spy;
   let getSelectedPathogenCodeDisplaySpy: jasmine.Spy;
@@ -96,7 +93,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
 
     fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
     fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplays as jasmine.Spy;
+    fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as jasmine.Spy;
     getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
     getSelectedPathogenCodeDisplaySpy = TestBed.inject(PathogenNotificationStorageService).getSelectedPathogenCodeDisplay as jasmine.Spy;
     fetchDiagnosticsBasedOnPathogenSelectionSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as jasmine.Spy;
@@ -116,17 +113,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     });
 
     describe('Validation of notifiedPerson ', () => {
-      const deprecatedNotifiedPerson = TEST_PARAMETER_VALIDATION.notifiedPerson.map(entry => {
-        if (entry.expectedResult === ERROR_INVALID_DATE) {
-          return {
-            ...entry,
-            field: FIELD_BIRTH_DATE_DEPRECATED,
-            expectedResult: ERROR_INVALID_DATE_DEPRECATED,
-          };
-        }
-        return entry;
-      });
-      testValidationFor(deprecatedNotifiedPerson);
+      testValidationFor(TEST_PARAMETER_VALIDATION.notifiedPerson);
     });
 
     describe('Validation of residenceAddress', () => {

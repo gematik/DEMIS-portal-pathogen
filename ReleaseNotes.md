@@ -2,6 +2,17 @@
 
 # Release portal-pathogen
 
+# Release 1.6.1
+- Removed FEATURE_FLAG_PORTAL_SUBMIT and FEATURE_FLAG_PORTAL_ERROR_DIALOG_ON_SUBMIT
+- Use HeaderSection from Portal-Core (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE)
+- Validate that the notificationCategory for follow-up notifications matches the selected notificationType
+- Update ngx-formly to 7.0.0
+- Use notifiedPersonAnonymous config from Portal-Core
+- Use FollowUpNotificationService from Portal-Core and remove existing one from project
+- Update @gematik/demis-portal-core-library to 2.3.2
+- Removed FEATURE_FLAG_PATHOGEN_DATEPICKER
+- Update NGINX-Base-Image to 1.29.3
+
 # Release 1.6.0
 - Added GET call to fetch notificationCategory based on notificationId (follow-up)
 - Improve UX of autocomplete fields
@@ -25,7 +36,7 @@
 - fixed clipboard data bug which disables request for pathogen data based on notificationCategory changes
 
 ## Release 1.5.0
-- Implementation of §7.1 follow-up notification (FEATURE_FLAG_FOLLOW_UP_NOTIFICATION)
+- Implementation of §7.1 follow-up notification (FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN)
 - add new API endpoints activated by feature flag FEATURE_FLAG_NEW_API_ENDPOINTS
 - add fhirProfile header for futs requests
 - Switch to errorDialog from CoreLibrary for submit (FEATURE_FLAG_PORTAL_ERROR_DIALOG_ON_SUBMIT)

@@ -14,10 +14,9 @@
     For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
 
-import { FormlyConstants } from '../formly-constants';
-import { formlyInputField, formlyRow } from './commons';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { ExtendedSalutationEnum } from '../../../common-utils';
+import { formlyInputField, formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
 
 export const practitionerInfoFormConfigFields: () => FormlyFieldConfig[] = () => [
   formlyRow(

@@ -17,10 +17,9 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { contactsFormConfigFields } from './contacts.config';
 import { CodeDisplay } from '../../../../../../api/notification';
-import { FormlyConstants } from '../formly-constants';
+import { FormlyConstants, formlyInputField } from '@gematik/demis-portal-core-library';
 import {
   copyAddress,
-  formlyInputField,
   notifierFacilitySourceIsInvalid,
   updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled,
   updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled,

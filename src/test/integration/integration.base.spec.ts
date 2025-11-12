@@ -45,8 +45,7 @@ export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false,
-    FEATURE_FLAG_FOLLOW_UP_NOTIFICATION: false,
-    FEATURE_FLAG_PORTAL_PATHOGEN_DATEPICKER: false,
+    FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: false,
   },
   gatewayPaths: {
     pathogen: '/api/ng/notification/pathogen',

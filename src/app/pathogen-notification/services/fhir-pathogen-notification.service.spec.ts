@@ -115,13 +115,13 @@ describe('FhirPathogenNotificationService', () => {
     expect(errorDialogService.showBasicClosableErrorDialog).toHaveBeenCalled();
   });
 
-  describe('fetchPathogenCodeDisplays', () => {
+  describe('fetchPathogenCodeDisplaysByTypeAndState', () => {
     it('should handle error when fetching pathogen code displays for federal state', () => {
       const federalStateCode = 'AB-CD';
       spyOn(logger, 'error');
       spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
 
-      service.fetchPathogenCodeDisplays(NotificationType.NominalNotification7_1, federalStateCode).subscribe({
+      service.fetchPathogenCodeDisplaysByTypeAndState(NotificationType.NominalNotification7_1, federalStateCode).subscribe({
         error: err => {
           expect(err).toBeTruthy();
         },
@@ -172,7 +172,7 @@ describe('FhirPathogenNotificationService', () => {
   it('should reformat notification', () => {
     const mockNotification: PathogenTest = {
       notifiedPerson: {
-        info: { birthDate: '03.03.2025' },
+        info: { birthDate: '2025-03-03' },
       },
       notificationCategory: {
         pathogen: {
@@ -203,18 +203,21 @@ describe('FhirPathogenNotificationService', () => {
     } as any;
 
     spyOn<any>(service, 'removeUnusedFormlyFields').and.callThrough();
-    spyOn<any>(FhirPathogenNotificationService, 'setFhirSpecificsDateFormat').and.callThrough();
+    fileService.getFileNameByNotificationType.and.returnValue('notification.pdf');
 
-    service.sendNotification(mockNotification, NotificationType.NominalNotification7_1).subscribe(response => {
-      expect(response).toBeTruthy();
-    });
+    service.submitNotification(mockNotification, NotificationType.NominalNotification7_1);
 
     const req = httpMock.expectOne(`${environment.pathToGateway}${environment.pathToPathogen}`);
     expect(req.request.method).toBe('POST');
-    req.flush({ success: true });
+    req.flush({
+      authorEmail: 'test@example.com',
+      content: 'YmFzZTY0Y29udGVudA==',
+      notificationId: 'TEST-123',
+      timestamp: '2025-03-03T12:00:00Z',
+    });
 
     expect(service['removeUnusedFormlyFields'] as any).toHaveBeenCalledWith(notificationWithRemovedFields);
-    expect(FhirPathogenNotificationService['setFhirSpecificsDateFormat'] as any).toHaveBeenCalledWith(notificationWithRemovedFields);
+    expect(messageDialogService.showSubmitDialog).toHaveBeenCalled();
   });
   describe('submitNotification', () => {
     const notificationTypes = [
@@ -330,48 +333,101 @@ describe('FhirPathogenNotificationService', () => {
     });
   });
 
-  describe('fetchFollowUpNotificationCategory', () => {
-    it('should fetch follow up notification category successfully', () => {
-      const notificationId = '42';
-      const expected = { notificationCategory: 'invp' };
-      service.fetchFollowUpNotificationCategory(notificationId).subscribe(res => {
-        expect(res).toEqual(expected);
+  describe('fetchAllPathogenCodeDisplays7_1', () => {
+    it('should fetch all pathogen code displays for §7.1 successfully', () => {
+      const mockCodeDisplays = [
+        { code: 'invp', display: 'Invasive Pneumokokken-Erkrankung' },
+        { code: 'masn', display: 'Masern' },
+        { code: 'tubs', display: 'Tuberkulose' },
+      ];
+
+      service.fetchAllPathogenCodeDisplays7_1().subscribe(res => {
+        expect(res).toEqual(mockCodeDisplays);
       });
-      const req = httpMock.expectOne(`${environment.pathToDestinationLookup}/notification/${notificationId}/notificationCategory`);
+
+      const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/7.1`);
       expect(req.request.method).toBe('GET');
-      req.flush(expected);
+      req.flush(mockCodeDisplays);
     });
 
-    it('should handle not found properly', () => {
-      const notificationId = '43';
+    it('should handle error when fetching all pathogen code displays for §7.1', () => {
       spyOn(logger, 'error');
       spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
-      service.fetchFollowUpNotificationCategory(notificationId).subscribe({
-        next: () => fail('expected 404 error'),
+
+      service.fetchAllPathogenCodeDisplays7_1().subscribe({
         error: err => {
-          expect(err.status).toBe(404);
-          expect(logger.error).not.toHaveBeenCalled();
-          expect(errorDialogService.openErrorDialogAndRedirectToHome).not.toHaveBeenCalled();
+          expect(err).toBeTruthy();
         },
       });
-      const req = httpMock.expectOne(`${environment.pathToDestinationLookup}/notification/${notificationId}/notificationCategory`);
-      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+      const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/7.1`);
+      req.flush('Error fetching §7.1 pathogen code displays', { status: 500, statusText: 'Server Error' });
+
+      expect(logger.error).toHaveBeenCalledWith('Error fetching §7.1 pathogen code displays', jasmine.any(Object));
+      expect(errorDialogService.openErrorDialogAndRedirectToHome).toHaveBeenCalledWith(
+        jasmine.any(Object),
+        '§7.1 Meldetatbestände konnten nicht abgerufen werden.'
+      );
+    });
+  });
+
+  describe('getNotificationUrl', () => {
+    describe('when FEATURE_FLAG_NON_NOMINAL_NOTIFICATION is false', () => {
+      beforeEach(() => {
+        environment.pathogenConfig = {
+          ...environment.pathogenConfig,
+          featureFlags: { FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false },
+        };
+      });
+
+      it('should return gateway + pathToPathogen for NominalNotification7_1', () => {
+        const result = service.getNotificationUrl(NotificationType.NominalNotification7_1);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen');
+      });
+
+      it('should return gateway + pathToPathogen for NonNominalNotification7_3', () => {
+        const result = service.getNotificationUrl(NotificationType.NonNominalNotification7_3);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen');
+      });
+
+      it('should return gateway + pathToPathogen for FollowUpNotification7_1', () => {
+        const result = service.getNotificationUrl(NotificationType.FollowUpNotification7_1);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen');
+      });
+
+      it('should return gateway + pathToPathogen for any other type', () => {
+        const result = service.getNotificationUrl('UnknownType' as unknown as NotificationType);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen');
+      });
     });
 
-    it('should handle non-404 error with logger and dialog', () => {
-      const notificationId = '1';
-      spyOn(logger, 'error');
-      spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
-      service.fetchFollowUpNotificationCategory(notificationId).subscribe({
-        next: () => fail('expected error'),
-        error: err => {
-          expect(err.status).toBe(500);
-          expect(logger.error).toHaveBeenCalled();
-          expect(errorDialogService.openErrorDialogAndRedirectToHome).toHaveBeenCalled();
-        },
+    describe('when FEATURE_FLAG_NON_NOMINAL_NOTIFICATION is true', () => {
+      beforeEach(() => {
+        environment.pathogenConfig = {
+          ...environment.pathogenConfig,
+          featureFlags: { FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true },
+        };
       });
-      const req = httpMock.expectOne(`${environment.pathToDestinationLookup}/notification/${notificationId}/notificationCategory`);
-      req.flush('Server Error', { status: 500, statusText: 'Server Error' });
+
+      it('should return gateway + pathToPathogen_7_3_nonNominal for NonNominalNotification7_3', () => {
+        const result = service.getNotificationUrl(NotificationType.NonNominalNotification7_3);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen/7.3/non_nominal');
+      });
+
+      it('should return gateway + pathToPathogen_7_1 for NominalNotification7_1', () => {
+        const result = service.getNotificationUrl(NotificationType.NominalNotification7_1);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen/7.1');
+      });
+
+      it('should return gateway + pathToPathogen for FollowUpNotification7_1 (default case)', () => {
+        const result = service.getNotificationUrl(NotificationType.FollowUpNotification7_1);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen');
+      });
+
+      it('should return gateway + pathToPathogen for unknown notification type (default case)', () => {
+        const result = service.getNotificationUrl('UnknownType' as unknown as NotificationType);
+        expect(result).toBe('../gateway/notification/api/ng/notification/pathogen');
+      });
     });
   });
 });

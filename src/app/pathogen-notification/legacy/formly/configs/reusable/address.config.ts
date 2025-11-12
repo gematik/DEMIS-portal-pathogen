@@ -25,8 +25,7 @@ import {
   ZIP_INTERNATIONAL_MIN_LENGTH,
 } from '../../../common-utils';
 
-import { FormlyConstants } from '../formly-constants';
-import { formlyInputField, formlyRow } from './commons';
+import { formlyInputField, formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
 import { CURRENT_ADDRESS_ID } from './notified-person.config';
 
 export const addressFormConfigFields = (

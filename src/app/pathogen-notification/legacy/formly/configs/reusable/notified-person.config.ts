@@ -16,10 +16,9 @@
 
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { AddressType, CodeDisplay } from '../../../../../../api/notification';
-import { FormlyConstants } from '../formly-constants';
+import { FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
 import { addressFormConfigFields } from './address.config';
 import { contactsFormConfigFields } from './contacts.config';
-import { formlyRow } from './commons';
 import { CURRENT_ADDRESS_TYPE_OPTION_LIST, RESIDENCE_ADDRESS_TYPE_OPTION_LIST } from '../../../formly-options-lists';
 import { getNotifiedPersonInfo } from './notified-person-info.config';
 

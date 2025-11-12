@@ -93,7 +93,7 @@ import {
   FIELD_CURRENT_ADDRESS_STREET,
   FIELD_CURRENT_ADDRESS_ZIP,
   FIELD_EMAIL_1,
-  FIELD_EXTRACTION_DATE_DEPRECATED,
+  FIELD_EXTRACTION_DATE,
   FIELD_FEDERAL_STATE,
   FIELD_INIT_NOTIFICATION_ID,
   FIELD_INSTITUTIONAME,
@@ -111,7 +111,7 @@ import {
   FIELD_PATHOGEN,
   FIELD_PATHOGEN_DISPLAY,
   FIELD_PHONE_1,
-  FIELD_RECEIVED_DATE_DEPRECATED,
+  FIELD_RECEIVED_DATE,
   FIELD_REPORT_STATUS,
   FIELD_RESIDENCE_ADDRESS_CITY,
   FIELD_RESIDENCE_ADDRESS_COUNTRY,
@@ -410,13 +410,13 @@ export const TEST_NOTIFICATION_CATEGORY: TestDataNotificationCategoryPage = {
 
 export const specimenDTO: TestDataDiagnosticPage = {
   extractionDate: {
-    selector: `[id^=${FIELD_EXTRACTION_DATE_DEPRECATED}]`,
+    selector: `[id^=${FIELD_EXTRACTION_DATE}]`,
     value: CLIPBOARD_VALUE_COLLECTED_DATE,
     clipboardDataKey: 'T.collectedDate',
     clipboardValue: CLIPBOARD_VALUE_COLLECTED_DATE,
   },
   receivedDate: {
-    selector: `[id^=${FIELD_RECEIVED_DATE_DEPRECATED}]`,
+    selector: `[id^=${FIELD_RECEIVED_DATE}]`,
     value: CLIPBOARD_VALUE_COLLECTED_DATE,
     clipboardDataKey: 'T.receivedDate',
     clipboardValue: CLIPBOARD_VALUE_RECEIVED_DATE,

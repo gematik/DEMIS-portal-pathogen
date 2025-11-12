@@ -16,7 +16,6 @@
 
 //field ids
 
-export const FIELD_BIRTH_DATE_DEPRECATED = 'birthDate';
 export const FIELD_BIRTH_DATE = 'birthDate-datepicker-input-field';
 export const FIELD_PREFIX = 'prefix';
 export const FIELD_SALUTATION = 'salutation';
@@ -60,8 +59,6 @@ export const FIELD_REPORT_STATUS = 'reportStatus';
 export const FIELD_INIT_NOTIFICATION_ID = 'initialNotificationId';
 export const FIELD_INTERPRETATION = 'interpretation';
 export const FIELD_LAB_ORDER_ID = 'laboratoryOrderId';
-export const FIELD_EXTRACTION_DATE_DEPRECATED = 'extractionDate'; //only required until Datepicker runs under feature flag
-export const FIELD_RECEIVED_DATE_DEPRECATED = 'receivedDate'; //only required until Datepicker runs under feature flag
 export const FIELD_EXTRACTION_DATE = 'extractionDate-datepicker-input-field';
 export const FIELD_RECEIVED_DATE = 'receivedDate-datepicker-input-field';
 export const FIELD_MATERIAL = 'material';
@@ -232,7 +229,6 @@ export const VALUE_INVALD_BSNR = '12345678';
 export const VALUE_INVALID_DISPLAY = 'Mich gibt es nicht';
 
 //validation error messages
-export const ERROR_INVALID_DATE_DEPRECATED = 'Kein gültiges Datum (Beispiele: 05.11.1998)'; //only required until Datepicker runs under feature flag
 export const ERROR_INVALID_DATE = 'Das eingegebene Datum ist ungültig';
 export const ERROR_INVALID_SPECIAL_CHAR = 'Ihre Eingabe enthält unzulässige Sonderzeichen';
 export const ERROR_REQUIRED = 'Diese Angabe wird benötigt';
