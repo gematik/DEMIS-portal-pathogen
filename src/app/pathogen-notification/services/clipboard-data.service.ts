@@ -11,7 +11,8 @@
     In case of changes by gematik find details in the "Readme" file.
     See the Licence for the specific language governing permissions and limitations under the Licence.
     *******
-    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+    For additional notes and disclaimer from gematik and in case of changes by gematik,
+    find details in the "Readme" file.
  */
 
 import { inject, Injectable, signal } from '@angular/core';
@@ -29,6 +30,7 @@ import { addContact, ClipboardErrorTexts, ClipboardRules, FACILITY_RULES, initia
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MessageDialogService } from '@gematik/demis-portal-core-library';
+import { NotificationType } from '../common/routing-helper';
 
 @Injectable({
   providedIn: 'root',
@@ -140,13 +142,19 @@ export class ClipboardDataService {
     this.pathogenCodeDisplays = codeDisplays;
   }
 
-  async transformClipboardDataToModel(fromButtonClick: boolean, model: any) {
+  async transformClipboardDataToModel(fromButtonClick: boolean, model: any, notificationType: NotificationType) {
     const codeDisplay = this.getSelectedPathogenCodeDisplayFromStorage();
     const designationValue = codeDisplay ? getDesignationValueIfAvailable(codeDisplay) : '';
     const pathogenIsSetAndDoesNotChange =
       !!model.pathogenForm.notificationCategory?.pathogenDisplay && model.pathogenForm.notificationCategory?.pathogenDisplay === designationValue;
 
-    const transformedClipboardData = await this.buildClipboardDataModel(fromButtonClick, pathogenIsSetAndDoesNotChange, codeDisplay?.code, model.pathogenForm);
+    const transformedClipboardData = await this.buildClipboardDataModel(
+      fromButtonClick,
+      pathogenIsSetAndDoesNotChange,
+      codeDisplay?.code,
+      model.pathogenForm,
+      notificationType
+    );
 
     if (fromButtonClick) {
       model = this.setModelWithoutBackendInformation(model, transformedClipboardData, pathogenIsSetAndDoesNotChange);
@@ -215,9 +223,20 @@ export class ClipboardDataService {
     return notificationRules.some(rule => transformedClipboardData.some(([key]) => key === rule));
   }
 
-  private async buildClipboardDataModel(firstCall: boolean, pathogenIsSetAndDoesNotChange: boolean, code: string, pathogenForm: any): Promise<any> {
+  private async buildClipboardDataModel(
+    firstCall: boolean,
+    pathogenIsSetAndDoesNotChange: boolean,
+    code: string,
+    pathogenForm: any,
+    notificationType: NotificationType
+  ): Promise<any> {
     const codeDisplay = this.getSelectedPathogenCodeDisplayFromStorage();
-    const currentPathogenTest: PathogenTest = transformPathogenFormToPathogenTest(JSON.parse(JSON.stringify(pathogenForm)), codeDisplay, this.pathogenData);
+    const currentPathogenTest: PathogenTest = transformPathogenFormToPathogenTest(
+      JSON.parse(JSON.stringify(pathogenForm)),
+      notificationType,
+      codeDisplay,
+      this.pathogenData
+    );
 
     let clipboardDataPathogenTest: PathogenTest;
     if (firstCall) {

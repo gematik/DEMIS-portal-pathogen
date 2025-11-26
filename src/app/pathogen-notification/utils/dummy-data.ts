@@ -11,7 +11,8 @@
     In case of changes by gematik find details in the "Readme" file.
     See the Licence for the specific language governing permissions and limitations under the Licence.
     *******
-    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+    For additional notes and disclaimer from gematik and in case of changes by gematik,
+    find details in the "Readme" file.
  */
 
 import {
@@ -20,6 +21,8 @@ import {
   ContactPointInfo,
   MethodPathogenDTO,
   NotificationLaboratoryCategory,
+  NotifiedPerson,
+  NotifiedPersonAnonymous,
   NotifiedPersonBasicInfo,
 } from '../../../api/notification';
 import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
@@ -216,14 +219,39 @@ export const pathogenFormDummyDataNotifiedPersonAnonymous = {
   },
 };
 
+export const pathogenFormDummyDataNotifiedPersonNotByName = {
+  residenceAddress: {
+    country: 'DE',
+    zip: '123',
+  },
+  info: {
+    firstname: 'Max',
+    lastname: 'Power',
+    birthDate: newDate(DATE_FORMAT),
+    gender: GenderEnum.Male,
+  },
+};
+
 export const dummyDataForPathogenForm = (notificationType: NotificationType) => {
   const isNonNominal = notificationType === NotificationType.NonNominalNotification7_3;
-  const isFollowUp = notificationType === NotificationType.FollowUpNotification7_1;
+
+  let notifiedPerson: NotifiedPerson | NotifiedPersonAnonymous;
+  switch (notificationType) {
+    case NotificationType.FollowUpNotification7_1:
+      notifiedPerson = pathogenFormDummyDataNotifiedPersonAnonymous;
+      break;
+    case NotificationType.NonNominalNotification7_3:
+      notifiedPerson = pathogenFormDummyDataNotifiedPersonNotByName;
+      break;
+    case NotificationType.NominalNotification7_1:
+      notifiedPerson = pathogenFormDummyData(isNonNominal).notifiedPerson;
+      break;
+  }
 
   return {
     notifierFacility: pathogenFormDummyData(isNonNominal).notifierFacility,
     submittingFacility: pathogenFormDummyData(isNonNominal).submittingFacility,
-    notifiedPerson: isFollowUp ? pathogenFormDummyDataNotifiedPersonAnonymous : pathogenFormDummyData(isNonNominal).notifiedPerson,
+    notifiedPerson: notifiedPerson,
     notificationCategory: pathogenFormDummyData(isNonNominal).notificationCategory,
     pathogenDTO: pathogenFormDummyData(isNonNominal).pathogenDTO,
   };

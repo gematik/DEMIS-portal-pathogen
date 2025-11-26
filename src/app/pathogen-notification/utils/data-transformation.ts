@@ -11,7 +11,8 @@
     In case of changes by gematik find details in the "Readme" file.
     See the Licence for the specific language governing permissions and limitations under the Licence.
     *******
-    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+    For additional notes and disclaimer from gematik and in case of changes by gematik,
+    find details in the "Readme" file.
  */
 
 import {
@@ -102,7 +103,7 @@ export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
   return result;
 }
 
-function transformPerson(pathogenForm: any, result: any) {
+function transformNominalPerson(pathogenForm: any, result: any) {
   if (pathogenForm.notifiedPerson) {
     const currentAddress = transformAddress(
       pathogenForm.notifiedPerson.currentAddressType === 'primaryAsCurrent'
@@ -116,6 +117,16 @@ function transformPerson(pathogenForm: any, result: any) {
       contacts: transformContactsToPathogenTest(pathogenForm.notifiedPerson.contacts || []),
       residenceAddress: transformAddress(pathogenForm.notifiedPerson.residenceAddress, pathogenForm.notifiedPerson.residenceAddressType),
       currentAddress,
+    };
+  }
+  return result;
+}
+
+function transformNotifiedPersonNotByName(pathogenForm: any, result: any) {
+  if (pathogenForm.notifiedPerson) {
+    result.notifiedPerson = {
+      info: pathogenForm.notifiedPerson.info,
+      residenceAddress: transformAddress(pathogenForm.notifiedPerson.residenceAddress, pathogenForm.notifiedPerson.residenceAddressType),
     };
   }
   return result;
@@ -180,9 +191,9 @@ export function transformDiagnostic(pathogenForm: any, result: any, pathogenData
 
 export function transformPathogenFormToPathogenTest(
   pathogenForm: any,
+  notificationType: NotificationType,
   selectedPathogen?: CodeDisplay,
-  pathogenData?: PathogenData,
-  notificationType?: NotificationType
+  pathogenData?: PathogenData
 ): PathogenTest {
   let result: any = {};
   if (pathogenForm.notifierFacility) {
@@ -199,9 +210,18 @@ export function transformPathogenFormToPathogenTest(
     };
   }
 
-  if (notificationType === NotificationType.FollowUpNotification7_1) {
-    result = transformAnonymousPerson(pathogenForm, result);
-  } else result = transformPerson(pathogenForm, result);
+  //transform notified person
+  switch (notificationType) {
+    case NotificationType.FollowUpNotification7_1:
+      result = transformAnonymousPerson(pathogenForm, result);
+      break;
+    case NotificationType.NonNominalNotification7_3:
+      result = transformNotifiedPersonNotByName(pathogenForm, result);
+      break;
+    case NotificationType.NominalNotification7_1:
+      result = transformNominalPerson(pathogenForm, result);
+      break;
+  }
 
   if (pathogenForm.submittingFacility) {
     result.submittingFacility = {

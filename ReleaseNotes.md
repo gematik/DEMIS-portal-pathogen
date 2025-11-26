@@ -2,6 +2,10 @@
 
 # Release portal-pathogen
 
+# Release 1.6.2
+- Update @gematik/demis-portal-core-library to 2.3.3
+- Use notifiedPersonNotByName config from Portal-Core
+
 # Release 1.6.1
 - Removed FEATURE_FLAG_PORTAL_SUBMIT and FEATURE_FLAG_PORTAL_ERROR_DIALOG_ON_SUBMIT
 - Use HeaderSection from Portal-Core (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE)
