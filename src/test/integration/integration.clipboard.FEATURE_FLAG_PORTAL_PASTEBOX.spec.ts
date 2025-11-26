@@ -11,7 +11,8 @@
     In case of changes by gematik find details in the "Readme" file.
     See the Licence for the specific language governing permissions and limitations under the Licence.
     *******
-    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+    For additional notes and disclaimer from gematik and in case of changes by gematik,
+    find details in the "Readme" file.
  */
 
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -469,7 +470,6 @@ describe('Pathogen - Clipboard Integration Tests with FEATURE_FLAG_PORTAL_PASTEB
         const clipboardStringSpecimen = createClipboardStringFromObject(specimenDTO, '&');
         const p = lastValueFrom(of(clipboardStringNotificationCategory.concat(clipboardStringSpecimen)));
         const clipboardData = clipboardStringNotificationCategory.concat(clipboardStringSpecimen).replace('undefined=undefined&', '');
-        console.log('clipboardData', clipboardData);
         spyOn(window.navigator.clipboard, 'readText').and.resolveTo(clipboardData);
         await verifyStateOfDiagnosticPage(loader, 'disabled_step');
         // set code for influenzavirus due to local storage issue

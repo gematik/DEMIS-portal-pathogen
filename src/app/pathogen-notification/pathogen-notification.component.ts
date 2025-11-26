@@ -11,7 +11,8 @@
     In case of changes by gematik find details in the "Readme" file.
     See the Licence for the specific language governing permissions and limitations under the Licence.
     *******
-    For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+    For additional notes and disclaimer from gematik and in case of changes by gematik,
+    find details in the "Readme" file.
  */
 
 import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
@@ -58,6 +59,7 @@ import {
   FormlyConstants,
   MaxHeightContentContainerComponent,
   notifiedPersonAnonymousConfigFields,
+  notifiedPersonNotByNameConfigFields,
 } from '@gematik/demis-portal-core-library';
 import { allowedRoutes, getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
 import { GENDER_OPTION_LIST } from './legacy/formly-options-lists';
@@ -111,9 +113,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.sendFunction = (pathogenForm: any) => {
       const pathogenTest = transformPathogenFormToPathogenTest(
         pathogenForm,
+        this.notificationType,
         this.getSelectedPathogenCodeDisplayFromStorage(),
-        this.pathogenData,
-        this.notificationType
+        this.pathogenData
       );
       //DEMIS-4242, fixes issue where change detection didn't work for 7.3 notifications
       this.changeDetector.detectChanges();
@@ -146,14 +148,11 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.countryCodeDisplays = countryCodeDisplays;
         this.notifierFacilityFields = notifierFacilityFormConfigFieldsFull(this.countryCodeDisplays);
         this.submitterFacilityFields = submittingFacilityFields(this.countryCodeDisplays, this.errorDialogService);
-        this.notifiedPersonFields = this.isFollowUpNotification7_1()
-          ? notifiedPersonAnonymousConfigFields(mapCodeDisplaysToOptionList(this.countryCodeDisplays), GENDER_OPTION_LIST)
-          : notifiedPersonFormConfigFields(this.countryCodeDisplays);
+        this.notifiedPersonFields = this.getNotifiedPersonFields(this.notificationType);
         this.pathogenCodeDisplays = pathogenCodeDisplays;
         this.clipboardDataService.setPathogenCodeDisplays(pathogenCodeDisplays);
 
         this.model.pathogenForm = {};
-
         this.initializeSelectPathogenFields(selectedFederalStateCode, this.pathogenCodeDisplays);
         this.updatePathogenForm();
 
@@ -170,11 +169,11 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
             this.subscribeToFederalStateChanges();
           }
           this.subscribeToPathogenChanges();
-          if (this.notificationType !== NotificationType.FollowUpNotification7_1) {
+          if (!this.isFollowUpNotification7_1() && !this.isNonNominalNotification7_3()) {
             this.subscribeToCurrentAddressTypeChanges();
           }
         });
-        if (this.notificationType === NotificationType.FollowUpNotification7_1) {
+        if (this.isFollowUpNotification7_1()) {
           this.getPathogenCodeDisplaysAndOpenFollowUpDialog();
         }
       });
@@ -215,6 +214,17 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   getSubPathogenSelectionField(): FormlyFieldConfig {
     return this.fields[0].fieldGroup.find(field => field.key === this.notificationCategoryKey).fieldGroup[5].fieldGroup[0];
+  }
+
+  getNotifiedPersonFields(notificationType: NotificationType): FormlyFieldConfig[] {
+    switch (notificationType) {
+      case NotificationType.FollowUpNotification7_1:
+        return notifiedPersonAnonymousConfigFields(mapCodeDisplaysToOptionList(this.countryCodeDisplays), GENDER_OPTION_LIST);
+      case NotificationType.NonNominalNotification7_3:
+        return notifiedPersonNotByNameConfigFields(mapCodeDisplaysToOptionList(this.countryCodeDisplays), GENDER_OPTION_LIST);
+      default:
+        return notifiedPersonFormConfigFields(this.countryCodeDisplays);
+    }
   }
 
   setValueForPathogenSelectionField(value: string) {
@@ -451,7 +461,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     } else {
       this.setValueForPathogenSelectionField('Influenzavirus');
     }
-    if (this.notificationType === NotificationType.FollowUpNotification7_1) {
+    if (this.isFollowUpNotification7_1()) {
       this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
     }
     this.form.markAllAsTouched();
@@ -465,7 +475,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   async populatePathogenFormWithClipboardData(fromButtonClick: boolean) {
     const checkBoxValueBefore = this.model.pathogenForm.submittingFacility.copyAddressCheckBox;
-    this.model = await this.clipboardDataService.transformClipboardDataToModel(fromButtonClick, this.model);
+    this.model = await this.clipboardDataService.transformClipboardDataToModel(fromButtonClick, this.model, this.notificationType);
     try {
       this.form.patchValue(this.model.pathogenForm);
       // trigger change for copyAddressCheckBox in case that data was overwritten
