@@ -15,11 +15,8 @@
     find details in the "Readme" file.
  */
 
-import { Injectable, inject } from '@angular/core';
-import { ErrorMessageDialogComponent } from '../legacy/dialogs/message-dialog/error-message-dialog.component';
-import { MessageType } from '../legacy/models/ui/message';
+import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { environment } from '../../../environments/environment';
 import { MessageDialogService } from '@gematik/demis-portal-core-library';
 
 @Injectable({
@@ -33,25 +30,14 @@ export class ErrorDialogService {
    * Help method to display a closable error-dialog with only one error.
    */
   public showBasicClosableErrorDialog(message: string, dialogTitle?: string): void {
-    if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG) {
-      this.messageDialogService.showErrorDialog({
-        errorTitle: dialogTitle ?? null,
-        errors: [
-          {
-            text: message,
-          },
-        ],
-      });
-    } else {
-      this.dialog.open(
-        ErrorMessageDialogComponent,
-        ErrorMessageDialogComponent.getErrorDialogClose({
-          title: dialogTitle,
-          message: message,
-          type: MessageType.WARNING,
-        })
-      );
-    }
+    this.messageDialogService.showErrorDialog({
+      errorTitle: dialogTitle ?? null,
+      errors: [
+        {
+          text: message,
+        },
+      ],
+    });
   }
 
   /**
@@ -67,19 +53,5 @@ export class ErrorDialogService {
         },
       ],
     });
-  }
-
-  /**
-   * Deprecated
-   * As soon as FEATURE_FLAG_PORTAL_ERROR_DIALOG is active and all stages, this method can be removed, instead
-   * better use showBasicErrorDialogWithRedirect()
-   */
-  public openErrorDialogAndRedirectToHome(error, message): void {
-    if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG) {
-      const errorMessage = this.messageDialogService.extractMessageFromError(error);
-      this.showBasicErrorDialogWithRedirect(errorMessage, message);
-    } else {
-      this.dialog.open(ErrorMessageDialogComponent, ErrorMessageDialogComponent.getErrorDialogRedirect(error, message));
-    }
   }
 }

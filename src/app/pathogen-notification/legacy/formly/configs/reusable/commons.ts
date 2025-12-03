@@ -33,7 +33,7 @@ const condition = (field: FormlyFieldConfig, isNotifier: boolean) => {
 export function updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled(field: FormlyFieldConfig, isNotifier: boolean) {
   return field.options.fieldChanges.pipe(
     tap(() => {
-      if (condition(field, isNotifier)) {
+      if (!!field.parent.parent.model.notifiedPerson?.currentAddressType && condition(field, isNotifier)) {
         const sourceModel = { ...field.model, additionalInfo: field.parent.model.facilityInfo?.institutionName }; // address object
         const targetField = getCurrentAddress(field.parent.parent.fieldGroup);
         targetField?.formControl?.patchValue(sourceModel);

@@ -25,12 +25,6 @@ export function addContact(contactType: ContactPointInfo.ContactTypeEnum, value:
   return [...contacts, { contactType, value }].filter(c => c.contactType !== contactType || c.value);
 }
 
-export enum ClipboardErrorTexts {
-  CLIPBOARD_ERROR_DIALOG_TITLE = 'Fehler beim Einlesen der Daten aus der Zwischenablage',
-  CLIPBOARD_ERROR_DIALOG_MESSAGE = 'Bei der Datenübernahme ist ein Fehler aufgetreten.',
-  CLIPBOARD_ERROR_DIALOG_MESSAGE_DETAILS = 'Diese Daten werden aus der Zwischenablage importiert. Bitte wenden Sie sich an Ihre IT zur Konfiguration des Datenimports. Weitere Informationen finden Sie in der DEMIS Wissensdatenbank unter "<a href="https://wiki.gematik.de/x/fGFCH" target="_blank">Übergabe von Daten aus dem Primärsystem</a>".',
-}
-
 export const initialModelForClipboard = (pathogenValueFromClipboard: string, pathogenCodeDisplays: CodeDisplay[]) => {
   let pathogenDisplay = '';
   if (pathogenValueFromClipboard) {
@@ -81,6 +75,23 @@ const getNotifiedPersonContactsPhone = (value: string, model: any) => {
   };
 };
 
+const getNotifiedPersonAnonymousBirthDate = (value: string) => {
+  // Convert dd.mm.yyyy format to mm.yyyy
+  const parts = value.split('.');
+  const formattedDate = parts.length === 3 ? `${parts[1]}.${parts[2]}` : value;
+
+  return {
+    notifiedPerson: { info: { birthDate: formattedDate } },
+  };
+};
+
+const getNotifiedPersonAnonymousZip = (value: string) => {
+  // If zip is over 3 digits, shorten it to the first three digits
+  const shortenedZip = value.length > 3 ? value.substring(0, 3) : value;
+
+  return { notifiedPerson: { residenceAddress: { zip: shortenedZip } } };
+};
+
 export const FACILITY_RULES: ClipboardRules = {
   'F.name': value => ({
     notifierFacility: { facilityInfo: { institutionName: value } },
@@ -112,7 +123,7 @@ export const FACILITY_RULES: ClipboardRules = {
   'N.email2': (value, model) => getNotifierFacilityContactsEmail(value, model),
 };
 
-export const PERSON_RULES: ClipboardRules = {
+export const NOMINAL_PERSON_RULES: ClipboardRules = {
   // piggybacking on fillModels error detection here, we don't really need a promise
   'P.gender': async value => {
     const fromClipboard = parseGender(value);
@@ -140,4 +151,14 @@ export const PERSON_RULES: ClipboardRules = {
   'P.c.zip': value => ({ notifiedPerson: { currentAddress: { zip: value } } }),
   'P.c.city': value => ({ notifiedPerson: { currentAddress: { city: value } } }),
   'P.c.country': value => ({ notifiedPerson: { currentAddress: { country: value } } }),
+};
+
+export const ANONYMOUS_PERSON_RULES: ClipboardRules = {
+  'P.gender': async value => {
+    const fromClipboard = parseGender(value);
+    return { notifiedPerson: { info: { gender: fromClipboard } } };
+  },
+  'P.birthDate': value => getNotifiedPersonAnonymousBirthDate(value),
+  'P.r.zip': value => getNotifiedPersonAnonymousZip(value),
+  'P.r.country': value => ({ notifiedPerson: { residenceAddress: { country: value } } }),
 };

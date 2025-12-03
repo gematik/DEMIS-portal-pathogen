@@ -2,20 +2,27 @@
 
 # Release portal-pathogen
 
+# Release 1.6.3
+- Removed FEATURE_FLAG_PORTAL_ERROR_DIALOG
+- Updated @gematik/demis-portal-core-library to 2.3.6
+- Updated Angular dependencies to version 19.2.17
+- Improved clipboard logic for follow-up notification
+- Refined follow-up pop-up dialog text
+
 # Release 1.6.2
-- Update @gematik/demis-portal-core-library to 2.3.3
-- Use notifiedPersonNotByName config from Portal-Core
+- Updated @gematik/demis-portal-core-library to 2.3.3
+- Implemented notifiedPersonNotByName config from Portal-Core
 
 # Release 1.6.1
 - Removed FEATURE_FLAG_PORTAL_SUBMIT and FEATURE_FLAG_PORTAL_ERROR_DIALOG_ON_SUBMIT
-- Use HeaderSection from Portal-Core (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE)
-- Validate that the notificationCategory for follow-up notifications matches the selected notificationType
-- Update ngx-formly to 7.0.0
-- Use notifiedPersonAnonymous config from Portal-Core
-- Use FollowUpNotificationService from Portal-Core and remove existing one from project
-- Update @gematik/demis-portal-core-library to 2.3.2
+- Implemented HeaderSection from Portal-Core (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE)
+- Implemented validation to ensure that the notificationCategory for follow-up notifications matches the selected notificationType
+- Updated ngx-formly to 7.0.0
+- Implemented notifiedPersonAnonymous config from Portal-Core
+- Implemented FollowUpNotificationService from Portal-Core and remove existing one from project
+- Updated @gematik/demis-portal-core-library to 2.3.2
 - Removed FEATURE_FLAG_PATHOGEN_DATEPICKER
-- Update NGINX-Base-Image to 1.29.3
+- Updated NGINX-Base-Image to 1.29.3
 
 # Release 1.6.0
 - Added GET call to fetch notificationCategory based on notificationId (follow-up)

@@ -16,7 +16,7 @@ mat-radio-group {
 }
 
 // Validation errors below the fields should be left aligned
-mat-error {
+mat-error :not(.initial-notification-id-input-field-invalid) {
   transform: translateX(-1.2em)
 }
 

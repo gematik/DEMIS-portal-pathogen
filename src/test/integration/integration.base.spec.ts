@@ -44,7 +44,6 @@ import { NotificationType } from '../../app/pathogen-notification/common/routing
 
 export const mainConfig = {
   featureFlags: {
-    FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false,
     FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: false,
   },
