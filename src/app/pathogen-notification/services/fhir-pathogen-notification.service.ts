@@ -21,7 +21,6 @@ import { NGXLogger } from 'ngx-logger';
 import { finalize, Observable, of } from 'rxjs';
 import { CodeDisplay, PathogenData, PathogenTest, ValidationError } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
-import { toFhirDateFormat } from '../legacy/common-utils';
 import { catchError } from 'rxjs/operators';
 import { ErrorDialogService } from './error-dialog.service';
 import { cloneObject, MessageDialogService, SubmitDialogProps, trimStrings } from '@gematik/demis-portal-core-library';
@@ -110,7 +109,7 @@ export class FhirPathogenNotificationService {
         catchError(error => {
           const federalStateInfo = federalStateCode ? ` and federal state: ${federalStateCode}` : '';
           this.logger.error(`Error fetching pathogen code displays for notification type ${type}${federalStateInfo}`, error);
-          this.errorDialogService.openErrorDialogAndRedirectToHome(error, 'Meldetatbestände konnten nicht abgerufen werden.');
+          this.errorDialogService.showBasicErrorDialogWithRedirect(error, 'Meldetatbestände konnten nicht abgerufen werden.');
           throw error;
         })
       );
@@ -125,7 +124,7 @@ export class FhirPathogenNotificationService {
       .pipe(
         catchError(error => {
           this.logger.error('Error fetching §7.1 pathogen code displays', error);
-          this.errorDialogService.openErrorDialogAndRedirectToHome(error, '§7.1 Meldetatbestände konnten nicht abgerufen werden.');
+          this.errorDialogService.showBasicErrorDialogWithRedirect(error, '§7.1 Meldetatbestände konnten nicht abgerufen werden.');
           throw error;
         })
       );
@@ -146,7 +145,7 @@ export class FhirPathogenNotificationService {
       .pipe(
         catchError(error => {
           this.logger.error('Error fetching federal state code displays', error);
-          this.errorDialogService.openErrorDialogAndRedirectToHome(error, 'Bundesländer konnten nicht abgerufen werden.');
+          this.errorDialogService.showBasicErrorDialogWithRedirect(error, 'Bundesländer konnten nicht abgerufen werden.');
           throw error;
         })
       );
@@ -161,7 +160,7 @@ export class FhirPathogenNotificationService {
       .pipe(
         catchError(error => {
           this.logger.error('Error fetching country code displays', error);
-          this.errorDialogService.openErrorDialogAndRedirectToHome(error, 'Ländercodes konnten nicht abgerufen werden.');
+          this.errorDialogService.showBasicErrorDialogWithRedirect(error, 'Ländercodes konnten nicht abgerufen werden.');
           throw error;
         })
       );

@@ -17,7 +17,7 @@
 
 import { NotifiedPersonBasicInfo, PathogenData, PractitionerInfo } from 'src/api/notification';
 import { ClipboardDataService } from './clipboard-data.service';
-import { FACILITY_RULES, PERSON_RULES } from './core/clipboard-constants';
+import { ANONYMOUS_PERSON_RULES, FACILITY_RULES, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { TestBed } from '@angular/core/testing';
 import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 import { MockProvider } from 'ng-mocks';
@@ -32,9 +32,6 @@ describe('ClipboardDataService', () => {
   beforeEach(async () => {
     environment.pathogenConfig = {
       ...environment.pathogenConfig,
-      featureFlags: {
-        FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
-      },
     };
   });
 
@@ -53,25 +50,81 @@ describe('ClipboardDataService', () => {
   });
 
   describe('PERSON_RULES', () => {
-    it('should accept valid gender enums', async () => {
-      const model = {};
-      const problems = await service.fillModel(PERSON_RULES, [['P.gender', NotifiedPersonBasicInfo.GenderEnum.Female]], model);
-      expect(model).toEqual({
-        notifiedPerson: {
-          info: {
-            gender: NotifiedPersonBasicInfo.GenderEnum.Female,
+    describe('NOMINAL_PERSON_RULES', () => {
+      it('should accept valid gender enums', async () => {
+        const model = {};
+        const problems = await service.fillModel(NOMINAL_PERSON_RULES, [['P.gender', NotifiedPersonBasicInfo.GenderEnum.Female]], model);
+        expect(model).toEqual({
+          notifiedPerson: {
+            info: {
+              gender: NotifiedPersonBasicInfo.GenderEnum.Female,
+            },
           },
-        },
+        });
+
+        expect(problems).toEqual([]);
       });
 
-      expect(problems).toEqual([]);
+      it('should reject invalid gender enums', async () => {
+        const model = {};
+        const problems = await service.fillModel(NOMINAL_PERSON_RULES, [['P.gender', 'W']], model);
+        expect(model).toEqual({});
+        expect(problems).toEqual(["Error processing rule for key P.gender: Error: Unknown value 'W'"]);
+      });
     });
+    describe('ANONYMOUS_PERSON_RULES', () => {
+      it('should convert dd.mm.yyyy birthDate to mm.yyyy format', async () => {
+        const model = {};
+        const problems = await service.fillModel(ANONYMOUS_PERSON_RULES, [['P.birthDate', '12.12.2024']], model);
+        expect(model).toEqual({
+          notifiedPerson: {
+            info: {
+              birthDate: '12.2024',
+            },
+          },
+        });
 
-    it('should reject invalid gender enums', async () => {
-      const model = {};
-      const problems = await service.fillModel(PERSON_RULES, [['P.gender', 'W']], model);
-      expect(model).toEqual({});
-      expect(problems).toEqual(["Error processing rule for key P.gender: Error: Unknown value 'W'"]);
+        expect(problems).toEqual([]);
+      });
+      it('should keep birthDate unchanged if already in mm.yyyy format', async () => {
+        const model = {};
+        const problems = await service.fillModel(ANONYMOUS_PERSON_RULES, [['P.birthDate', '12.2024']], model);
+        expect(model).toEqual({
+          notifiedPerson: {
+            info: {
+              birthDate: '12.2024',
+            },
+          },
+        });
+
+        expect(problems).toEqual([]);
+      });
+      it('should truncate zip code to first 3 digits if longer than 3 digits', async () => {
+        const model = {};
+        const problems = await service.fillModel(ANONYMOUS_PERSON_RULES, [['P.r.zip', '12345']], model);
+        expect(model).toEqual({
+          notifiedPerson: {
+            residenceAddress: {
+              zip: '123',
+            },
+          },
+        });
+
+        expect(problems).toEqual([]);
+      });
+      it('should keep zip code unchanged if it is exactly 3 digits', async () => {
+        const model = {};
+        const problems = await service.fillModel(ANONYMOUS_PERSON_RULES, [['P.r.zip', '123']], model);
+        expect(model).toEqual({
+          notifiedPerson: {
+            residenceAddress: {
+              zip: '123',
+            },
+          },
+        });
+
+        expect(problems).toEqual([]);
+      });
     });
   });
 

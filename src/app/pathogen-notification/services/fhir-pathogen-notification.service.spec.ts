@@ -120,7 +120,7 @@ describe('FhirPathogenNotificationService', () => {
     it('should handle error when fetching pathogen code displays for federal state', () => {
       const federalStateCode = 'AB-CD';
       spyOn(logger, 'error');
-      spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
+      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchPathogenCodeDisplaysByTypeAndState(NotificationType.NominalNotification7_1, federalStateCode).subscribe({
         error: err => {
@@ -132,12 +132,12 @@ describe('FhirPathogenNotificationService', () => {
       req.flush('Error fetching pathogen code displays', { status: 500, statusText: 'Server Error' });
 
       expect(logger.error).toHaveBeenCalled();
-      expect(errorDialogService.openErrorDialogAndRedirectToHome).toHaveBeenCalled();
+      expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalled();
     });
 
     it('should handle error when fetching pathogen code displays for federal state', () => {
       spyOn(logger, 'error');
-      spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
+      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchFederalStateCodeDisplays(NotificationType.NominalNotification7_1).subscribe({
         error: err => {
@@ -149,13 +149,13 @@ describe('FhirPathogenNotificationService', () => {
       req.flush('Error fetching federal state code displays', { status: 500, statusText: 'Server Error' });
 
       expect(logger.error).toHaveBeenCalled();
-      expect(errorDialogService.openErrorDialogAndRedirectToHome).toHaveBeenCalled();
+      expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalled();
     });
   });
 
   it('should handle error when fetching country code displays', () => {
     spyOn(logger, 'error');
-    spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
+    spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
     service.fetchCountryCodeDisplays().subscribe({
       error: err => {
@@ -167,7 +167,7 @@ describe('FhirPathogenNotificationService', () => {
     req.flush('Error fetching country code displays', { status: 500, statusText: 'Server Error' });
 
     expect(logger.error).toHaveBeenCalled();
-    expect(errorDialogService.openErrorDialogAndRedirectToHome).toHaveBeenCalled();
+    expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalled();
   });
 
   it('should reformat notification', () => {
@@ -353,7 +353,7 @@ describe('FhirPathogenNotificationService', () => {
 
     it('should handle error when fetching all pathogen code displays for §7.1', () => {
       spyOn(logger, 'error');
-      spyOn(errorDialogService, 'openErrorDialogAndRedirectToHome');
+      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchAllPathogenCodeDisplays7_1().subscribe({
         error: err => {
@@ -365,7 +365,7 @@ describe('FhirPathogenNotificationService', () => {
       req.flush('Error fetching §7.1 pathogen code displays', { status: 500, statusText: 'Server Error' });
 
       expect(logger.error).toHaveBeenCalledWith('Error fetching §7.1 pathogen code displays', jasmine.any(Object));
-      expect(errorDialogService.openErrorDialogAndRedirectToHome).toHaveBeenCalledWith(
+      expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalledWith(
         jasmine.any(Object),
         '§7.1 Meldetatbestände konnten nicht abgerufen werden.'
       );

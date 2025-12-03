@@ -21,17 +21,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { lastValueFrom, of } from 'rxjs';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
-import {
-  getAutocomplete,
-  getButton,
-  getCheckbox,
-  getDialog,
-  getInput,
-  getRadioGroup,
-  getSelect,
-  selectAutocompleteOption,
-  selectRadioOption,
-} from '../shared/material-harness-utils';
+import { getAutocomplete, getButton, getCheckbox, getDialog, getInput, getRadioGroup, getSelect, selectRadioOption } from '../shared/material-harness-utils';
 import {
   ADD_BUTTON_CLIPBOARD,
   ADDRESS_TYPE_ORDINARY,

@@ -30,9 +30,6 @@ describe('ErrorDialogService', () => {
   beforeEach(() => {
     environment.pathogenConfig = {
       ...environment.pathogenConfig,
-      featureFlags: {
-        FEATURE_FLAG_PORTAL_ERROR_DIALOG: true,
-      },
     };
     serviceUnderTest = TestBed.inject(ErrorDialogService);
     showErrorDialogSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialog');
@@ -86,12 +83,12 @@ describe('ErrorDialogService', () => {
     });
   });
 
-  describe('openErrorDialogAndRedirectToHome', () => {
+  describe('showBasicErrorDialogWithRedirect', () => {
     it('should call showErrorDialog with correct params', () => {
       const error = new Error('Something went wrong');
       const title = 'Error Title';
       spyOn(TestBed.inject(MessageDialogService), 'extractMessageFromError').and.returnValue('Something went wrong');
-      serviceUnderTest.openErrorDialogAndRedirectToHome(error, title);
+      serviceUnderTest.showBasicErrorDialogWithRedirect(error.message, title);
       expect(showErrorDialogSpy).toHaveBeenCalledOnceWith({
         redirectToHome: true,
         errorTitle: title,

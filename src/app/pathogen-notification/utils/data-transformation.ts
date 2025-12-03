@@ -135,13 +135,13 @@ function transformNotifiedPersonNotByName(pathogenForm: any, result: any) {
 function transformAnonymousPerson(pathogenForm: any, result: any) {
   if (pathogenForm.notifiedPerson) {
     const residenceAddress = {
-      country: pathogenForm.notifiedPerson.residenceAddress.country,
-      zip: pathogenForm.notifiedPerson.residenceAddress.zip || undefined,
+      country: pathogenForm.notifiedPerson.residenceAddress.country || undefined,
+      zip: pathogenForm.notifiedPerson.residenceAddress?.zip || undefined,
       addressType: AddressType.Primary,
     };
     result.notifiedPersonAnonymous = {
-      gender: pathogenForm.notifiedPerson.info.gender,
-      birthDate: pathogenForm.notifiedPerson.info.birthDate || undefined,
+      gender: pathogenForm.notifiedPerson.info?.gender || undefined,
+      birthDate: pathogenForm.notifiedPerson.info?.birthDate || undefined,
       residenceAddress: residenceAddress,
     };
   }

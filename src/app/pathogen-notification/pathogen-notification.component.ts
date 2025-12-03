@@ -271,7 +271,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
               findCodeDisplayByCodeValue(this.pathogenCodeDisplays, this.followUpNotificationIdService.followUpNotificationCategory())
             );
           } else {
-            this.errorDialogService.openErrorDialogAndRedirectToHome(
+            this.errorDialogService.showBasicErrorDialogWithRedirect(
               'Der gespeicherte Erreger ' +
                 this.followUpNotificationIdService.followUpNotificationCategory() +
                 ' für die ID ' +
@@ -291,7 +291,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.followUpNotificationIdService.openDialog({
           dialogData: {
             routerLink: '/' + allowedRoutes.nominal,
-            linkTextContent: 'eines namentlichen Erregernachweises nach §7.1 IfSG',
+            linkTextContent: 'eines namentlichen Erregernachweises nach § 7 Abs. 1 IfSG',
             pathToDestinationLookup: environment.pathToDestinationLookup,
             errorUnsupportedNotificationCategory:
               'Aktuell sind Nichtnamentliche Folgemeldungen eines Erregernachweises gemäß § 7 Abs. 1 IfSG nur für eine § 7 Abs. 1 IfSG Initialmeldung möglich.',

@@ -21,16 +21,21 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { getButton, getDialog, getIcon, getInput } from '../shared/material-harness-utils';
-import { waitForStability } from '../shared/test-utils';
+import { getButton, getDialog, getIcon, getInput, getSelect } from '../shared/material-harness-utils';
+import { clickNextButton, waitForStability } from '../shared/test-utils';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { TestBed } from '@angular/core/testing';
+import { FollowUpNotificationIdService, ValidationStatus } from '@gematik/demis-portal-core-library';
+import { setDiagnosticBasedOnPathogenSelection } from '../shared/test-setup-utils';
+import { lastValueFrom, of } from 'rxjs';
+import { ADD_BUTTON_CLIPBOARD } from '../shared/test-constants';
 
 describe('Pathogen - Follow Up Integration Tests', () => {
   let component: PathogenNotificationComponent;
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
   let fhirService: FhirPathogenNotificationService;
+  let followUpService: FollowUpNotificationIdService;
 
   const initialNotificationIdSelector = '#initialNotificationIdInput';
 
@@ -47,6 +52,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
     loader = result.loader;
     fixture.detectChanges();
     fhirService = TestBed.inject(FhirPathogenNotificationService);
+    followUpService = TestBed.inject(FollowUpNotificationIdService);
   });
 
   it('should create', () => {
@@ -128,6 +134,69 @@ describe('Pathogen - Follow Up Integration Tests', () => {
 
       const checkButton = await getButton(documentRootLoader, '#btn-check-id');
       expect(await checkButton.isDisabled()).toBeTruthy();
+    });
+  });
+  describe('Tests after positive Pop-Up Validation', () => {
+    beforeEach(async () => {
+      setDiagnosticBasedOnPathogenSelection({
+        materials: [],
+        methods: [],
+        answerSet: [],
+        resistanceGenes: [],
+        resistances: [],
+        substances: [],
+        header: '',
+        subheader: '',
+      });
+
+      spyOn(followUpService, 'validateNotificationId').and.callFake((id: string, path: string) => {
+        followUpService.validatedNotificationId.set('123');
+        followUpService.validationStatus.set(ValidationStatus.VALID);
+        followUpService.hasValidNotificationId.set(true);
+        followUpService.followUpNotificationCategory.set('invp');
+      });
+
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      await input.setValue('123');
+
+      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
+      await checkButton.click();
+      await waitForStability(fixture);
+
+      const nextButton = await getButton(documentRootLoader, '#btn-next');
+      await nextButton.click();
+      await waitForStability(fixture);
+
+      expect(document.querySelector('.mat-mdc-dialog-container')).toBeNull();
+    });
+    describe('clipboard tests', () => {
+      it('should insert correct values for notified person', async () => {
+        await clickNextButton(fixture);
+        await clickNextButton(fixture);
+
+        const gender = await getSelect(loader, '#gender');
+        expect(await gender.getValueText()).toBe('Bitte auswählen');
+
+        const birthDate = await getInput(loader, '#birthDate-datepicker-input-field');
+        expect(await birthDate.getValue()).toBe('');
+
+        const zip = await getInput(loader, '#residence-address-zip');
+        expect(await zip.getValue()).toBe('');
+
+        const country = await getSelect(loader, '#residence-address-country');
+        expect(await country.getValueText()).toBe('Deutschland');
+
+        const p = lastValueFrom(of('URL P.gender=MALE&P.birthDate=01.01.2023&P.r.zip=12345&P.r.country=KP'));
+        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
+        fixture.detectChanges();
+
+        expect(await gender.getValueText()).toBe('Männlich');
+        expect(await birthDate.getValue()).toBe('01.2023');
+        expect(await zip.getValue()).toBe('123');
+        expect(await country.getValueText()).toBe('Demokratische Volksrepublik Korea');
+      });
     });
   });
 });

@@ -21,12 +21,10 @@ import { merge } from 'lodash-es';
 import { NGXLogger } from 'ngx-logger';
 import { AddressType, CodeDisplay, PathogenData, PathogenTest } from '../../../api/notification';
 import { matchesRegExp } from '../legacy/notification-form-validation-module';
-import { ErrorMessageDialogComponent } from '../legacy/dialogs/message-dialog/error-message-dialog.component';
-import { MessageType } from '../legacy/models/ui/message';
 import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
 import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenForm } from '../utils/data-transformation';
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
-import { addContact, ClipboardErrorTexts, ClipboardRules, FACILITY_RULES, initialModelForClipboard, PERSON_RULES } from './core/clipboard-constants';
+import { addContact, ANONYMOUS_PERSON_RULES, ClipboardRules, FACILITY_RULES, initialModelForClipboard, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MessageDialogService } from '@gematik/demis-portal-core-library';
@@ -171,7 +169,7 @@ export class ClipboardDataService {
     return environment.featureFlags.FEATURE_FLAG_PORTAL_PASTEBOX ?? false;
   }
 
-  private async getClipboardDataWithoutDiagnostic(model: any): Promise<any> {
+  private async getClipboardDataWithoutDiagnostic(model: any, notificationType: NotificationType): Promise<any> {
     let transformedClipboardData: string[][] | undefined;
     if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
       transformedClipboardData = this.clipboardData();
@@ -185,14 +183,17 @@ export class ClipboardDataService {
     transformedModel = await this.resetCurrentAddressOnTypeChange(transformedModel, transformedClipboardDataForAddress);
 
     this.setSignalToFetchPathogenData(true, transformedClipboardData);
+    const isFollowUp = notificationType === NotificationType.FollowUpNotification7_1;
+    const personRules = isFollowUp ? ANONYMOUS_PERSON_RULES : NOMINAL_PERSON_RULES;
+    const pathogenRule = isFollowUp ? {} : this.PATHOGEN_CLIPBOARD_RULE;
 
     await this.fillModelFromClipBoard(
       transformedModel,
       {
         ...FACILITY_RULES,
         ...this.SUBMITTING_FACILITY_RULES,
-        ...PERSON_RULES,
-        ...this.PATHOGEN_CLIPBOARD_RULE,
+        ...personRules,
+        ...pathogenRule,
       },
       transformedClipboardDataForAddress
     );
@@ -206,8 +207,8 @@ export class ClipboardDataService {
     return model;
   }
 
-  private checkDiagnosticRules(transformedClipboardData: string[][]) {
-    const notificationRules = [
+  private checkDiagnosticRules(transformedClipboardData: string[][], notificationType: NotificationType) {
+    let notificationRules = [
       'T.collectedDate',
       'T.receivedDate',
       'T.material',
@@ -220,6 +221,11 @@ export class ClipboardDataService {
       'T.serviceRequest',
       'T.relatesTo',
     ];
+
+    if (notificationType === NotificationType.FollowUpNotification7_1) {
+      notificationRules = notificationRules.filter(rule => rule !== 'T.relatesTo');
+    }
+
     return notificationRules.some(rule => transformedClipboardData.some(([key]) => key === rule));
   }
 
@@ -240,17 +246,17 @@ export class ClipboardDataService {
 
     let clipboardDataPathogenTest: PathogenTest;
     if (firstCall) {
-      clipboardDataPathogenTest = await this.getClipboardDataWithoutDiagnostic(currentPathogenTest);
+      clipboardDataPathogenTest = await this.getClipboardDataWithoutDiagnostic(currentPathogenTest, notificationType);
       if (pathogenIsSetAndDoesNotChange || (!!clipboardDataPathogenTest.pathogen && clipboardDataPathogenTest.pathogen === code)) {
-        clipboardDataPathogenTest = await this.getClipboardDataWithNotificationCategoryAndDiagnostic(clipboardDataPathogenTest);
+        clipboardDataPathogenTest = await this.getClipboardDataWithNotificationCategoryAndDiagnostic(clipboardDataPathogenTest, notificationType);
       }
     } else {
-      clipboardDataPathogenTest = await this.getClipboardDataWithNotificationCategoryAndDiagnostic(currentPathogenTest);
+      clipboardDataPathogenTest = await this.getClipboardDataWithNotificationCategoryAndDiagnostic(currentPathogenTest, notificationType);
     }
     return transformPathogenTestToPathogenForm(clipboardDataPathogenTest);
   }
 
-  private async getClipboardDataWithNotificationCategoryAndDiagnostic(model: any): Promise<any> {
+  private async getClipboardDataWithNotificationCategoryAndDiagnostic(model: any, notificationType: NotificationType): Promise<any> {
     let transformedClipboardData: string[][] | undefined;
     if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
       transformedClipboardData = this.clipboardData();
@@ -260,8 +266,14 @@ export class ClipboardDataService {
       transformedClipboardData = this.transformClipboardData(clipboardData);
     }
     this.setSignalToFetchPathogenData(false, transformedClipboardData);
-    if (this.checkDiagnosticRules(transformedClipboardData)) {
-      await this.fillModelFromClipBoard(model, { ...this.DIAGNOSTIC_CLIPBOARD_RULES }, transformedClipboardData);
+
+    const diagnosticRules = { ...this.DIAGNOSTIC_CLIPBOARD_RULES };
+    if (notificationType === NotificationType.FollowUpNotification7_1) {
+      delete diagnosticRules['T.relatesTo'];
+    }
+
+    if (this.checkDiagnosticRules(transformedClipboardData, notificationType)) {
+      await this.fillModelFromClipBoard(model, diagnosticRules, transformedClipboardData);
     }
 
     return model;
@@ -275,19 +287,7 @@ export class ClipboardDataService {
       return await navigator.clipboard.readText();
     } catch (err) {
       this.logger.error('Failed to read clipboard data: ', err);
-      if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG) {
-        this.messageDialogService.showErrorDialogInsertDataFromClipboard();
-      } else {
-        this.dialog.open(
-          ErrorMessageDialogComponent,
-          ErrorMessageDialogComponent.getErrorDialogClose({
-            title: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_TITLE,
-            message: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE,
-            messageDetails: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE_DETAILS,
-            type: MessageType.WARNING,
-          })
-        );
-      }
+      this.messageDialogService.showErrorDialogInsertDataFromClipboard();
       return '';
     }
   }
@@ -297,19 +297,7 @@ export class ClipboardDataService {
    */
   validateClipboardData(clipboardData: string): void {
     if (!matchesRegExp(/^URL .*/, clipboardData)) {
-      if (environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG) {
-        this.messageDialogService.showErrorDialogInsertDataFromClipboard();
-      } else {
-        this.dialog.open(
-          ErrorMessageDialogComponent,
-          ErrorMessageDialogComponent.getErrorDialogClose({
-            title: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_TITLE,
-            message: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE,
-            messageDetails: ClipboardErrorTexts.CLIPBOARD_ERROR_DIALOG_MESSAGE_DETAILS,
-            type: MessageType.WARNING,
-          })
-        );
-      }
+      this.messageDialogService.showErrorDialogInsertDataFromClipboard();
       throw Error('invalid clipboard: it does not start with "URL "');
     }
   }
@@ -398,6 +386,7 @@ export class ClipboardDataService {
 
   private removeUnusedModelValues(model: any) {
     if (
+      !!model.pathogenForm.notifiedPerson?.currentAddressType &&
       model.pathogenForm.notifiedPerson.currentAddressType != AddressType.SubmittingFacility &&
       model.pathogenForm.notifiedPerson.currentAddressType != AddressType.OtherFacility
     ) {

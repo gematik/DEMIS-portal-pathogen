@@ -50,7 +50,6 @@ import { SideNavigationWrapperComponent } from './components/side-navigation-wra
 import { HexhexbuttonComponent } from './legacy/components/hexhexbutton/hexhexbutton.component';
 // TODO: Remove this component, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
 import { PasteBoxComponent as DeprecatedPasteBoxComponent } from './legacy/components/paste-box/paste-box.component';
-import { ErrorMessageDialogComponent } from './legacy/dialogs/message-dialog/error-message-dialog.component';
 import { AutocompleteTypeComponent } from './legacy/formly/types/autocomplete/autocomplete-type.component';
 import { RepeatComponent } from './legacy/formly/types/repeat/repeat.component';
 import { ExpansionPanelWrapperComponent } from './legacy/formly/wrappers/expansion-panel-wrapper/expansion-panel.wrapper';
@@ -110,7 +109,6 @@ import { withFormlyFieldSelect } from '@ngx-formly/material/select';
     // TODO: Remove this component, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
     DeprecatedPasteBoxComponent,
     HexhexbuttonComponent,
-    ErrorMessageDialogComponent,
     FavoritesListComponent,
     FavoritesAddComponent,
     DemisPortalSharedModule,
