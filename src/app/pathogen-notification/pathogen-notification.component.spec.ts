@@ -24,7 +24,7 @@ import { TEST_DATA } from '../../test/shared/test-data';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { NotificationType } from './common/routing-helper';
-import { buildMock, setupIntegrationTests } from '../../test/integration/integration.base.spec';
+import { buildMock, setupIntegrationTests } from '../../test/integration/base';
 import { FollowUpNotificationIdService } from '@gematik/demis-portal-core-library';
 
 describe('PathogenNotificationComponent', () => {

@@ -1,12 +1,22 @@
 .tabs-navigation {
   width: 25vw;
   max-width: 437px;
+  padding-top: 44px;
+}
+
+::ng-deep .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.side-content-without-footer {
   padding-left: 44px;
   padding-right: 44px;
-  padding-top: 44px;
-  display: flex;
-  flex-direction: row;
-  justify-content: stretch;
+}
+
+gem-demis-forms-footer {
+  margin-top: auto;
 }
 
 .stepper-heading {
@@ -50,4 +60,3 @@
   padding: 0.2rem 0.5rem;
   color: #161616;
 }
-

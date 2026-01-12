@@ -15,24 +15,23 @@
     find details in the "Readme" file.
  */
 
-import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, mainConfig, setupIntegrationTests } from './base';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
-import { switchToPage } from '../shared/test-utils';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
-describe('Pathogen - Nonnominal Integration Tests', () => {
+describe('Pathogen - Anonymous Integration Tests', () => {
   let component: PathogenNotificationComponent;
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
 
-  beforeEach(() => buildMock(true, NotificationType.NonNominalNotification7_3));
+  beforeEach(() => buildMock(true, NotificationType.AnonymousNotification7_3));
 
   beforeEach(() => {
     const result = setupIntegrationTests({
       ...mainConfig,
-      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true },
+      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_ANONYMOUS_NOTIFICATION: true },
     });
 
     fixture = result.fixture;
@@ -45,24 +44,8 @@ describe('Pathogen - Nonnominal Integration Tests', () => {
     expect(component).withContext('PathogenNotificationComponent could not be created').toBeTruthy();
   });
 
-  it('should show 7.3 header', () => {
+  it('should show 7.3 anonymous up header', () => {
     let textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('§ 7 Abs. 3 IfSG')).toBeTrue();
-    expect(textContent.includes('Erregernachweis (§ 7 Abs. 1 IfSG)')).toBeFalse();
-  });
-
-  it('should show favorites', async () => {
-    await switchToPage(4, fixture);
-    let textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('Favoriten')).toBeTrue();
-  });
-
-  it('should not show federalState select', async () => {
-    await switchToPage(4, fixture);
-    const federalStateSelect = fixture.nativeElement.querySelector('[id="federalStateCodeDisplay"]');
-    const pathogenDisplaySelect = fixture.nativeElement.querySelector('[id="pathogenDisplay"]');
-
-    expect(federalStateSelect).withContext('federalStateSelect should not be present but was found').toBeNull();
-    expect(pathogenDisplaySelect).withContext('pathogenDisplaySelect could not be found').toBeTruthy();
+    expect(textContent.includes('Erregernachweis (anonym)')).toBeTrue();
   });
 });

@@ -17,17 +17,16 @@
 
 import { Component, inject, input } from '@angular/core';
 import { MatDrawer, MatDrawerContainer, MatDrawerContent } from '@angular/material/sidenav';
-import { PasteBoxComponent, SectionHeaderComponent } from '@gematik/demis-portal-core-library';
+import { FormsFooterComponent, PasteBoxComponent, SectionHeaderComponent } from '@gematik/demis-portal-core-library';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { environment } from 'src/environments/environment';
 import { HexhexbuttonComponent } from '../../legacy/components/hexhexbutton/hexhexbutton.component';
-import { PasteBoxComponent as DeprecatedPasteBoxComponent } from '../../legacy/components/paste-box/paste-box.component';
 import { PathogenNotificationComponent } from '../../pathogen-notification.component';
 import { SideNavigationStepperComponent } from '../side-navigation-stepper/side-navigation-stepper.component';
 import { ClipboardDataService } from '../../services/clipboard-data.service';
 import { Router } from '@angular/router';
 import { getNotificationTypeByRouterUrl, NotificationType } from '../../common/routing-helper';
-import { isFollowUpNotificationEnabled } from '../../utils/pathogen-notification-mapper';
+import { isAnonymousNotificationEnabled, isFollowUpNotificationEnabled } from '../../utils/pathogen-notification-mapper';
 
 @Component({
   selector: 'app-side-navigation-wrapper',
@@ -38,10 +37,10 @@ import { isFollowUpNotificationEnabled } from '../../utils/pathogen-notification
     MatDrawer,
     SideNavigationStepperComponent,
     HexhexbuttonComponent,
-    DeprecatedPasteBoxComponent,
     MatDrawerContent,
     PasteBoxComponent,
     SectionHeaderComponent,
+    FormsFooterComponent,
   ],
 })
 export class SideNavigationWrapperComponent {
@@ -61,19 +60,16 @@ export class SideNavigationWrapperComponent {
     this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
   }
 
-  // TODO: Remove this getter, once FEATURE_FLAG_PORTAL_PASTEBOX will be removed
-  get FEATURE_FLAG_PORTAL_PASTEBOX() {
-    return environment.featureFlags?.FEATURE_FLAG_PORTAL_PASTEBOX ?? false;
-  }
-
   get FEATURE_FLAG_PORTAL_PAGE_STRUCTURE() {
     return environment.featureFlags?.FEATURE_FLAG_PORTAL_PAGE_STRUCTURE ?? false;
   }
 
+  public get FEATURE_FLAG_PORTAL_HEADER_FOOTER(): boolean {
+    return environment.featureFlags?.FEATURE_FLAG_PORTAL_HEADER_FOOTER;
+  }
+
   async handlePasteBoxClick(clipboardData?: Map<string, string>): Promise<void> {
-    if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
-      this.clipboardDataService.clipboardData.set(Array.from(clipboardData.entries()) as string[][]);
-    }
+    this.clipboardDataService.clipboardData.set(Array.from(clipboardData.entries()) as string[][]);
     await this.pathogenNotificationComponent.populatePathogenFormWithClipboardData(true);
   }
 
@@ -83,4 +79,5 @@ export class SideNavigationWrapperComponent {
 
   protected readonly NotificationType = NotificationType;
   protected readonly isFollowUpNotificationEnabled = isFollowUpNotificationEnabled;
+  protected readonly isAnonymousNotificationEnabled = isAnonymousNotificationEnabled;
 }

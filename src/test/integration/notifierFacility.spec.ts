@@ -20,7 +20,7 @@ import { MockedComponentFixture } from 'ng-mocks';
 import { getAllButtonsWithSameSelector, getButton, getInput, getMultipleInputFieldsWithSameSelector } from '../shared/material-harness-utils';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { checkDescribingError } from '../shared/test-utils';
-import { buildMock, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, setupIntegrationTests } from './base';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { ADD_BUTTON_EMAIL, ADD_BUTTON_PHONE, FIELD_EMAIL_CY, FIELD_PHONE_NUMBER_CY } from '../shared/test-constants';
 import { TEST_PARAMETER_VALIDATION } from '../shared/test-data';

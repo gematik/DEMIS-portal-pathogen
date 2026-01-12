@@ -2,6 +2,16 @@
 
 # Release portal-pathogen
 
+# Release 1.6.4
+- Updated @gematik/demis-portal-core-library to 2.3.8
+- Changed info icon in formly templates
+- Disabled Sandbox for ChromeHeadless browser to run karma tests in CI
+- Updated Base Image to 1.29.4-alpine3.23-slim
+- Removed FEATURE_FLAG_PORTAL_PASTEBOX
+- Integrated form footer from core library
+- Added routing and header for § 7.3 anonymous notification (FEATURE_FLAG_ANONYMOUS_NOTIFICATION)
+- Fixed vulnerabilities in dependencies
+
 # Release 1.6.3
 - Removed FEATURE_FLAG_PORTAL_ERROR_DIALOG
 - Updated @gematik/demis-portal-core-library to 2.3.6

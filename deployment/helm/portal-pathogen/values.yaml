@@ -36,11 +36,12 @@ config:
     laboratoryDataForSpecificCode_7_1: /laboratory/7.1/federalState/pathogenData/
     laboratoryDataForSpecificCode_7_3: /laboratory/7.3/pathogenData/
   featureFlags: #Always set this to false here; feature flags will then be activated as needed via the stage configurations.
-    FEATURE_FLAG_PORTAL_PASTEBOX: false
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false
     FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: false
     FEATURE_FLAG_NEW_API_ENDPOINTS: false
     FEATURE_FLAG_PORTAL_PAGE_STRUCTURE: false
+    FEATURE_FLAG_ANONYMOUS_NOTIFICATION: false
+    FEATURE_FLAG_PORTAL_HEADER_FOOTER: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true

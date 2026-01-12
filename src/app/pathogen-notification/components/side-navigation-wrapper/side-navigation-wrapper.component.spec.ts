@@ -54,4 +54,20 @@ describe('SideNavigationWrapperComponent', () => {
     expect(component.steps()).toBeUndefined();
     expect(component.model()).toBeUndefined();
   });
+
+  describe('footer rendering', () => {
+    it('should render footer when feature flag is active', () => {
+      spyOnProperty(component, 'FEATURE_FLAG_PORTAL_HEADER_FOOTER', 'get').and.returnValue(true);
+      fixture.detectChanges();
+      const footer = fixture.debugElement.nativeElement.querySelector('gem-demis-forms-footer');
+      expect(footer).toBeTruthy();
+    });
+
+    it('should not render footer when feature flag is not active', () => {
+      spyOnProperty(component, 'FEATURE_FLAG_PORTAL_HEADER_FOOTER', 'get').and.returnValue(false);
+      fixture.detectChanges();
+      const footer = fixture.debugElement.nativeElement.querySelector('gem-demis-forms-footer');
+      expect(footer).toBeFalsy();
+    });
+  });
 });

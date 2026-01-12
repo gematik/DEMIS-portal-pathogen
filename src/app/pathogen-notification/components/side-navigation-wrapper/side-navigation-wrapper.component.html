@@ -1,45 +1,51 @@
 <mat-drawer-container class="stepper-container">
   <mat-drawer class="tabs-navigation" mode="side" opened>
-    <div class="stepper-heading">
-      @if (notificationType === NotificationType.NominalNotification7_1) {
-        <h1>Erregernachweis (§7.1)</h1>
-      }
-      @if (notificationType === NotificationType.NonNominalNotification7_3) {
-        <h1>Erregernachweis</h1>
-        <p>Meldung eines Erregernachweises gemäß § 7 Abs. 3 IfSG</p>
-      }
-      @if (isFollowUpNotificationEnabled() && notificationType === NotificationType.FollowUpNotification7_1) {
-        <h1>Folgemeldung</h1>
-        <p>Nichtnamentliche Folgemeldung eines Erregernachweises gemäß § 7 Abs. 1 IfSG</p>
-      }
-    </div>
-    <div>
-      <app-side-navigation-stepper
-        [currentStep]="currentStep()"
-        [steps]="steps()"
-        [model]="model()"
-      ></app-side-navigation-stepper>
-      <app-hexhexbutton (paste)="handleHexhexButtonClick()"></app-hexhexbutton>
-      @if (FEATURE_FLAG_PORTAL_PASTEBOX) {
+    <div class="side-content-without-footer">
+      <div class="stepper-heading">
+        @if (notificationType === NotificationType.NominalNotification7_1) {
+          <h1>Erregernachweis (§7.1)</h1>
+        }
+        @if (notificationType === NotificationType.NonNominalNotification7_3) {
+          <h1>Erregernachweis</h1>
+          <p>Meldung eines Erregernachweises gemäß § 7 Abs. 3 IfSG</p>
+        }
+        @if (isFollowUpNotificationEnabled() && notificationType === NotificationType.FollowUpNotification7_1) {
+          <h1>Folgemeldung</h1>
+          <p>Nichtnamentliche Folgemeldung eines Erregernachweises gemäß § 7 Abs. 1 IfSG</p>
+        }
+      @if (isAnonymousNotificationEnabled() && notificationType === NotificationType.AnonymousNotification7_3) {
+        <h1>Erregernachweis (anonym)</h1>
+        <p>Anonyme Meldung eines Nachweises von Krankheitserregern gemäß § 7 Abs. 3 IfSG</p>
+      }</div>
+      <div>
+        <app-side-navigation-stepper
+          [currentStep]="currentStep()"
+          [steps]="steps()"
+          [model]="model()"
+        ></app-side-navigation-stepper>
+        <app-hexhexbutton (paste)="handleHexhexButtonClick()"></app-hexhexbutton>
         <gem-demis-paste-box (dataPasted)="handlePasteBoxClick($event)"></gem-demis-paste-box>
-      } @else {
-        <app-paste-box (paste)="handlePasteBoxClick()"></app-paste-box>
-      }
+      </div>
     </div>
+    @if (FEATURE_FLAG_PORTAL_HEADER_FOOTER) {
+      <gem-demis-forms-footer/>
+    }
   </mat-drawer>
+
   <mat-drawer-content>
-      @if (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE) {
-        <div id="pathogen-tab-section-header" class="section-header">
-          <gem-demis-section-header id="pathogen-tab-section-headline" [level]="1" [titleText]="currentStepHeadline()"></gem-demis-section-header>
+    @if (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE) {
+      <div id="pathogen-tab-section-header" class="section-header">
+        <gem-demis-section-header id="pathogen-tab-section-headline" [level]="1"
+                                  [titleText]="currentStepHeadline()"></gem-demis-section-header>
+      </div>
+    } @else {
+      <div id="pathogen-tab-section-header_deprecated" class="section-header_deprecated">
+        <h1>{{ currentStepHeadline() }}</h1>
+        <div class="oval-label">
+          Schritt {{ currentStep() + 1 }} von {{ maxNumberOfSteps() }}
         </div>
-      } @else {
-        <div id="pathogen-tab-section-header_deprecated" class="section-header_deprecated">
-          <h1>{{ currentStepHeadline() }}</h1>
-          <div class="oval-label">
-            Schritt {{ currentStep() + 1 }} von {{ maxNumberOfSteps() }}
-          </div>
-        </div>
-      }
+      </div>
+    }
     <div class="section-body">
       <ng-content></ng-content>
     </div>

@@ -64,7 +64,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MethodPathogenDTO } from '../../api/notification';
 import { RESULT_OPTION_LIST } from '../../app/pathogen-notification/legacy/formly-options-lists';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
-import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, mainConfig, setupIntegrationTests } from './base';
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 
 describe('Pathogen - Diagnostic Integration Tests', () => {

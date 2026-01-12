@@ -62,7 +62,7 @@ import {
 import { TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY } from '../shared/test-objects';
 import { lastValueFrom, of } from 'rxjs';
-import { buildMock, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, setupIntegrationTests } from './base';
 
 describe('Pathogen - Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -293,6 +293,7 @@ describe('Pathogen - Integration Tests', () => {
 
         const p = lastValueFrom(of('URL S.name=Ein Name'));
         spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        spyOn(window.navigator.clipboard, 'writeText');
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
         expect(await facilitynameInput.getValue()).toBe('Ein Name');
