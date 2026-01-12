@@ -155,12 +155,4 @@ describe('ClipboardDataService', () => {
       expect(() => service.augmentCode('someCode', 'materials')).toThrowError('PT_4711_no-valueset: materials');
     });
   });
-
-  describe('should display error dialog', () => {
-    it('should throw error and opens dialog for invalid clipboard data', () => {
-      const invalidClipboardData = 'Invalid data';
-      expect(() => service.validateClipboardData(invalidClipboardData)).toThrowError('invalid clipboard: it does not start with "URL "');
-      expect(showErrorDialogInsertDataFromClipboardSpy).toHaveBeenCalled();
-    });
-  });
 });

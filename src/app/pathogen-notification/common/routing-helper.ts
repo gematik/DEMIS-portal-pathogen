@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { isFollowUpNotificationEnabled, isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
+import { isAnonymousNotificationEnabled, isFollowUpNotificationEnabled, isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
 
 export enum NotificationType {
   NominalNotification7_1,
@@ -41,6 +41,8 @@ export const getNotificationTypeByRouterUrl = (url: string): NotificationType =>
     return NotificationType.NonNominalNotification7_3;
   } else if (isFollowUpNotificationEnabled() && url.includes(allowedRoutes.followUp)) {
     return NotificationType.FollowUpNotification7_1;
+  } else if (isAnonymousNotificationEnabled() && url.includes(allowedRoutes.anonymous)) {
+    return NotificationType.AnonymousNotification7_3;
   } else {
     return NotificationType.NominalNotification7_1;
   }

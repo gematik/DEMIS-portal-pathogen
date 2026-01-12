@@ -270,6 +270,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
             this.updateAfterPathogenSelection(
               findCodeDisplayByCodeValue(this.pathogenCodeDisplays, this.followUpNotificationIdService.followUpNotificationCategory())
             );
+            // In follow-up notifications, all fields for the notified person are optional. This allowed sending the notification with an unchecked stepper.
+            // To prevent this, we mark the notifiedPerson form as touched.
+            this.markFormularAsTouched('notifiedPerson');
           } else {
             this.errorDialogService.showBasicErrorDialogWithRedirect(
               'Der gespeicherte Erreger ' +

@@ -20,13 +20,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { merge } from 'lodash-es';
 import { NGXLogger } from 'ngx-logger';
 import { AddressType, CodeDisplay, PathogenData, PathogenTest } from '../../../api/notification';
-import { matchesRegExp } from '../legacy/notification-form-validation-module';
 import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
 import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenForm } from '../utils/data-transformation';
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
 import { addContact, ANONYMOUS_PERSON_RULES, ClipboardRules, FACILITY_RULES, initialModelForClipboard, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { MessageDialogService } from '@gematik/demis-portal-core-library';
 import { NotificationType } from '../common/routing-helper';
 
@@ -165,19 +163,9 @@ export class ClipboardDataService {
     return model;
   }
 
-  private get FEATURE_FLAG_PORTAL_PASTEBOX() {
-    return environment.featureFlags.FEATURE_FLAG_PORTAL_PASTEBOX ?? false;
-  }
-
   private async getClipboardDataWithoutDiagnostic(model: any, notificationType: NotificationType): Promise<any> {
     let transformedClipboardData: string[][] | undefined;
-    if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
-      transformedClipboardData = this.clipboardData();
-    } else {
-      const clipboardData = await this.readClipboard();
-      this.validateClipboardData(clipboardData);
-      transformedClipboardData = this.transformClipboardData(clipboardData);
-    }
+    transformedClipboardData = this.clipboardData();
     model = this.transformModelForSubmittingFacilityCheckbox(transformedClipboardData, model);
     let [transformedModel, transformedClipboardDataForAddress] = await this.transformClipboardDataForAddress(model, transformedClipboardData);
     transformedModel = await this.resetCurrentAddressOnTypeChange(transformedModel, transformedClipboardDataForAddress);
@@ -258,13 +246,7 @@ export class ClipboardDataService {
 
   private async getClipboardDataWithNotificationCategoryAndDiagnostic(model: any, notificationType: NotificationType): Promise<any> {
     let transformedClipboardData: string[][] | undefined;
-    if (this.FEATURE_FLAG_PORTAL_PASTEBOX) {
-      transformedClipboardData = this.clipboardData();
-    } else {
-      const clipboardData = await this.readClipboard();
-      this.validateClipboardData(clipboardData);
-      transformedClipboardData = this.transformClipboardData(clipboardData);
-    }
+    transformedClipboardData = this.clipboardData();
     this.setSignalToFetchPathogenData(false, transformedClipboardData);
 
     const diagnosticRules = { ...this.DIAGNOSTIC_CLIPBOARD_RULES };
@@ -277,43 +259,6 @@ export class ClipboardDataService {
     }
 
     return model;
-  }
-
-  /**
-   * @deprecated
-   */
-  private async readClipboard(): Promise<string> {
-    try {
-      return await navigator.clipboard.readText();
-    } catch (err) {
-      this.logger.error('Failed to read clipboard data: ', err);
-      this.messageDialogService.showErrorDialogInsertDataFromClipboard();
-      return '';
-    }
-  }
-
-  /**
-   * @deprecated
-   */
-  validateClipboardData(clipboardData: string): void {
-    if (!matchesRegExp(/^URL .*/, clipboardData)) {
-      this.messageDialogService.showErrorDialogInsertDataFromClipboard();
-      throw Error('invalid clipboard: it does not start with "URL "');
-    }
-  }
-
-  /**
-   * @deprecated
-   */
-  private transformClipboardData(clipboardData: string): string[][] {
-    const urlParams = clipboardData.substring(4);
-    const transformedClipboardData = decodeURI(urlParams)
-      .split('&')
-      .map(s => s.split('=').map(s => s.trim()));
-    if (transformedClipboardData.length === 0) {
-      throw Error('Empty parameter list');
-    }
-    return transformedClipboardData;
   }
 
   private async resetCurrentAddressOnTypeChange(model: any, transformedClipboardData: string[][]) {

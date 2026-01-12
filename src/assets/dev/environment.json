@@ -2,8 +2,9 @@
   "featureFlags": {
     "FEATURE_FLAG_NON_NOMINAL_NOTIFICATION": true,
     "FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN": true,
-    "FEATURE_FLAG_PORTAL_PASTEBOX": true,
-    "FEATURE_FLAG_PORTAL_PAGE_STRUCTURE": true
+    "FEATURE_FLAG_PORTAL_PAGE_STRUCTURE": true,
+    "FEATURE_FLAG_ANONYMOUS_NOTIFICATION": true,
+    "FEATURE_FLAG_PORTAL_HEADER_FOOTER": true
   },
   "gatewayPaths": {
     "pathogen": "/api/ng/notification/pathogen",

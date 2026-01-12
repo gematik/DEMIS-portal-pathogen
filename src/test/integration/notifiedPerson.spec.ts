@@ -46,7 +46,7 @@ import {
 } from '../shared/test-constants';
 import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
-import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, mainConfig, setupIntegrationTests } from './base';
 
 describe('Pathogen - Notified Person Integration Tests', () => {
   let component: PathogenNotificationComponent;

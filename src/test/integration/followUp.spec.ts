@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { buildMock, mainConfig, setupIntegrationTests } from './integration.base.spec';
+import { buildMock, mainConfig, setupIntegrationTests } from './base';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
@@ -189,6 +189,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
 
         const p = lastValueFrom(of('URL P.gender=MALE&P.birthDate=01.01.2023&P.r.zip=12345&P.r.country=KP'));
         spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        spyOn(window.navigator.clipboard, 'writeText');
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
 

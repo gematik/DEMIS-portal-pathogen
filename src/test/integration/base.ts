@@ -95,6 +95,8 @@ export function buildMock(activatedRoute = false, notificationType: Notification
     builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.3/non-nominal')));
   } else if (notificationType === NotificationType.FollowUpNotification7_1) {
     builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.1/follow-up')));
+  } else if (notificationType === NotificationType.AnonymousNotification7_3) {
+    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.3/anonymous')));
   }
 
   if (activatedRoute) {
