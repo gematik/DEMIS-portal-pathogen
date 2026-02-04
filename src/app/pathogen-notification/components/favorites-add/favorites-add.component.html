@@ -4,8 +4,10 @@
       <mat-icon class="primary-color-icon">favorite_border</mat-icon>
       <a
         (click)="addPathogenToFavorites()"
+        (keydown.enter)="addPathogenToFavorites()"
         class="add-favorites-add-button"
         role="button"
+        tabindex="0"
       >An Favoriten anheften</a
       >
     }
@@ -14,8 +16,10 @@
       <mat-icon color="primary" id="remove-favorites">delete</mat-icon>
       <a
         (click)="removePathogenFromFavorites()"
+        (keydown.enter)="removePathogenFromFavorites()"
         class="add-favorites-remove-button"
         role="button"
+        tabindex="0"
       >Aus Favoriten entfernen</a
       >
     }

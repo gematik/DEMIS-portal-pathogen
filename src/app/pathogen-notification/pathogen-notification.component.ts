@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -140,6 +140,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       .pipe(
         take(1),
         catchError(error => {
+          this.logger.error(error);
           return of([[], [], []]);
         })
       )
@@ -371,7 +372,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateAfterFederalStateSelection(selectedFederalStateCode?: string, fromHexHexButton: boolean = false) {
+  updateAfterFederalStateSelection(selectedFederalStateCode?: string, fromHexHexButton = false) {
     selectedFederalStateCode = selectedFederalStateCode ?? this.defaultFederalState; // necessary if not in clipboard data
     this.notificationStorageService.setFederalStateCode(selectedFederalStateCode);
     this.fhirPathogenNotificationService
@@ -404,7 +405,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     return this.notificationType === NotificationType.FollowUpNotification7_1;
   }
 
-  private updateAfterPathogenSelection(selectedPathogenCodeDisplay: CodeDisplay, fromHexHexButton: boolean = false, fromClipboard = false) {
+  private updateAfterPathogenSelection(selectedPathogenCodeDisplay: CodeDisplay, fromHexHexButton = false, fromClipboard = false) {
     if (!fromHexHexButton && this.getSelectedPathogenCodeDisplayFromStorage()?.code === selectedPathogenCodeDisplay?.code && !fromClipboard) {
       return;
     }
@@ -415,6 +416,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       .pipe(
         take(1),
         catchError(error => {
+          this.logger.error(error);
           this.setValueForPathogenSelectionField('');
           this.setValueForSubPathogenSelectionField('');
           this.changeLoadingState(false);

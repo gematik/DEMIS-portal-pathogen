@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -25,17 +25,11 @@ interface NgxLoggerConfig {
   serverLogLevel: number;
 }
 
-export interface FeatureFlags {
-  [key: string]: boolean;
-}
+export type FeatureFlags = Record<string, boolean>;
 
-interface GatewayPaths {
-  [key: string]: string;
-}
+type GatewayPaths = Record<string, string>;
 
-interface FutsPaths {
-  [key: string]: string;
-}
+type FutsPaths = Record<string, string>;
 
 interface Configuration {
   production: boolean;
@@ -50,7 +44,7 @@ interface Configuration {
 
 export class Environment {
   public headers: HttpHeaders;
-  public local: boolean = false;
+  public local = false;
   public pathogenConfig: Configuration;
 
   constructor() {
@@ -138,7 +132,7 @@ export class Environment {
   }
 
   public get futsHeaders(): HttpHeaders {
-    return this.headers.set(this.config?.featureFlags?.FEATURE_FLAG_NEW_API_ENDPOINTS ? 'x-fhir-profile' : 'fhirProfile', 'fhir-profile-snapshots');
+    return this.headers.set('x-fhir-profile', 'fhir-profile-snapshots');
   }
 }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -109,7 +109,7 @@ export const NotificationFormValidationModule = FormlyModule.forRoot({
 // Exportable:...
 
 export function validateBSNR(bsNummer: string): any {
-  return !!bsNummer ? (matchesRegExp(BSNR_REG_EXP, bsNummer) ? null : setValidationMessage(BSNR_ERROR_MSG)) : null;
+  return bsNummer ? (matchesRegExp(BSNR_REG_EXP, bsNummer) ? null : setValidationMessage(BSNR_ERROR_MSG)) : null;
 }
 
 function dateExist(date: string): boolean {
@@ -117,7 +117,7 @@ function dateExist(date: string): boolean {
 }
 
 export function validateDateInput(date: string): any {
-  return !!date
+  return date
     ? matchesRegExp(DATE_FORMAT_DD_MM_YYYY_REG_EXP, date) // check for the format: dd.mm.yyyy
       ? dateExist(date) // check for not-existing dates like: '31.06.2022'
         ? isEmptyOrInFutureDate(DateTime.fromFormat(date, UI_LUXON_DATE_FORMAT).toJSDate())
@@ -133,7 +133,7 @@ export function validatePartialDateInput(date: string): any {
     // check for the format: dd.mm.yyyy
     return validateDateInput(date);
   } else {
-    return !!date
+    return date
       ? matchesRegExp(DATE_FORMAT_PARTIAL_EXP, date) // check for the format: yyyy, mm.yyyy, dd.mm.yyyy, m.yyyy, d.m.yyyy
         ? !partialDateNotInFuture(date)
           ? setValidationMessage(DATE_IN_FUTURE_ERROR_MSG)
@@ -150,20 +150,9 @@ export function isEmptyOrInFutureDate(date: Date): boolean {
 }
 
 export function isFutureDate(date: Date): boolean {
-  let today = DateTime.local();
-  let givenDate = DateTime.fromJSDate(date);
+  const today = DateTime.local();
+  const givenDate = DateTime.fromJSDate(date);
   return givenDate.startOf('day') > today.startOf('day');
-}
-
-export function startDateValidator(startDate: string, endDate: string, errorMsg?: string): any {
-  const startDateNotValid: any = validateDateInput(startDate);
-  return !startDateNotValid
-    ? !!endDate && !validateDateInput(endDate)
-      ? !isEndDateLaterThanStartDate(startDate, endDate)
-        ? setValidationMessage(errorMsg ?? END_DATE_LATER_THAN_START_DATE_ERROR_MSG)
-        : null
-      : null
-    : startDateNotValid;
 }
 
 export function endDateValidator(startDate: string, endDate: string, errorMsg?: string): any {
@@ -182,7 +171,7 @@ export function isEndDateLaterThanStartDate(startDate: string, endDate: string):
 }
 
 export function validateGermanZip(zip: string): any {
-  return !!zip ? (matchesRegExp(ZIP_GERMANY_REG_EXP, zip) ? null : setValidationMessage(ZIP_GERMANY_ERROR_MSG)) : null;
+  return zip ? (matchesRegExp(ZIP_GERMANY_REG_EXP, zip) ? null : setValidationMessage(ZIP_GERMANY_ERROR_MSG)) : null;
 }
 
 export function validateGermanShortZip(zip: string): any {
@@ -191,12 +180,12 @@ export function validateGermanShortZip(zip: string): any {
 
 export function termValidation(term: string): any {
   // following signs not accepted: @ \ * ? $ | = ´ ' " [ ] { } < >
-  return !!term ? (matchesRegExp(TEXT_REG_EXP, term) ? null : setValidationMessage(TEXT_ERROR_MSG)) : null;
+  return term ? (matchesRegExp(TEXT_REG_EXP, term) ? null : setValidationMessage(TEXT_ERROR_MSG)) : null;
 }
 
 export function validateStreet(term: string): any {
   // following signs not accepted: @ \ * ? $ | = " [ ] { } < >
-  return !!term ? (matchesRegExp(STREET_REG_EXP, term) ? null : setValidationMessage(TEXT_ERROR_MSG)) : null;
+  return term ? (matchesRegExp(STREET_REG_EXP, term) ? null : setValidationMessage(TEXT_ERROR_MSG)) : null;
 }
 
 export function validateName(term: string): any {
@@ -207,18 +196,18 @@ export function validateName(term: string): any {
 
 export function checkAdditionalInfoText(term: string): any {
   // following signs not accepted: \ = ´ ' < >
-  return !!term ? (matchesRegExp(ADDITIONAL_INFO_REG_EXP, term) ? null : setValidationMessage(TEXT_ERROR_MSG)) : null;
+  return term ? (matchesRegExp(ADDITIONAL_INFO_REG_EXP, term) ? null : setValidationMessage(TEXT_ERROR_MSG)) : null;
 }
 
 export function validateHouseNumber(hausNumber: string): any {
-  return !!hausNumber ? (matchesRegExp(HOUSE_NBR_REG_EXP, hausNumber) ? null : setValidationMessage(HOUSE_NBR_ERROR_MSG)) : null;
+  return hausNumber ? (matchesRegExp(HOUSE_NBR_REG_EXP, hausNumber) ? null : setValidationMessage(HOUSE_NBR_ERROR_MSG)) : null;
 }
 
 export function validateInternationalZip(zip: string): any {
-  return !!zip ? (matchesRegExp(ZIP_INTERNATIONAL_REG_EXP, zip) ? null : setValidationMessage(ZIP_INTERNATIONAL_ERROR_MSG)) : null;
+  return zip ? (matchesRegExp(ZIP_INTERNATIONAL_REG_EXP, zip) ? null : setValidationMessage(ZIP_INTERNATIONAL_ERROR_MSG)) : null;
 }
 
-export function validatePhoneNo(phoneNumber: string, required: boolean = true): boolean {
+export function validatePhoneNo(phoneNumber: string, required = true): boolean {
   if (required || phoneNumber) {
     return validatePhoneNoRegex(phoneNumber);
   } else {
@@ -235,7 +224,7 @@ export function validateNotBlank(s: string): any {
   return matchesRegExp(/\S/, s) ? null : setValidationMessage(BLANK_ERROR_MSG);
 }
 
-export function validateEmail(email: string, required: boolean = true): boolean {
+export function validateEmail(email: string, required = true): boolean {
   if (required || email) {
     return validateEmailRegex(email);
   } else {
@@ -248,7 +237,7 @@ function validateEmailRegex(email: string): boolean {
 }
 
 export function checkNumberOfBeds(noOfBeds: string): any {
-  return !!noOfBeds ? (matchesRegExp(NUMBER_OF_BEDS, noOfBeds) ? null : setValidationMessage(NUMBER_OF_BEDS_ERROR_MSG)) : null;
+  return noOfBeds ? (matchesRegExp(NUMBER_OF_BEDS, noOfBeds) ? null : setValidationMessage(NUMBER_OF_BEDS_ERROR_MSG)) : null;
 }
 
 export function matchesRegExp(regExp: RegExp, value: string): boolean {
@@ -262,11 +251,11 @@ export function setValidationMessage(valMessage: string): any {
 // Private:...
 
 function bsNrValidation(control: AbstractControl): any {
-  return !!control?.parent?.value?.existsBsnr ? validateBSNR(control.value) : null;
+  return control?.parent?.value?.existsBsnr ? validateBSNR(control.value) : null;
 }
 
 function partialDateNotInFuture(date: string): boolean {
-  const splitDate: Array<string> = date.split('.');
+  const splitDate: string[] = date.split('.');
   const now: Date = new Date();
 
   switch (splitDate.length) {
@@ -343,24 +332,21 @@ function nonBlankValidator(control: AbstractControl): any {
 }
 
 export async function optionMatchesValidation(control: AbstractControl, field: FieldType<FieldTypeConfig>): Promise<ValidationErrors> {
-  return (
-    field.props
-      //@ts-ignore
-      .filter(control.value)
-      .pipe(
-        map((options: any[]) => {
-          if (!control.value) {
-            return null;
-          }
-          if (options.length === 0) {
-            return { optionMismatch: true };
-          }
-          if (options.indexOf(control.value) >= 0) {
-            return null;
-          }
-          return { optionIncomplete: true };
-        })
-      )
-      .toPromise()
-  );
+  return field.props
+    .filter(control.value)
+    .pipe(
+      map((options: any[]) => {
+        if (!control.value) {
+          return null;
+        }
+        if (options.length === 0) {
+          return { optionMismatch: true };
+        }
+        if (options.indexOf(control.value) >= 0) {
+          return null;
+        }
+        return { optionIncomplete: true };
+      })
+    )
+    .toPromise();
 }

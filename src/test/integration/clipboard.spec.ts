@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -281,7 +281,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         const selectedGender = await genderSelect.getValueText();
         expect(selectedGender).toBe('Bitte auswählen');
 
-        const p = lastValueFrom(of('URL P.gender=Female'));
+        const p = lastValueFrom(of('URL P.gender=FEMALE'));
         spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
@@ -457,7 +457,6 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         // preparation
         const clipboardStringNotificationCategory = createClipboardStringFromObject(TEST_NOTIFICATION_CATEGORY, 'URL ');
         const clipboardStringSpecimen = createClipboardStringFromObject(specimenDTO, '&');
-        const p = lastValueFrom(of(clipboardStringNotificationCategory.concat(clipboardStringSpecimen)));
         const clipboardData = clipboardStringNotificationCategory.concat(clipboardStringSpecimen).replace('undefined=undefined&', '');
         spyOn(window.navigator.clipboard, 'readText').and.resolveTo(clipboardData);
         await verifyStateOfDiagnosticPage(loader, 'disabled_step');

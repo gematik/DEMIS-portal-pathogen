@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -64,7 +64,7 @@ export function notifierFacilitySourceIsInvalid(sourceFacility: any, field: Form
 }
 
 function allPropsDefined<T extends object>(obj: T): obj is { [K in keyof T]: Exclude<T[K], undefined> } {
-  return Object.values(obj).every(v => typeof v !== undefined && v !== '');
+  return Object.values(obj).every(v => v !== undefined && v !== '');
 }
 
 export function getCurrentAddress(fieldGroup: FormlyFieldConfig[]) {

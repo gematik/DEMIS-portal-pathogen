@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -45,11 +45,11 @@ export const FIELD_CURRENT_ADDRESS_STREET = 'current-address-street';
 export const FIELD_CURRENT_ADDRESS_CITY = 'current-address-city';
 export const FIELD_CURRENT_ADDRESS_ZIP = 'current-address-zip';
 export const FIELD_CURRENT_ADDRESS_COUNTRY = 'current-address-country';
-export const FIELD_EMAIL_CY = 'email';
+export const FIELD_EMAIL = 'email';
 export const FIELD_EMAIL_1 = 'email-0';
 export const FIELD_EMAIL_2 = 'email-1';
 export const FIELD_EMAIL_3 = 'email-2';
-export const FIELD_PHONE_NUMBER_CY = 'phoneNo';
+export const FIELD_PHONE = 'phoneNo';
 export const FIELD_PHONE_1 = 'phoneNo-0';
 export const FIELD_PHONE_2 = 'phoneNo-1';
 export const FIELD_PHONE_3 = 'phoneNo-2';

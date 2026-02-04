@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -15,7 +15,8 @@
     find details in the "Readme" file.
  */
 
-import { formatDateToYYMMDD, germanToIsoFormat, isoToGermanFormat } from './common-utils';
+import { formatDateToYYMMDD, germanToIsoFormat, getEnumKeyByValue, isoToGermanFormat } from './common-utils';
+import { Gender } from '../../../api/notification';
 
 describe('common-utils', () => {
   describe('isoToGermanFormat', () => {
@@ -95,6 +96,24 @@ describe('common-utils', () => {
     it('should not convert ambiguous values like "13.2025"', () => {
       // "13.2025" is not a valid MM.yyyy (no 13th month)
       expect(germanToIsoFormat('13.2025')).toBe('13.2025');
+    });
+  });
+
+  describe('getEnumKeyByValue', () => {
+    it('returns correct gender value for MALE', () => {
+      expect(getEnumKeyByValue(Gender, 'MALE')).toBe(Gender.Male);
+    });
+
+    it('returns correct gender value for OTHERX', () => {
+      expect(getEnumKeyByValue(Gender, 'OTHERX')).toBe(Gender.Otherx);
+    });
+
+    it('returns DIVERSE for deprecated OTHER', () => {
+      expect(getEnumKeyByValue(Gender, 'OTHER')).toBe(Gender.Diverse);
+    });
+
+    it('returns error if gender value does not exist', () => {
+      expect(() => getEnumKeyByValue(Gender, 'INVALID')).toThrowError("Unknown value 'INVALID'");
     });
   });
 });

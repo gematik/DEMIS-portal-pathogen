@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -255,7 +255,7 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
       });
 
       it('should add sequence of specimen and check that only first is expanded; deletes panels afterwards', async () => {
-        let titleArray = [];
+        const titleArray = [];
         for (let i = 1; i < 10; i++) {
           await clickAddSpecimenButton(fixture);
           titleArray.push(SPECIMEN_TITLE);

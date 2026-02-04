@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -27,7 +27,7 @@ import { environment } from 'src/environments/environment';
 export class HexhexbuttonComponent {
   private readonly targetElement = inject(ElementRef);
 
-  readonly paste = output<void>();
+  readonly pasteHexHexData = output<void>();
 
   constructor() {
     this.targetElement.nativeElement.classList.add('hexhexbutton');
@@ -44,7 +44,7 @@ export class HexhexbuttonComponent {
   }
 
   doPaste() {
-    this.paste.emit(undefined);
+    this.pasteHexHexData.emit(undefined);
   }
 
   showHexHex(): boolean {

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { NotifiedPersonBasicInfo, PathogenData, PractitionerInfo } from 'src/api/notification';
+import { Gender, PathogenData, PractitionerInfo } from 'src/api/notification';
 import { ClipboardDataService } from './clipboard-data.service';
 import { ANONYMOUS_PERSON_RULES, FACILITY_RULES, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { TestBed } from '@angular/core/testing';
@@ -53,11 +53,11 @@ describe('ClipboardDataService', () => {
     describe('NOMINAL_PERSON_RULES', () => {
       it('should accept valid gender enums', async () => {
         const model = {};
-        const problems = await service.fillModel(NOMINAL_PERSON_RULES, [['P.gender', NotifiedPersonBasicInfo.GenderEnum.Female]], model);
+        const problems = await service.fillModel(NOMINAL_PERSON_RULES, [['P.gender', Gender.Female]], model);
         expect(model).toEqual({
           notifiedPerson: {
             info: {
-              gender: NotifiedPersonBasicInfo.GenderEnum.Female,
+              gender: Gender.Female,
             },
           },
         });

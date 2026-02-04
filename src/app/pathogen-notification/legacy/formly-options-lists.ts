@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -15,18 +15,7 @@
     find details in the "Readme" file.
  */
 
-import {
-  AddressType,
-  MethodPathogenDTO,
-  NotificationLaboratoryCategory,
-  NotifiedPersonBasicInfo,
-  PractitionerInfo,
-  ResistanceDTO,
-  ResistanceGeneDTO,
-} from '../../../api/notification';
-import GenderEnum = NotifiedPersonBasicInfo.GenderEnum;
-import SalutationEnum = PractitionerInfo.SalutationEnum;
-
+import { AddressType, Gender, MethodPathogenDTO, NotificationLaboratoryCategory, ResistanceDTO, ResistanceGeneDTO } from '../../../api/notification';
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import ResistanceResultEnum = ResistanceDTO.ResistanceResultEnum;
@@ -44,29 +33,13 @@ export const CURRENT_ADDRESS_TYPE_OPTION_LIST = [
   { value: AddressType.OtherFacility, label: 'andere Einrichtung / Unterkunft' },
 ];
 
-export const EXIST_BS_NR_OPTION_LIST = [
-  { value: true, label: 'Vorhanden' },
-  { value: false, label: 'Nicht vorhanden' },
-];
-
 export const GENDER_OPTION_LIST = [
-  { value: GenderEnum.Male, label: 'Männlich' },
-  { value: GenderEnum.Female, label: 'Weiblich' },
-  { value: GenderEnum.Other, label: 'Divers' },
-  { value: GenderEnum.Unknown, label: 'Keine Angabe' },
+  { value: Gender.Male, label: 'Männlich' },
+  { value: Gender.Female, label: 'Weiblich' },
+  { value: Gender.Diverse, label: 'Divers' },
+  { value: Gender.Otherx, label: 'Kein Geschlechtseintrag' },
+  { value: Gender.Unknown, label: 'Unbekannt' },
 ];
-
-export const INSTITUTION_TYPE_OPTION_LIST = [
-  { value: 'work', label: 'Dienstlich' },
-  { value: 'home', label: 'Privat' },
-];
-
-export const SALUTATION_OPTION_LIST = [
-  { value: SalutationEnum.Mrs, label: 'Frau' },
-  { value: SalutationEnum.Mr, label: 'Herr' },
-];
-
-export const SYMPTOMS_OPTION_LIST = [];
 
 export const RESULT_OPTION_LIST = [
   { value: ResultEnum.Pos, label: 'Positiv' },

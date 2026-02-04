@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -130,7 +130,7 @@ export class FhirPathogenNotificationService {
       );
   }
 
-  fetchFederalStateCodeDisplays = (type: NotificationType): Observable<Array<CodeDisplay>> => {
+  fetchFederalStateCodeDisplays = (type: NotificationType): Observable<CodeDisplay[]> => {
     if (type === NotificationType.NonNominalNotification7_3) {
       return of([]);
     }
@@ -139,7 +139,7 @@ export class FhirPathogenNotificationService {
       path = `${environment.pathToFuts}/laboratory/federalStates`;
     }
     return this.httpClient
-      .get<Array<CodeDisplay>>(path, {
+      .get<CodeDisplay[]>(path, {
         headers: this.futsHeaders,
       })
       .pipe(
@@ -151,10 +151,10 @@ export class FhirPathogenNotificationService {
       );
   };
 
-  fetchCountryCodeDisplays = (): Observable<Array<CodeDisplay>> => {
+  fetchCountryCodeDisplays = (): Observable<CodeDisplay[]> => {
     const path = environment.countryCodes;
     return this.httpClient
-      .get<Array<CodeDisplay>>(path, {
+      .get<CodeDisplay[]>(path, {
         headers: this.futsHeaders,
       })
       .pipe(
@@ -170,7 +170,7 @@ export class FhirPathogenNotificationService {
     this.messageDialogService.showSpinnerDialog({ message: 'Meldung wird gesendet' });
 
     notification = this.prepareNotification(notification);
-    let fullUrl = this.getNotificationUrl(notificationType);
+    const fullUrl = this.getNotificationUrl(notificationType);
     this.httpClient
       .post(fullUrl, JSON.stringify(notification), {
         headers: FhirPathogenNotificationService.getEnvironmentHeaders(),

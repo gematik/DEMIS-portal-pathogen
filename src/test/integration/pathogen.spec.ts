@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -38,15 +38,17 @@ import {
   ADD_BUTTON_PHONE,
   FIELD_COPY_ADDRESS,
   FIELD_DEPARTMENTNAME,
+  FIELD_EMAIL_1,
   FIELD_EMAIL_2,
-  FIELD_EMAIL_CY,
+  FIELD_EMAIL,
   FIELD_FIRST_NAME,
   FIELD_INSTITUTIONAME,
   FIELD_LAST_NAME,
   FIELD_NOTIFIER_FACILITY_ADDRESS_STREET,
   FIELD_NOTIFIER_FACILITY_FIRSTNAME,
   FIELD_NOTIFIER_FACILITY_LASTNAME,
-  FIELD_PHONE_NUMBER_CY,
+  FIELD_PHONE_1,
+  FIELD_PHONE,
   FIELD_SUBMITTING_FACILITY_ADDRESS_CITY,
   FIELD_SUBMITTING_FACILITY_ADDRESS_HOUSE_NUMBER,
   FIELD_SUBMITTING_FACILITY_ADDRESS_STREET,
@@ -91,7 +93,7 @@ describe('Pathogen - Integration Tests', () => {
     parameters.forEach(({ value, expectedResult }) => {
       it(`for the ${isMail ? 'email' : 'phone number'}, the value: '${value}' should throw the error: '${expectedResult}'`, async () => {
         if (openContactField) await (await getButton(loader, isMail ? ADD_BUTTON_EMAIL : ADD_BUTTON_PHONE)).click();
-        const inputField = await getInput(loader, `[data-cy=${isMail ? FIELD_EMAIL_CY : FIELD_PHONE_NUMBER_CY}]`);
+        const inputField = await getInput(loader, `#${isMail ? FIELD_EMAIL_1 : FIELD_PHONE_1}`);
         await inputField.setValue(value);
         await inputField.blur();
         await checkDescribingError(fixture, inputField, expectedResult);
@@ -110,7 +112,7 @@ describe('Pathogen - Integration Tests', () => {
   });
 
   it('should show 7.1 header', async () => {
-    let textContent = fixture.nativeElement.textContent;
+    const textContent = fixture.nativeElement.textContent;
     expect(textContent.includes('Erregernachweis (§7.1)')).toBeTrue();
   });
 

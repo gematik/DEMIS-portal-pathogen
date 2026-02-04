@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -148,8 +148,8 @@ function transformAnonymousPerson(pathogenForm: any, result: any) {
   return result;
 }
 
-function fillSpecimenList(specimenDTOS: Array<SpecimenDTOForm>, pathogenData: PathogenData) {
-  let finalSpecimenList: SpecimenDTO[] = [];
+function fillSpecimenList(specimenDTOS: SpecimenDTOForm[], pathogenData: PathogenData) {
+  const finalSpecimenList: SpecimenDTO[] = [];
   specimenDTOS.forEach(specimenItem => {
     if (specimenItem.specimenDTO) {
       const thisItem = specimenItem.specimenDTO;
@@ -241,6 +241,10 @@ export function transformPathogenFormToPathogenTest(
     result = transformDiagnostic(pathogenForm, result, pathogenData, selectedPathogen);
   }
 
+  if (pathogenData?.staticSystemVersions) {
+    result.staticSystemVersions = pathogenData.staticSystemVersions;
+  }
+
   return result;
 }
 
@@ -275,6 +279,7 @@ function transformAddress(address: any, addressType: string): any {
 
 function transformAddressWithoutAddressType(address: any): any {
   if (!address) return {};
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { addressType, ...addressWithoutType } = address;
   return addressWithoutType;
 }
@@ -298,9 +303,9 @@ interface SpecimenForm {
   extractionDate?: string;
   receivedDate: string;
   material: string;
-  methodPathogenList: Array<MethodPathogenFrom>;
-  resistanceList?: Array<ResistanceDTO>;
-  resistanceGeneList?: Array<ResistanceGeneDTO>;
+  methodPathogenList: MethodPathogenFrom[];
+  resistanceList?: ResistanceDTO[];
+  resistanceGeneList?: ResistanceGeneDTO[];
 }
 
 export interface MethodPathogenFrom {

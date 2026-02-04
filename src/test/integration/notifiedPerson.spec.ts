@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -41,8 +41,10 @@ import {
   ADD_BUTTON_PHONE,
   ADDRESS_TYPE_OTHER_FACILITY,
   FIELD_COPY_ADDRESS,
-  FIELD_EMAIL_CY,
-  FIELD_PHONE_NUMBER_CY,
+  FIELD_EMAIL_1,
+  FIELD_EMAIL,
+  FIELD_PHONE_1,
+  FIELD_PHONE,
 } from '../shared/test-constants';
 import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
@@ -75,7 +77,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     parameters.forEach(({ value, expectedResult }) => {
       it(`for the ${isMail ? 'email' : 'phone number'}, the value: '${value}' should throw the error: '${expectedResult}'`, async () => {
         if (openContactField) await (await getButton(loader, isMail ? ADD_BUTTON_EMAIL : ADD_BUTTON_PHONE)).click();
-        const inputField = await getInput(loader, `[data-cy=${isMail ? FIELD_EMAIL_CY : FIELD_PHONE_NUMBER_CY}]`);
+        const inputField = await getInput(loader, `#${isMail ? FIELD_EMAIL_1 : FIELD_PHONE_1}`);
         await inputField.setValue(value);
         await inputField.blur();
         await checkDescribingError(fixture, inputField, expectedResult);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -15,17 +15,15 @@
     find details in the "Readme" file.
  */
 
-import { FormControl } from '@angular/forms';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { of } from 'rxjs';
-import { isoToGermanFormat, UI_DATE_FORMAT_GER } from '../../../legacy/common-utils';
+import { isoToGermanFormat } from '../../../legacy/common-utils';
 
-import { PathogenFormInfos } from 'src/app/pathogen-notification/utils/disclaimer-texts';
 import { RESISTANCE_GENE_RESULT_OPTION_LIST, RESISTANCE_RESULT_OPTION_LIST, RESULT_OPTION_LIST } from '../../../legacy/formly-options-lists';
-import { environment } from '../../../../../environments/environment';
 import { EXTRACTION_START_ERROR_MSG } from '../../../common/pathogen-formly-validation-module';
 import { NotificationType } from '../../../common/routing-helper';
-import { formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
+import { FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
+import { PathogenFormInfos } from '../../../utils/disclaimer-texts';
 
 const isFollowUpNotification = (notificationType: NotificationType) => notificationType === NotificationType.FollowUpNotification7_1;
 
@@ -142,7 +140,6 @@ export const pathogenSpecimenFields = (
                     label: 'Material',
                     filter: (term: string) => applyFilter(term, materialDisplays),
                     required: true,
-                    attributes: { 'data-cy': 'material' },
                   },
                   asyncValidators: {
                     validation: ['optionMatches'],
@@ -183,7 +180,6 @@ export const pathogenSpecimenFields = (
                         label: 'Methode',
                         filter: (term: string) => applyFilter(term, methodDisplays),
                         required: true,
-                        attributes: { 'data-cy': 'method' },
                       },
                       asyncValidators: {
                         validation: ['optionMatches'],
@@ -197,7 +193,6 @@ export const pathogenSpecimenFields = (
                       props: {
                         label: 'Analyt',
                         filter: (term: string) => applyFilter(term, analytDisplays),
-                        attributes: { 'data-cy': 'analyt' },
                       },
                       asyncValidators: {
                         validation: ['optionMatches'],
@@ -213,7 +208,6 @@ export const pathogenSpecimenFields = (
                         required: true,
                         label: 'Ergebnis',
                         options: RESULT_OPTION_LIST,
-                        attributes: { 'data-cy': 'result' },
                       },
                     },
                   ],
@@ -309,13 +303,6 @@ export const pathogenSpecimenFields = (
   ];
 };
 
-const triggerReceivedDateValidation = (parentFormControl?: FormControl) => {
-  if (parentFormControl?.value?.receivedDate) {
-    parentFormControl?.patchValue({
-      receivedDate: parentFormControl?.value?.receivedDate,
-    });
-  }
-};
 const escapeRegExp = (string: string) => {
   //we have options with () and []
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
