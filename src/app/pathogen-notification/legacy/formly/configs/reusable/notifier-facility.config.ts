@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -29,10 +29,10 @@ import { bsnrFormlyFieldConfig, existsBsnrFormlyFieldConfig } from './bsnr.confi
 import { addressFormConfigFields } from './address.config';
 import { practitionerInfoFormConfigFields } from './practitioner-info.config';
 import { oneTimeCodeConfigField } from './oneTimeCode.config';
-import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
 import { tap } from 'rxjs/operators';
+import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
 
-export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDisplay[], needsContact: boolean = true): FormlyFieldConfig[] => {
+export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDisplay[], needsContact = true): FormlyFieldConfig[] => {
   return [
     {
       // recognizes any change in notifierFacility to make sure that the address is copied correctly

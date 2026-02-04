@@ -2,6 +2,15 @@
 
 # Release portal-pathogen
 
+# Release 1.6.5
+- Removed data-cy attributes from elements
+- Updated @gematik/demis-portal-core-library to 2.3.9
+- Fixed vulnerabilities in dependencies
+- Adapted gender enum according to openapi model, added gender other x
+- Added eslint config and fixed linting issues
+- Added possibility to pass staticSystemVersion to gateway
+- removed feature flag NEW_API_ENDPOINTS
+
 # Release 1.6.4
 - Updated @gematik/demis-portal-core-library to 2.3.8
 - Changed info icon in formly templates

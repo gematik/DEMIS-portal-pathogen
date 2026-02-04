@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -19,18 +19,17 @@ import {
   AddressType,
   CodeDisplay,
   ContactPointInfo,
+  Gender,
   MethodPathogenDTO,
   NotificationLaboratoryCategory,
   NotifiedPerson,
   NotifiedPersonAnonymous,
-  NotifiedPersonBasicInfo,
 } from '../../../api/notification';
 import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
 import { transformPathogenTestToPathogenForm } from './data-transformation';
 import { NotificationType } from '../common/routing-helper';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import UsageEnum = ContactPointInfo.UsageEnum;
-import GenderEnum = NotifiedPersonBasicInfo.GenderEnum;
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 
@@ -106,7 +105,7 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
         firstname: 'Max',
         lastname: 'Power',
         birthDate: todayDate,
-        gender: GenderEnum.Male,
+        gender: Gender.Male,
       },
       residenceAddress: {
         zip: ZIP_CODE_DEFAULT,
@@ -228,7 +227,7 @@ export const pathogenFormDummyDataNotifiedPersonNotByName = {
     firstname: 'Max',
     lastname: 'Power',
     birthDate: newDate(DATE_FORMAT),
-    gender: GenderEnum.Male,
+    gender: Gender.Male,
   },
 };
 

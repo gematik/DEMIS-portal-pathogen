@@ -7,9 +7,9 @@
     "FEATURE_FLAG_PORTAL_HEADER_FOOTER": true
   },
   "gatewayPaths": {
-    "pathogen": "/api/ng/notification/pathogen",
-    "pathogen_7_1": "/api/ng/notification/pathogen/7.1",
-    "pathogen_7_3_non_nominal": "/api/ng/notification/pathogen/7.3/non_nominal"
+    "pathogen": "/notification/pathogen",
+    "pathogen_7_1": "/notification/pathogen/7.1",
+    "pathogen_7_3_non_nominal": "/notification/pathogen/7.3/non_nominal"
   },
   "futsPaths": {
     "countryCodes": "/utils/countryCodes",
@@ -23,8 +23,8 @@
     "disableConsoleLogging": false,
     "level": 1
   },
-  "pathToGateway": "../gateway/notification",
-  "pathToFuts": "/fhir-ui-data-model-translation",
+  "pathToGateway": "../gateway/pathogen",
+  "pathToFuts": "/translation/ui-data-model/v6/fhir",
   "pathToDestinationLookup": "/destination-lookup/v1",
   "production": false
 }

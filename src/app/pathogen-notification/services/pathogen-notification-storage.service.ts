@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -62,7 +62,7 @@ export class PathogenNotificationStorageService {
     return this.localStorageService.getItem(this.NOTIFIER_FACILITY);
   }
 
-  getFavorites(isNonNominalNotification7_3: boolean = false): CodeDisplay[] {
+  getFavorites(isNonNominalNotification7_3 = false): CodeDisplay[] {
     const favorites = this.localStorageService.getItem(this.getFavoritesKey(isNonNominalNotification7_3));
 
     if (
@@ -78,17 +78,17 @@ export class PathogenNotificationStorageService {
     return favorites as CodeDisplay[];
   }
 
-  updateFavorites(favorites: CodeDisplay[], isNonNominalNotification7_3: boolean = false) {
+  updateFavorites(favorites: CodeDisplay[], isNonNominalNotification7_3 = false) {
     this.localStorageService.setItem(this.getFavoritesKey(isNonNominalNotification7_3), favorites);
     this.favoritesChanged.emit(); // Emit the event when favorites are updated
   }
 
-  addFavoriteToList(favorite: CodeDisplay, isNonNominalNotification7_3: boolean = false): void {
+  addFavoriteToList(favorite: CodeDisplay, isNonNominalNotification7_3 = false): void {
     this.localStorageService.addItemToList(this.getFavoritesKey(isNonNominalNotification7_3), favorite);
     this.favoritesChanged.emit(); // Emit the event when a favorite is added
   }
 
-  removeFavoriteFromList(favorite: CodeDisplay, isNonNominalNotification7_3: boolean = false): void {
+  removeFavoriteFromList(favorite: CodeDisplay, isNonNominalNotification7_3 = false): void {
     this.localStorageService.removeObjectFromList(this.getFavoritesKey(isNonNominalNotification7_3), favorite);
     this.favoritesChanged.emit(); // Emit the event when a favorite is removed
   }

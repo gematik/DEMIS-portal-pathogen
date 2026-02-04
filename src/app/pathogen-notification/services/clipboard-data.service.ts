@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -164,10 +164,11 @@ export class ClipboardDataService {
   }
 
   private async getClipboardDataWithoutDiagnostic(model: any, notificationType: NotificationType): Promise<any> {
-    let transformedClipboardData: string[][] | undefined;
-    transformedClipboardData = this.clipboardData();
+    const transformedClipboardData: string[][] | undefined = this.clipboardData();
     model = this.transformModelForSubmittingFacilityCheckbox(transformedClipboardData, model);
-    let [transformedModel, transformedClipboardDataForAddress] = await this.transformClipboardDataForAddress(model, transformedClipboardData);
+    const resultArr = await this.transformClipboardDataForAddress(model, transformedClipboardData);
+    let transformedModel = resultArr[0];
+    const transformedClipboardDataForAddress = resultArr[1];
     transformedModel = await this.resetCurrentAddressOnTypeChange(transformedModel, transformedClipboardDataForAddress);
 
     this.setSignalToFetchPathogenData(true, transformedClipboardData);
@@ -245,8 +246,7 @@ export class ClipboardDataService {
   }
 
   private async getClipboardDataWithNotificationCategoryAndDiagnostic(model: any, notificationType: NotificationType): Promise<any> {
-    let transformedClipboardData: string[][] | undefined;
-    transformedClipboardData = this.clipboardData();
+    const transformedClipboardData = this.clipboardData();
     this.setSignalToFetchPathogenData(false, transformedClipboardData);
 
     const diagnosticRules = { ...this.DIAGNOSTIC_CLIPBOARD_RULES };
@@ -376,7 +376,7 @@ export class ClipboardDataService {
   }
 
   private isPromise(val: any | Promise<any>): val is Promise<any> {
-    return val && (<Promise<any>>val).then !== undefined;
+    return val && (val as Promise<any>).then !== undefined;
   }
 
   augmentCode(code: string, valueSetName: 'materials' | 'methods' | 'answerSet' | 'substances' | 'resitances' | 'resistanceGenes'): string {

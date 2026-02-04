@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -28,9 +28,10 @@ import { MatError } from '@angular/material/form-field';
 export class ValidationWrapperComponent extends FieldWrapper implements OnInit {
   stateChanges = new Subject<void>();
 
-  // @ts-ignore
-  get showError(): boolean {
-    return true;
+  private readonly _showError = true;
+
+  public override get showError() {
+    return this._showError;
   }
 
   ngOnInit(): void {

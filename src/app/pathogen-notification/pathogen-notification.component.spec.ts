@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -18,7 +18,7 @@
 import { TestBed } from '@angular/core/testing';
 import { PathogenNotificationComponent } from './pathogen-notification.component';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { PathogenNotificationStorageService } from './services/pathogen-notification-storage.service';
 import { TEST_DATA } from '../../test/shared/test-data';
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -26,6 +26,7 @@ import { MockedComponentFixture } from 'ng-mocks';
 import { NotificationType } from './common/routing-helper';
 import { buildMock, setupIntegrationTests } from '../../test/integration/base';
 import { FollowUpNotificationIdService } from '@gematik/demis-portal-core-library';
+import { NGXLogger } from 'ngx-logger';
 
 describe('PathogenNotificationComponent', () => {
   let component: PathogenNotificationComponent;
@@ -36,6 +37,7 @@ describe('PathogenNotificationComponent', () => {
   let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
   let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
   let getNotifierFacilitySpy: jasmine.Spy;
+  let loggerSpy: jasmine.SpyObj<NGXLogger>;
 
   beforeEach(async () => await buildMock());
 
@@ -49,6 +51,10 @@ describe('PathogenNotificationComponent', () => {
     fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
     fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as jasmine.Spy;
     getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
+    loggerSpy = TestBed.inject(NGXLogger) as jasmine.SpyObj<NGXLogger>;
+    if (!loggerSpy.error.and) {
+      spyOn(loggerSpy, 'error');
+    }
 
     fixture.detectChanges();
   });
@@ -89,6 +95,72 @@ describe('PathogenNotificationComponent', () => {
     component.ngOnInit();
     expect(getNotifierFacilitySpy).toHaveBeenCalled();
     expect(component.model.pathogenForm.notifierFacility).toEqual(undefined);
+  });
+
+  it('should handle error when fetching initial data and log error', () => {
+    const error = new Error('Test Error');
+    fetchCountryCodeDisplaysSpy.and.returnValue(throwError(() => error));
+    // Provide other observables as they are in forkJoin
+    fetchFederalStateCodeDisplaysSpy.and.returnValue(of([]));
+    fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of([]));
+    getNotifierFacilitySpy.and.returnValue(null);
+
+    component.ngOnInit();
+
+    expect(loggerSpy.error).toHaveBeenCalledWith(error);
+  });
+
+  describe('updateAfterFederalStateSelection', () => {
+    it('should fetch pathogen displays and update filter when federal state is selected', () => {
+      component.notificationType = NotificationType.NominalNotification7_1;
+      const federalState = 'DE-BY';
+      const pathogenDisplays = [TEST_DATA.pathogenCodeDisplays[0]];
+
+      // Initialize fields using ngOnInit with empty/dummy data
+      fetchCountryCodeDisplaysSpy.and.returnValue(of(TEST_DATA.countryCodeDisplays));
+      fetchFederalStateCodeDisplaysSpy.and.returnValue(of(TEST_DATA.federalStateCodeDisplays));
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
+      getNotifierFacilitySpy.and.returnValue(null);
+      component.ngOnInit();
+
+      // Reset spy and setup return value for the actual test
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.calls.reset();
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(pathogenDisplays));
+      spyOn(component, 'setValueForPathogenSelectionField');
+
+      component.updateAfterFederalStateSelection(federalState);
+
+      expect(fetchPathogenCodeDisplaysByTypeAndStateSpy).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, federalState);
+      expect(component.pathogenCodeDisplays).toEqual(pathogenDisplays);
+      expect(component.setValueForPathogenSelectionField).toHaveBeenCalledWith('');
+    });
+  });
+
+  describe('updateAfterPathogenSelection', () => {
+    it('should handle error during pathogen selection update and log error', () => {
+      // Initialize fields
+      fetchCountryCodeDisplaysSpy.and.returnValue(of(TEST_DATA.countryCodeDisplays));
+      fetchFederalStateCodeDisplaysSpy.and.returnValue(of(TEST_DATA.federalStateCodeDisplays));
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
+      getNotifierFacilitySpy.and.returnValue(null);
+      component.ngOnInit();
+
+      const fetchDiagnosticsSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as jasmine.Spy;
+      const error = new Error('Diagnostics Error');
+      fetchDiagnosticsSpy.and.returnValue(throwError(() => error));
+
+      spyOn(component, 'setValueForPathogenSelectionField');
+      spyOn(component, 'setValueForSubPathogenSelectionField');
+
+      const pathogen = TEST_DATA.pathogenCodeDisplays[0];
+
+      component.populateWithFavoriteSelection(pathogen);
+
+      expect(loggerSpy.error).toHaveBeenCalledWith(error);
+      expect(component.isLoading()).toBeFalse();
+      expect(component.setValueForPathogenSelectionField).toHaveBeenCalledWith('');
+      expect(component.setValueForSubPathogenSelectionField).toHaveBeenCalledWith('');
+    });
   });
 
   describe('updateFormForHexHex', () => {

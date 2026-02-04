@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -22,7 +22,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { checkDescribingError } from '../shared/test-utils';
 import { buildMock, setupIntegrationTests } from './base';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { ADD_BUTTON_EMAIL, ADD_BUTTON_PHONE, FIELD_EMAIL_CY, FIELD_PHONE_NUMBER_CY } from '../shared/test-constants';
+import { ADD_BUTTON_EMAIL, ADD_BUTTON_PHONE, FIELD_EMAIL_1, FIELD_EMAIL, FIELD_PHONE_1, FIELD_PHONE } from '../shared/test-constants';
 import { TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 
 describe('Pathogen - Notifier Facility Integration Tests', () => {
@@ -46,7 +46,7 @@ describe('Pathogen - Notifier Facility Integration Tests', () => {
       it(`for the ${isMail ? 'email' : 'phone number'}, the value: '${value}' should throw the error: '${expectedResult}'`, async () => {
         if (openContactField)
           await (await getButton(loader, isMail ? '[data-testid="emailAddresses-add-button"]' : '[data-testid="phoneNumbers-add-button"]')).click();
-        const inputField = await getInput(loader, `[data-cy=${isMail ? FIELD_EMAIL_CY : FIELD_PHONE_NUMBER_CY}]`);
+        const inputField = await getInput(loader, `#${isMail ? FIELD_EMAIL_1 : FIELD_PHONE_1}`);
         await inputField.setValue(value);
         await inputField.blur();
         await checkDescribingError(fixture, inputField, expectedResult);
@@ -90,8 +90,8 @@ describe('Pathogen - Notifier Facility Integration Tests', () => {
     let getAddEmailButton: () => Promise<MatButtonHarness>;
 
     beforeEach(async () => {
-      getPhoneFieldsCount = async () => (await getMultipleInputFieldsWithSameSelector(loader, '[data-cy="phoneNo"]')).length;
-      getEmailFieldsCount = async () => (await getMultipleInputFieldsWithSameSelector(loader, '[data-cy="email"]')).length;
+      getPhoneFieldsCount = async () => (await getMultipleInputFieldsWithSameSelector(loader, `[id^="${FIELD_PHONE}-"]`)).length;
+      getEmailFieldsCount = async () => (await getMultipleInputFieldsWithSameSelector(loader, `[id^="${FIELD_EMAIL}-"]`)).length;
       getDeletePhoneButtons = async () => getAllButtonsWithSameSelector(loader, '[id^="phoneNumbers-delete-button"]');
       getDeleteEmailButtons = async () => getAllButtonsWithSameSelector(loader, '[id^="emailAddresses-delete-button"]');
       getAddPhoneButton = async () => getButton(loader, ADD_BUTTON_PHONE);

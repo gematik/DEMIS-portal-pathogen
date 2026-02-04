@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -32,7 +32,7 @@ export class LocalStorageService {
       return null;
     }
     const storageItem = localStorage.getItem(key);
-    return !!storageItem ? (JSON.parse(storageItem) as T) : null;
+    return storageItem ? (JSON.parse(storageItem) as T) : null;
   }
 
   removeItem(key: string): void {
@@ -50,11 +50,11 @@ export class LocalStorageService {
   addItemToList<T>(key: string, value: T): void {
     if (window.localStorage) {
       const currentItems: string[] = JSON.parse(localStorage.getItem(key));
-      let itemArray = [];
+      const itemArray = [];
       if (!currentItems?.includes(value as string)) {
         itemArray.push(value);
         if (currentItems) {
-          for (let v of currentItems) {
+          for (const v of currentItems) {
             itemArray.push(v);
           }
         }

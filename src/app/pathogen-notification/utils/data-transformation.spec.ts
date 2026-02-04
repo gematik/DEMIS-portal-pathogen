@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -289,6 +289,35 @@ describe('DataTransformation', () => {
       const result = transformPathogenFormToPathogenTest(pathogenForm, NotificationType.NonNominalNotification7_3);
 
       expect(result.notifiedPerson).toBeUndefined();
+    });
+  });
+
+  describe('transformStaticSystemVersions', () => {
+    it('should set staticSystemVersions when available in pathogenData', () => {
+      const pathogenForm = {};
+      const pathogenData = TEST_DATA.diagnosticBasedOnPathogenSelectionINVP;
+
+      const result = transformPathogenFormToPathogenTest(pathogenForm, NotificationType.FollowUpNotification7_1, undefined, pathogenData);
+
+      expect(result.staticSystemVersions).toEqual(pathogenData.staticSystemVersions);
+    });
+
+    it('should not set staticSystemVersions when not available in pathogenData', () => {
+      const pathogenForm = {};
+      const pathogenData = { ...TEST_DATA.diagnosticBasedOnPathogenSelectionINVP };
+      delete pathogenData.staticSystemVersions;
+
+      const result = transformPathogenFormToPathogenTest(pathogenForm, NotificationType.FollowUpNotification7_1, undefined, pathogenData);
+
+      expect(result.staticSystemVersions).toBeUndefined();
+    });
+
+    it('should not set staticSystemVersions when pathogenData is undefined', () => {
+      const pathogenForm = {};
+
+      const result = transformPathogenFormToPathogenTest(pathogenForm, NotificationType.FollowUpNotification7_1, undefined, undefined);
+
+      expect(result.staticSystemVersions).toBeUndefined();
     });
   });
 });

@@ -21,13 +21,13 @@ required:
 config:
   production: true
   ## these are physical routes, relative to the pod URL of this micro frontend, not angular ones
-  pathToGateway: ../gateway/notification
-  pathToFuts: ../fhir-ui-data-model-translation
-  pathToDestinationLookup: ../destination-lookup/v1
+  pathToGateway: ../../gateway/pathogen
+  pathToFuts: ../../translation/ui-data-model/v6/fhir
+  pathToDestinationLookup: ../../destination-lookup/v1
   gatewayPaths:
-    pathogen: /api/ng/notification/pathogen
-    pathogen_7_1: /api/ng/notification/pathogen/7.1
-    pathogen_7_3_non_nominal: /api/ng/notification/pathogen/7.3/non_nominal
+    pathogen: /notification/pathogen
+    pathogen_7_1: /notification/pathogen/7.1
+    pathogen_7_3_non_nominal: /notification/pathogen/7.3/non_nominal
   futsPaths:
     countryCodes: /utils/countryCodes
     federalStates_7_1: /laboratory/7.1/federalStates
@@ -38,21 +38,12 @@ config:
   featureFlags: #Always set this to false here; feature flags will then be activated as needed via the stage configurations.
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false
     FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: false
-    FEATURE_FLAG_NEW_API_ENDPOINTS: false
     FEATURE_FLAG_PORTAL_PAGE_STRUCTURE: false
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: false
     FEATURE_FLAG_PORTAL_HEADER_FOOTER: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true
-  newApiEndpoints:
-    pathToFuts: ../../translation/ui-data-model/v6/fhir
-    pathToGateway: ../../gateway/pathogen
-    pathToDestinationLookup: ../../destination-lookup/v1
-    gatewayPaths:
-      pathogen: /notification/pathogen
-      pathogen_7_1: /notification/pathogen/7.1
-      pathogen_7_3_non_nominal: /notification/pathogen/7.3/non_nominal
 
 # Extra Labels to be added
 # E.g.

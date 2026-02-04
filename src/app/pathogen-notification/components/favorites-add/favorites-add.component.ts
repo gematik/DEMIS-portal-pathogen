@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 gematik GmbH
+    Copyright (c) 2026 gematik GmbH
     Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
     European Commission – subsequent versions of the EUPL (the "Licence").
     You may not use this work except in compliance with the Licence.
@@ -33,7 +33,7 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   private readonly pathogenNotificationStorageService = inject(PathogenNotificationStorageService);
 
   pathogen: CodeDisplay;
-  maxFavorites: number = 5;
+  maxFavorites = 5;
   favorites: WritableSignal<CodeDisplay[]> = signal([]);
   isMaxNumberOfFavorites: Signal<boolean> = computed(() => {
     return this.favorites().length >= this.maxFavorites;
