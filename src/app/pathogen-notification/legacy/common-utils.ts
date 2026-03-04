@@ -22,7 +22,7 @@ import { format, isValid, parse } from 'date-fns';
 import { DateTime } from 'luxon';
 
 import { CodeDisplay, Designation, Gender, PractitionerInfo } from '../../../api/notification';
-import { selectOption } from '@gematik/demis-portal-core-library/lib/formly/commons';
+import { selectOption } from '@gematik/demis-portal-core-library';
 // CONST:..................................
 
 /*** id: de-DE ***/

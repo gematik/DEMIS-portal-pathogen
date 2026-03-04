@@ -3,7 +3,7 @@
   <ng-template #favoritesTemplate>
     <div class="favorites-div">
       <h2>Favoriten</h2>
-      @for (item of favorites(); track item) {
+      @for (item of favorites(); track item.code) {
         <div class="row favorites-item">
           <div class="col-md-auto">
             <button
@@ -37,7 +37,7 @@
 
   @if (favorites()?.length > 0) {
     <div>
-      <ng-container *ngTemplateOutlet="favoritesTemplate"></ng-container>
+      <ng-container *ngTemplateOutlet="favoritesTemplate" />
     </div>
   } @else {
     <div class="favorites-div">

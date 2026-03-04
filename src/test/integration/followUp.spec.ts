@@ -130,7 +130,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
       expect(dialogContainer).toBeTruthy();
       const errorMessage = dialogContainer.querySelector('mat-error');
       expect(errorMessage).toBeTruthy();
-      expect(errorMessage.textContent).toContain('Meldungs-ID ist erforderlich');
+      expect(errorMessage.textContent).toContain('Bitte geben Sie eine Meldungs-ID ein.');
 
       const checkButton = await getButton(documentRootLoader, '#btn-check-id');
       expect(await checkButton.isDisabled()).toBeTruthy();
@@ -166,10 +166,16 @@ describe('Pathogen - Follow Up Integration Tests', () => {
 
       const nextButton = await getButton(documentRootLoader, '#btn-next');
       await nextButton.click();
-      await waitForStability(fixture);
+      await waitForStability(fixture, 1000);
 
       expect(document.querySelector('.mat-mdc-dialog-container')).toBeNull();
     });
+    describe('isMixedFollowUpNotificationEnabled === false', () => {
+      it('should NOT call fetchFollowUpCode when FEATURE_FLAG_MIXED_FOLLOW_UP is false', async () => {
+        expect(fhirService.fetchFollowUpCode).not.toHaveBeenCalled();
+      });
+    });
+
     describe('clipboard tests', () => {
       it('should insert correct values for notified person', async () => {
         await clickNextButton(fixture);
@@ -198,6 +204,61 @@ describe('Pathogen - Follow Up Integration Tests', () => {
         expect(await zip.getValue()).toBe('123');
         expect(await country.getValueText()).toBe('Demokratische Volksrepublik Korea');
       });
+    });
+  });
+
+  describe('Mixed Follow-Up (FEATURE_FLAG_MIXED_FOLLOW_UP enabled)', () => {
+    beforeEach(() => {
+      const result = setupIntegrationTests({
+        ...mainConfig,
+        featureFlags: {
+          ...mainConfig.featureFlags,
+          FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: true,
+          FEATURE_FLAG_MIXED_FOLLOW_UP: true,
+        },
+      });
+
+      fixture = result.fixture;
+      component = result.component;
+      loader = result.loader;
+      fixture.detectChanges();
+      fhirService = TestBed.inject(FhirPathogenNotificationService);
+      followUpService = TestBed.inject(FollowUpNotificationIdService);
+    });
+
+    it('should call fetchFollowUpCode when ID is validated and hasValidNotificationId$ emits true', async () => {
+      setDiagnosticBasedOnPathogenSelection({
+        materials: [],
+        methods: [],
+        answerSet: [],
+        resistanceGenes: [],
+        resistances: [],
+        substances: [],
+        header: '',
+        subheader: '',
+      });
+
+      spyOn(followUpService, 'validateNotificationId').and.callFake(() => {
+        followUpService.validatedNotificationId.set('123');
+        followUpService.validationStatus.set(ValidationStatus.VALID);
+        followUpService.hasValidNotificationId.set(true);
+        followUpService.followUpNotificationCategory.set('invp');
+      });
+
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      await input.setValue('123');
+
+      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
+      await checkButton.click();
+      await waitForStability(fixture);
+
+      const nextButton = await getButton(documentRootLoader, '#btn-next');
+      await nextButton.click();
+      await waitForStability(fixture, 1000);
+
+      expect(document.querySelector('.mat-mdc-dialog-container')).toBeNull();
+      expect(fhirService.fetchFollowUpCode).toHaveBeenCalledWith('invp');
     });
   });
 });

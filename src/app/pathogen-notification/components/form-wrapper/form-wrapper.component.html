@@ -11,12 +11,12 @@
     class="mat-tab-container"
   >
     @for (tab of field.fieldGroup; track
-      tab; let last = $last; let first = $first) {
+      $index; let last = $last; let first = $first) {
       <mat-tab
         [label]="tab.props.label"
       >
         <gem-demis-max-height-content-container [elementSelectorsToSubtract]="['app-navbar', '#pathogen-tab-section-header_deprecated', '#pathogen-tab-section-header', '#pathogen-actions-bar']">
-          <formly-field [field]="tab"></formly-field>
+          <formly-field [field]="tab" />
         </gem-demis-max-height-content-container>
         <mat-toolbar id="pathogen-actions-bar">
           <mat-toolbar-row>
@@ -24,7 +24,7 @@
               <a fragment="{{ field.fieldGroup[selectedIndex].props.anchor }}" routerLink="./">@if (!first) {
                 <button (click)="previousStep()" class="btn navigate--color style" id="btn-nav-action-back"
                         mat-button type="button">
-                  <mat-icon class="btn__icon margin--right" fontIcon="arrow_back_ios"></mat-icon>
+                  <mat-icon class="btn__icon margin--right" fontIcon="arrow_back_ios" />
                   Zurück
                 </button>
               }
@@ -42,7 +42,7 @@
                               class="btn navigate--color style forward" id="btn-nav-action-next"
                               mat-button type="button">
                         Weiter
-                        <mat-icon class="btn__icon margin-left" fontIcon="arrow_forward_ios" iconPositionEnd></mat-icon>
+                        <mat-icon class="btn__icon margin-left" fontIcon="arrow_forward_ios" iconPositionEnd />
                       </button>
                     }
                   </a>
@@ -51,7 +51,7 @@
                   <button [disabled]="!form.valid" class="btn style dark--color" id="btn-send-notification"
                           mat-button type="submit">
                     Abschicken
-                    <mat-icon class="btn__icon margin--left rotate" fontIcon="send" iconPositionEnd></mat-icon>
+                    <mat-icon class="btn__icon margin--left rotate" fontIcon="send" iconPositionEnd />
                   </button>
                 </div>
               </div>

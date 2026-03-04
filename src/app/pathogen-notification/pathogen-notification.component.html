@@ -1,17 +1,15 @@
 @if (isLoading()) {
   <div>
-    <mat-spinner class="loading-indicator"></mat-spinner>
+    <mat-spinner class="loading-indicator" />
   </div>
 }
 
 <gem-demis-max-height-content-container [elementSelectorsToSubtract]="['app-navbar']">
   <form (ngSubmit)="submit()" [formGroup]="form">
-    <formly-form
-      [fields]="fields"
+    <formly-form [fields]="fields"
       [form]="form"
       [model]="model"
       [options]="options"
-    >
-    </formly-form>
+     />
   </form>
 </gem-demis-max-height-content-container>

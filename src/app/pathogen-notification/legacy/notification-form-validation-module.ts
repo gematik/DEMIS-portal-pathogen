@@ -215,8 +215,19 @@ export function validatePhoneNo(phoneNumber: string, required = true): boolean {
   }
 }
 
-function validatePhoneNoRegex(phoneNumber: string): boolean {
-  return matchesRegExp(PHONE_REG_EXP, isArray(phoneNumber) ? (phoneNumber[0].phoneNo as string) : phoneNumber) ? true : setValidationMessage(PHONE_ERROR_MSG);
+function validatePhoneNoRegex(phoneNumber: string | { phoneNo: string }[]): boolean {
+  return matchesRegExp(
+    PHONE_REG_EXP,
+    isArray(phoneNumber)
+      ? (
+          phoneNumber as {
+            phoneNo: string;
+          }[]
+        )[0].phoneNo
+      : (phoneNumber as string)
+  )
+    ? true
+    : setValidationMessage(PHONE_ERROR_MSG);
 }
 
 export function validateNotBlank(s: string): any {
@@ -232,8 +243,19 @@ export function validateEmail(email: string, required = true): boolean {
   }
 }
 
-function validateEmailRegex(email: string): boolean {
-  return matchesRegExp(EMAIL_REG_EXP, isArray(email) ? email[0].email : email) ? true : setValidationMessage(EMAIL_ERROR_MSG);
+function validateEmailRegex(email: string | { email: string }[]): boolean {
+  return matchesRegExp(
+    EMAIL_REG_EXP,
+    isArray(email)
+      ? (
+          email as {
+            email: string;
+          }[]
+        )[0].email
+      : (email as string)
+  )
+    ? true
+    : setValidationMessage(EMAIL_ERROR_MSG);
 }
 
 export function checkNumberOfBeds(noOfBeds: string): any {

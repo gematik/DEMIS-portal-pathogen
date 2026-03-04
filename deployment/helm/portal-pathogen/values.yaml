@@ -41,6 +41,9 @@ config:
     FEATURE_FLAG_PORTAL_PAGE_STRUCTURE: false
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: false
     FEATURE_FLAG_PORTAL_HEADER_FOOTER: false
+    FEATURE_FLAG_PORTAL_ACCESSIBILITY: false
+    FEATURE_FLAG_MIXED_FOLLOW_UP: false
+    FEATURE_FLAG_FOOTER_LINKS_CORRECTION: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true
@@ -130,7 +133,6 @@ service:
 # Default Resources
 resources:
   limits:
-    cpu: "500m"
     memory: "256Mi"
   requests:
     cpu: "100m"

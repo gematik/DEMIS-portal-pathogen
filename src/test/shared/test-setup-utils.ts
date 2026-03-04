@@ -61,6 +61,7 @@ export function getFhirPathogenNotificationService(isNonNominal = false) {
       .createSpy('fetchDiagnosticsBasedOnPathogenSelection')
       .and.callFake(() => of(diagnosticBasedOnPathogenSelection)),
     fetchAllPathogenCodeDisplays7_1: jasmine.createSpy('fetchAllPathogenCodeDisplays7_1').and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
+    fetchFollowUpCode: jasmine.createSpy('fetchFollowUpCode').and.returnValue(of(TEST_DATA.pathogenCodeDisplays.slice(0, 1))),
   } as Partial<FhirPathogenNotificationService>;
 }
 

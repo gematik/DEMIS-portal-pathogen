@@ -16,18 +16,18 @@
  */
 
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
-import { Component, ViewEncapsulation, input, inject } from '@angular/core';
+import { Component, inject, input, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { MatIcon } from '@angular/material/icon';
-import { NgFor, NgIf } from '@angular/common';
-import { MatStep, MatStepper, MatStepperIcon } from '@angular/material/stepper';
+
+import { MatStep, MatStepLabel, MatStepper, MatStepperIcon } from '@angular/material/stepper';
 
 @Component({
   selector: 'app-side-navigation-stepper',
   templateUrl: './side-navigation-stepper.component.html',
   styleUrls: ['./side-navigation-stepper.component.scss'],
-  imports: [MatStepper, NgFor, MatStep, MatStepperIcon, MatIcon, NgIf],
+  imports: [MatStepper, MatStep, MatStepperIcon, MatIcon, MatStepLabel],
   encapsulation: ViewEncapsulation.None,
 })
 export class SideNavigationStepperComponent {
@@ -40,7 +40,7 @@ export class SideNavigationStepperComponent {
 
   isTouchedAndValid(field: FormlyFieldConfig) {
     if (field.key) {
-      return field.formControl.valid && field.formControl.touched;
+      return field.formControl?.valid && field.formControl?.touched;
     }
     return field.fieldGroup ? field.fieldGroup.every(f => this.isTouchedAndValid(f)) : true;
   }

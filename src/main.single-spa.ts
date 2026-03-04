@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { enableProdMode, importProvidersFrom, NgZone } from '@angular/core';
+import { enableProdMode, importProvidersFrom, NgZone, provideZoneChangeDetection } from '@angular/core';
 import { NavigationStart, Router, RouterLink, RouterModule } from '@angular/router';
 import { getSingleSpaExtraProviders, singleSpaAngular } from 'single-spa-angular';
 import { singleSpaPropsSubject } from './single-spa/single-spa-props';
@@ -42,6 +42,7 @@ const lifecycles = singleSpaAngular({
     singleSpaPropsSubject.next(singleSpaProps);
     const appPromise = bootstrapApplication(AppComponent, {
       providers: [
+        provideZoneChangeDetection(),
         importProvidersFrom(
           RouterModule,
           RouterLink,
@@ -67,6 +68,7 @@ const lifecycles = singleSpaAngular({
       if (environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION || environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN) {
         router = appRef.injector.get(Router);
         syncUrlWithRouter();
+        setupRouterSync();
       }
       return appRef;
     });
@@ -105,7 +107,23 @@ function bootstrapFn(props: AppProps) {
 }
 
 function isSafeRoute(redirectUrl: string) {
-  return Object.values(allowedRoutes).some(route => route === redirectUrl);
+  return Object.values(allowedRoutes).some(route => redirectUrl.includes(route));
+}
+
+/**
+ * Get the current URL from the hash or pathname
+ * Since we're using HashLocationStrategy, we need to extract the route from the hash
+ */
+function getCurrentUrlFromLocation(): string {
+  // Check if we're using hash-based routing
+  if (window.location.hash) {
+    // Extract the path after the # and remove the leading /
+    const hashPath = window.location.hash.substring(1); // Remove the #
+    return hashPath.startsWith('/') ? hashPath.substring(1) : hashPath;
+  }
+  // Fallback to pathname if no hash
+  const pathname = window.location.pathname;
+  return pathname.startsWith('/') ? pathname.substring(1) : pathname;
 }
 
 /**
@@ -114,22 +132,28 @@ function isSafeRoute(redirectUrl: string) {
  */
 function syncUrlWithRouter() {
   if (router) {
-    const redirectUrl = window.location.hash.replace(/^#\//, '').split('?')[0];
-    // check that current url from shell is part of pathogen routes (no suspicious urls) and call pathogen router
-    if (isSafeRoute(redirectUrl)) {
-      router.navigateByUrl('').then(() => {
-        router.navigateByUrl('/' + redirectUrl);
-      });
-    } else {
-      // no main pathogen route -> navigate to pathogen route depending on current url
-      // this can happen on restart or when user tries an open redirect attack
-      if (redirectUrl.includes('non-nominal')) {
-        router.navigateByUrl(allowedRoutes.nonNominal);
-      } else {
-        router.navigateByUrl(allowedRoutes.main);
-      }
+    const currentUrl = getCurrentUrlFromLocation();
+    const normalizedRouterUrl = router.url.startsWith('/') ? router.url.substring(1) : router.url;
+
+    if (normalizedRouterUrl !== currentUrl && isSafeRoute(currentUrl)) {
+      router.navigateByUrl('/' + currentUrl).catch(err => console.error('Navigation Error:', err));
     }
   }
+}
+
+/**
+ * Set up a listener for popstate events to sync the router when the shell changes the URL
+ */
+function setupRouterSync() {
+  // Listen for hash changes (primary mechanism for HashLocationStrategy)
+  window.addEventListener('hashchange', () => {
+    syncUrlWithRouter();
+  });
+
+  // Listen for browser navigation events (back/forward buttons)
+  window.addEventListener('popstate', () => {
+    syncUrlWithRouter();
+  });
 }
 
 export const bootstrap = bootstrapFn;

@@ -23,7 +23,7 @@ import { FhirPathogenNotificationService } from './fhir-pathogen-notification.se
 import { ErrorDialogService } from './error-dialog.service';
 import { provideHttpClient } from '@angular/common/http';
 import { NGXLoggerMock } from 'ngx-logger/testing';
-import { NotificationLaboratoryCategory, PathogenTest } from '../../../api/notification';
+import { CodeDisplay, NotificationLaboratoryCategory, PathogenTest } from '../../../api/notification';
 import { environment } from '../../../environments/environment';
 import { NotificationType } from '../common/routing-helper';
 import { MessageDialogService } from '@gematik/demis-portal-core-library';
@@ -369,6 +369,74 @@ describe('FhirPathogenNotificationService', () => {
         jasmine.any(Object),
         '§7.1 Meldetatbestände konnten nicht abgerufen werden.'
       );
+    });
+  });
+
+  describe('fetchFollowUpCode', () => {
+    it('should fetch follow-up codes successfully', () => {
+      const notificationCategory = 'cat-001';
+      const mockCodeDisplays = [
+        { code: 'invp', display: 'Influenza' },
+        { code: 'infp', display: 'Influenca' },
+      ];
+
+      service.fetchFollowUpCode(notificationCategory).subscribe(res => {
+        expect(res).toEqual(mockCodeDisplays);
+      });
+
+      const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/7.1/followup/${notificationCategory}`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockCodeDisplays);
+    });
+
+    it('should handle error when fetching follow-up codes', () => {
+      const notificationCategory = 'invp';
+      spyOn(logger, 'error');
+      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+
+      service.fetchFollowUpCode(notificationCategory).subscribe({
+        error: err => {
+          expect(err).toBeTruthy();
+        },
+      });
+
+      const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/7.1/followup/${notificationCategory}`);
+      req.flush('Error fetching follow-up codes', { status: 500, statusText: 'Server Error' });
+
+      expect(logger.error).toHaveBeenCalledWith('Error fetching follow up code', jasmine.any(Object));
+      expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalledWith(
+        'Für diese Meldekategorie nach § 6 Abs. 1 IfSG gibt es keine entsprechende Meldekategorie nach § 7 Abs. 1 IfSG. Daher besteht hier nicht die Möglichkeit einer Folgemeldung',
+        'Fehler'
+      );
+    });
+
+    it('should handle 404 error when follow-up codes are not available', () => {
+      const notificationCategory = 'unknown-cat';
+      spyOn(logger, 'error');
+      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+
+      service.fetchFollowUpCode(notificationCategory).subscribe({
+        error: err => {
+          expect(err).toBeTruthy();
+        },
+      });
+
+      const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/7.1/followup/${notificationCategory}`);
+      req.flush('Not found', { status: 404, statusText: 'Not Found' });
+
+      expect(logger.error).toHaveBeenCalledWith('Error fetching follow up code', jasmine.any(Object));
+      expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalled();
+    });
+
+    it('should include headers in the request', () => {
+      const notificationCategory = 'cat-001';
+      const mockCodeDisplays: CodeDisplay[] = [];
+
+      service.fetchFollowUpCode(notificationCategory).subscribe();
+
+      const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/7.1/followup/${notificationCategory}`);
+      expect(req.request.headers.get('Authorization')).toBeDefined();
+      req.flush(mockCodeDisplays);
     });
   });
 

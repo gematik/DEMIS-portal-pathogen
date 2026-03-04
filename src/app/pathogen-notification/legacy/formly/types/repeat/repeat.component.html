@@ -14,7 +14,7 @@
   </div>
 }
 
-@for (field of field.fieldGroup; track field; let i = $index) {
+@for (field of field.fieldGroup; track $index; let i = $index) {
   <div class="row">
     @if (props['additionalHeader']) {
       <div class="col-md-12">
