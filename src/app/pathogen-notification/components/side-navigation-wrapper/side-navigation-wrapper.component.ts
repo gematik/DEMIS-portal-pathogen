@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatDrawer, MatDrawerContainer, MatDrawerContent } from '@angular/material/sidenav';
 import { FormsFooterComponent, PasteBoxComponent, SectionHeaderComponent } from '@gematik/demis-portal-core-library';
 import { FormlyFieldConfig } from '@ngx-formly/core';
@@ -51,13 +51,13 @@ export class SideNavigationWrapperComponent {
   readonly currentStepHeadline = input('');
   readonly steps = input<FormlyFieldConfig[]>(undefined);
   readonly model = input<any>(undefined);
-  notificationType = NotificationType.NominalNotification7_1;
+  notificationType = signal(NotificationType.NominalNotification7_1);
   readonly router = inject(Router);
 
   private readonly clipboardDataService = inject(ClipboardDataService);
 
   constructor() {
-    this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
+    this.notificationType.set(getNotificationTypeByRouterUrl(this.router.url));
   }
 
   get FEATURE_FLAG_PORTAL_PAGE_STRUCTURE() {
@@ -66,6 +66,14 @@ export class SideNavigationWrapperComponent {
 
   public get FEATURE_FLAG_PORTAL_HEADER_FOOTER(): boolean {
     return environment.featureFlags?.FEATURE_FLAG_PORTAL_HEADER_FOOTER;
+  }
+
+  public get FEATURE_FLAG_PORTAL_ACCESSIBILITY(): boolean {
+    return environment.featureFlags?.FEATURE_FLAG_PORTAL_ACCESSIBILITY;
+  }
+
+  public get FEATURE_FLAG_FOOTER_LINKS_CORRECTION(): boolean {
+    return environment.featureFlags?.FEATURE_FLAG_FOOTER_LINKS_CORRECTION ?? false;
   }
 
   async handlePasteBoxClick(clipboardData?: Map<string, string>): Promise<void> {
@@ -80,4 +88,32 @@ export class SideNavigationWrapperComponent {
   protected readonly NotificationType = NotificationType;
   protected readonly isFollowUpNotificationEnabled = isFollowUpNotificationEnabled;
   protected readonly isAnonymousNotificationEnabled = isAnonymousNotificationEnabled;
+
+  readonly headingTitle = computed(() => {
+    switch (this.notificationType()) {
+      case NotificationType.NominalNotification7_1:
+        return 'Erregernachweis (§ 7.1)';
+      case NotificationType.NonNominalNotification7_3:
+        return 'Erregernachweis';
+      case NotificationType.FollowUpNotification7_1:
+        return this.isFollowUpNotificationEnabled() ? 'Folgemeldung' : '';
+      case NotificationType.AnonymousNotification7_3:
+        return this.isAnonymousNotificationEnabled() ? 'Erregernachweis (anonym)' : '';
+      default:
+        return '';
+    }
+  });
+
+  readonly headingDescription = computed(() => {
+    switch (this.notificationType()) {
+      case NotificationType.NonNominalNotification7_3:
+        return 'Meldung eines Erregernachweises gemäß § 7 Abs. 3 IfSG';
+      case NotificationType.FollowUpNotification7_1:
+        return 'Nichtnamentliche Folgemeldung eines Erregernachweises gemäß § 7 Abs. 1 IfSG';
+      case NotificationType.AnonymousNotification7_3:
+        return 'Anonyme Meldung eines Nachweises von Krankheitserregern gemäß § 7 Abs. 3 IfSG';
+      default:
+        return '';
+    }
+  });
 }

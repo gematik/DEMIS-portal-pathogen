@@ -51,7 +51,7 @@ import { ReactiveFormsModule } from '@angular/forms';
       </span>
     }
     <mat-autocomplete #auto="matAutocomplete" (opened)="onAutocompleteOpened()">
-      @for (value of filter | async; track value) {
+      @for (value of filter | async; track $index) {
         <mat-option [value]="value">
           {{ value }}
         </mat-option>

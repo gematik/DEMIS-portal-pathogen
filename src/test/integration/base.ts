@@ -46,6 +46,7 @@ export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false,
     FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: false,
+    FEATURE_FLAG_MIXED_FOLLOW_UP: false,
   },
   gatewayPaths: {
     pathogen: '/api/ng/notification/pathogen',

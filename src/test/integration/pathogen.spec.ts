@@ -113,7 +113,7 @@ describe('Pathogen - Integration Tests', () => {
 
   it('should show 7.1 header', async () => {
     const textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('Erregernachweis (§7.1)')).toBeTrue();
+    expect(textContent.includes('Erregernachweis (§ 7.1)')).toBeTrue();
   });
 
   it('should not send, when nothing is inserted', async () => {

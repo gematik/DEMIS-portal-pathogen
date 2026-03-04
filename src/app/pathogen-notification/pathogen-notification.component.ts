@@ -46,6 +46,7 @@ import {
   initializeDiagnosticFields,
   initializeSelectPathogenFields,
   isFollowUpNotificationEnabled,
+  isMixedFollowUpNotificationEnabled,
   isNonNominalNotificationEnabled,
   updatePathogenForm,
 } from './utils/pathogen-notification-mapper';
@@ -79,6 +80,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   private readonly logger = inject(NGXLogger);
   private readonly errorDialogService = inject(ErrorDialogService);
   private readonly followUpNotificationIdService = inject(FollowUpNotificationIdService);
+
   private readonly changeDetector = inject(ChangeDetectorRef);
 
   form: FormGroup = new FormGroup({});
@@ -266,25 +268,39 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           filter(hasValid => hasValid === true)
         )
         .subscribe(() => {
-          const codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, this.followUpNotificationIdService.followUpNotificationCategory());
-          if (codeDisplay) {
-            this.updateAfterPathogenSelection(
-              findCodeDisplayByCodeValue(this.pathogenCodeDisplays, this.followUpNotificationIdService.followUpNotificationCategory())
-            );
-            // In follow-up notifications, all fields for the notified person are optional. This allowed sending the notification with an unchecked stepper.
-            // To prevent this, we mark the notifiedPerson form as touched.
-            this.markFormularAsTouched('notifiedPerson');
+          const code = this.followUpNotificationIdService.followUpNotificationCategory();
+          let codeDisplay: CodeDisplay;
+
+          if (isMixedFollowUpNotificationEnabled()) {
+            this.fhirPathogenNotificationService.fetchFollowUpCode(code).subscribe(response => {
+              if (response) {
+                codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, response[0].code);
+                if (codeDisplay) {
+                  this.updateAfterPathogenSelection(codeDisplay);
+                  this.markFormularAsTouched('notifiedPerson');
+                  this.setFocusOnFirstStepHeader();
+                  this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
+                }
+              }
+            });
           } else {
-            this.errorDialogService.showBasicErrorDialogWithRedirect(
-              'Der gespeicherte Erreger ' +
-                this.followUpNotificationIdService.followUpNotificationCategory() +
-                ' für die ID ' +
-                this.followUpNotificationIdService.validatedNotificationId +
-                ' wird für die §7.1er Meldungen nicht unterstützt.',
-              'Fehler'
-            );
+            codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, code);
+            if (codeDisplay) {
+              this.updateAfterPathogenSelection(codeDisplay);
+              this.markFormularAsTouched('notifiedPerson');
+              this.setFocusOnFirstStepHeader();
+              this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
+            } else {
+              this.errorDialogService.showBasicErrorDialogWithRedirect(
+                'Der gespeicherte Erreger ' +
+                  this.followUpNotificationIdService.followUpNotificationCategory() +
+                  ' für die ID ' +
+                  this.followUpNotificationIdService.validatedNotificationId +
+                  ' wird für die §7.1er Meldungen nicht unterstützt.',
+                'Fehler'
+              );
+            }
           }
-          this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
         });
     }
   }
@@ -292,6 +308,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   getPathogenCodeDisplaysAndOpenFollowUpDialog() {
     this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays7_1().subscribe({
       next: (response: CodeDisplay[]) => {
+        this.followUpNotificationIdService.isMixedCodesActive = isMixedFollowUpNotificationEnabled();
         this.followUpNotificationIdService.openDialog({
           dialogData: {
             routerLink: '/' + allowedRoutes.nominal,
@@ -546,6 +563,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     //bug: autocomplete options dialog did not close
     window.document.getElementById('pathogenDisplay')?.blur();
     window.document.body.click();
+  }
+
+  private setFocusOnFirstStepHeader() {
+    const stepHeader = document.querySelector('[aria-label*="Meldende Person"], .mat-step-header:first-child') as HTMLElement;
+    stepHeader.focus();
+    stepHeader.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   ngOnDestroy(): void {

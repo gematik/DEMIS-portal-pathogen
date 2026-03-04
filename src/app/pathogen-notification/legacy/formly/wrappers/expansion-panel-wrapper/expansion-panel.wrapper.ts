@@ -41,7 +41,7 @@ import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionP
                 {{ field.props!.description }}
               </div>
             }
-            <ng-container #fieldComponent></ng-container>
+            <ng-container #fieldComponent />
           </mat-expansion-panel>
         </mat-accordion>
       </div>

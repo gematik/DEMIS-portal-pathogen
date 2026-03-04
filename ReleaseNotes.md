@@ -2,6 +2,17 @@
 
 # Release portal-pathogen
 
+# Release 1.7.0
+- Updated @gematik/demis-portal-core-library to 3.0.5
+- Added accessibility statement footer link (FEATURE_FLAG_PORTAL_ACCESSIBILITY)
+- Updated Angular to v21
+- Added ids to SideStepper
+- Removed CPU limit from helm chart
+- Added handling of mixed follow-up notifications with both §6.1 and §7.1 codes (FEATURE_FLAG_FOLLOW_UP_MIXED_CODES)
+- Removed istio helm chart
+- Fixed change detection bug in spinner-dialog
+- Changed imprint link and add ids in footer (FEATURE_FLAG_FOOTER_LINKS_CORRECTION)
+
 # Release 1.6.5
 - Removed data-cy attributes from elements
 - Updated @gematik/demis-portal-core-library to 2.3.9
@@ -9,7 +20,7 @@
 - Adapted gender enum according to openapi model, added gender other x
 - Added eslint config and fixed linting issues
 - Added possibility to pass staticSystemVersion to gateway
-- removed feature flag NEW_API_ENDPOINTS
+- Removed feature flag NEW_API_ENDPOINTS
 
 # Release 1.6.4
 - Updated @gematik/demis-portal-core-library to 2.3.8

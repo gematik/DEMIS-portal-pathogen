@@ -16,10 +16,10 @@
  */
 
 import { Injectable } from '@angular/core';
-import * as transliterator from 'transliterator';
 import { NotifiedPersonBasicInfo, PathogenTest } from '../../../../api/notification';
 import { formatDateToYYMMDD } from '../common-utils';
 import { NotificationType } from '../../common/routing-helper';
+import transliterator from 'transliterator';
 
 @Injectable({
   providedIn: 'root',
@@ -51,14 +51,6 @@ export class FileService {
       pad2(date.getMinutes()) +
       pad2(date.getSeconds())
     );
-  }
-
-  private convertBirthDate(birthDate: string): string {
-    if (birthDate) {
-      const numbers = birthDate.split('.');
-      return ' ' + numbers[2].slice(-2) + numbers[1] + numbers[0];
-    }
-    return '';
   }
 
   private transliterateNameFromUnicodeToAscii(name: string) {

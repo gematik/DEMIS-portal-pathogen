@@ -26,6 +26,7 @@ import { NotificationType } from '../common/routing-helper';
 export const isNonNominalNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION;
 export const isFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN;
 export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_ANONYMOUS_NOTIFICATION;
+export const isMixedFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_MIXED_FOLLOW_UP;
 
 export const initializeSelectPathogenFields = (
   federalStateCodeDisplays: CodeDisplay[],
