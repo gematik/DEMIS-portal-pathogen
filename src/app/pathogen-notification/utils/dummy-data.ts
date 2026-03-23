@@ -29,7 +29,6 @@ import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, ZIP_CODE_DEFAULT } from '..
 import { transformPathogenTestToPathogenForm } from './data-transformation';
 import { NotificationType } from '../common/routing-helper';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
-import UsageEnum = ContactPointInfo.UsageEnum;
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 
@@ -63,7 +62,6 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
         {
           contactType: ContactTypeEnum.Phone,
           value: '0182736912388889',
-          usage: UsageEnum.Work,
         },
         {
           contactType: ContactTypeEnum.Email,

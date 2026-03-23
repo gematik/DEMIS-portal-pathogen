@@ -25,7 +25,8 @@ import { getButton, getDialog, getIcon, getInput, getSelect } from '../shared/ma
 import { clickNextButton, waitForStability } from '../shared/test-utils';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { TestBed } from '@angular/core/testing';
-import { FollowUpNotificationIdService, ValidationStatus } from '@gematik/demis-portal-core-library';
+import { FollowUpMixedCodesService, FollowUpNotificationIdService, ValidationStatus } from '@gematik/demis-portal-core-library';
+import { TEST_DATA } from '../shared/test-data';
 import { setDiagnosticBasedOnPathogenSelection } from '../shared/test-setup-utils';
 import { lastValueFrom, of } from 'rxjs';
 import { ADD_BUTTON_CLIPBOARD } from '../shared/test-constants';
@@ -36,6 +37,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
   let fhirService: FhirPathogenNotificationService;
   let followUpService: FollowUpNotificationIdService;
+  let followUpMixedCodesService: FollowUpMixedCodesService;
 
   const initialNotificationIdSelector = '#initialNotificationIdInput';
 
@@ -53,6 +55,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
     fixture.detectChanges();
     fhirService = TestBed.inject(FhirPathogenNotificationService);
     followUpService = TestBed.inject(FollowUpNotificationIdService);
+    followUpMixedCodesService = TestBed.inject(FollowUpMixedCodesService);
   });
 
   it('should create', () => {
@@ -224,6 +227,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
       fixture.detectChanges();
       fhirService = TestBed.inject(FhirPathogenNotificationService);
       followUpService = TestBed.inject(FollowUpNotificationIdService);
+      followUpMixedCodesService = TestBed.inject(FollowUpMixedCodesService);
     });
 
     it('should call fetchFollowUpCode when ID is validated and hasValidNotificationId$ emits true', async () => {
@@ -259,6 +263,45 @@ describe('Pathogen - Follow Up Integration Tests', () => {
 
       expect(document.querySelector('.mat-mdc-dialog-container')).toBeNull();
       expect(fhirService.fetchFollowUpCode).toHaveBeenCalledWith('invp');
+    });
+
+    it('should open mixed codes dialog when fetchFollowUpCode returns multiple codes', async () => {
+      setDiagnosticBasedOnPathogenSelection({
+        materials: [],
+        methods: [],
+        answerSet: [],
+        resistanceGenes: [],
+        resistances: [],
+        substances: [],
+        header: '',
+        subheader: '',
+      });
+
+      const followUpCodes = TEST_DATA.pathogenCodeDisplays.slice(0, 2);
+      (fhirService.fetchFollowUpCode as jasmine.Spy).and.returnValue(of(followUpCodes));
+      spyOn(followUpMixedCodesService, 'openDialog').and.returnValue(of(followUpCodes[0].code));
+      spyOn(followUpService, 'closeDialog').and.callThrough();
+      spyOn(followUpService, 'validateNotificationId').and.callFake(() => {
+        followUpService.validatedNotificationId.set('123');
+        followUpService.validationStatus.set(ValidationStatus.VALID);
+        followUpService.hasValidNotificationId.set(true);
+        followUpService.followUpNotificationCategory.set('invp');
+      });
+
+      const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const input = await getInput(documentRootLoader, initialNotificationIdSelector);
+      await input.setValue('123');
+
+      const checkButton = await getButton(documentRootLoader, '#btn-check-id');
+      await checkButton.click();
+      await waitForStability(fixture, 1000);
+
+      expect(fhirService.fetchFollowUpCode).toHaveBeenCalledWith('invp');
+      expect(followUpService.closeDialog).toHaveBeenCalled();
+      expect(followUpMixedCodesService.openDialog).toHaveBeenCalledWith([
+        jasmine.objectContaining({ code: followUpCodes[0].code }),
+        jasmine.objectContaining({ code: followUpCodes[1].code }),
+      ]);
     });
   });
 });

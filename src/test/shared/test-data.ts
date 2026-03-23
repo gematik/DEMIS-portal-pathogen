@@ -466,7 +466,7 @@ export const TEST_DATA = {
       lastname: 'Melderson',
     },
     contacts: {
-      phoneNumbers: [{ contactType: 'phone', value: '0182736912388889', usage: 'work' }],
+      phoneNumbers: [{ contactType: 'phone', value: '0182736912388889' }],
       emailAddresses: [{ contactType: 'email', value: 'testerino@test.de' }],
     },
   },
@@ -490,7 +490,7 @@ export const TEST_DATA = {
       lastname: 'Melderson',
     },
     contacts: {
-      phoneNumbers: [{ contactType: 'phone', value: '0182736912388889', usage: 'work' }],
+      phoneNumbers: [{ contactType: 'phone', value: '0182736912388889' }],
       emailAddresses: [{ contactType: 'email', value: 'testerino@test.de' }],
     },
   },

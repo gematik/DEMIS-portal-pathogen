@@ -22,6 +22,7 @@ import { addressFormConfigFields } from './address.config';
 import { contactsFormConfigFields } from './contacts.config';
 import { CURRENT_ADDRESS_TYPE_OPTION_LIST, RESIDENCE_ADDRESS_TYPE_OPTION_LIST } from '../../../formly-options-lists';
 import { getNotifiedPersonInfo } from './notified-person-info.config';
+import { isContactPointUseDisabled } from '../../../../utils/pathogen-notification-mapper';
 
 export const RESIDENCE_ADDRESS_ID = 'residence-address-';
 export const CURRENT_ADDRESS_ID = 'current-address-';
@@ -95,6 +96,6 @@ export const notifiedPersonFormConfigFields = (countryCodeDisplays: CodeDisplay[
       className: '',
       template: '<h2>Kontaktmöglichkeiten der betroffenen Person</h2>',
     },
-    ...contactsFormConfigFields(false),
+    ...contactsFormConfigFields(false, isContactPointUseDisabled()),
   ];
 };

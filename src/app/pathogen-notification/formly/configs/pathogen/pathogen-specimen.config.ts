@@ -101,7 +101,6 @@ export const pathogenSpecimenFields = (
                   key: 'extractionDate',
                   className: FormlyConstants.COLMD6,
                   type: 'datepicker',
-                  wrappers: [],
                   props: {
                     label: 'Entnahmedatum',
                     allowedPrecisions: ['day'],
@@ -113,7 +112,6 @@ export const pathogenSpecimenFields = (
                   key: 'receivedDate',
                   className: FormlyConstants.COLMD6,
                   type: 'datepicker',
-                  wrappers: [],
                   props: {
                     label: 'Eingangsdatum',
                     required: true,

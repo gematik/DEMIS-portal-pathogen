@@ -27,6 +27,7 @@ export const isNonNominalNotificationEnabled = () => environment.featureFlags?.F
 export const isFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN;
 export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_ANONYMOUS_NOTIFICATION;
 export const isMixedFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_MIXED_FOLLOW_UP;
+export const isContactPointUseDisabled = () => environment.featureFlags?.FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE;
 
 export const initializeSelectPathogenFields = (
   federalStateCodeDisplays: CodeDisplay[],

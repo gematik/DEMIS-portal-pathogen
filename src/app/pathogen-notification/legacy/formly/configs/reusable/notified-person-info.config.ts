@@ -81,7 +81,6 @@ export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
         key: 'birthDate',
         className: FormlyConstants.COLMD5,
         type: 'datepicker',
-        wrappers: [],
         props: {
           label: 'Geburtsdatum',
           allowedPrecisions: ['day'],
