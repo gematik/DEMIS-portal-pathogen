@@ -33,6 +33,7 @@
             ],
             "styles": ["src/styles.scss"],
             "scripts": [],
+            "preserveSymlinks": true,
             "customWebpackConfig": {
               "libraryTarget": "system",
               "libraryName": "portal-pathogen",
@@ -102,6 +103,7 @@
           "options": {
             "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
+            "preserveSymlinks": true,
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],

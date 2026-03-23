@@ -405,7 +405,7 @@ describe('FhirPathogenNotificationService', () => {
 
       expect(logger.error).toHaveBeenCalledWith('Error fetching follow up code', jasmine.any(Object));
       expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalledWith(
-        'Für diese Meldekategorie nach § 6 Abs. 1 IfSG gibt es keine entsprechende Meldekategorie nach § 7 Abs. 1 IfSG. Daher besteht hier nicht die Möglichkeit einer Folgemeldung',
+        'Für diese Meldekategorie nach § 6 Abs. 1 IfSG gibt es keine entsprechende Meldekategorie nach § 7 Abs. 1 IfSG. Daher besteht hier nicht die Möglichkeit einer Folgemeldung.',
         'Fehler'
       );
     });

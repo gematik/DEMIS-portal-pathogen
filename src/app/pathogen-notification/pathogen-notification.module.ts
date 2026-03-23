@@ -59,7 +59,13 @@ import { StringFormatPipe } from './legacy/pipes/string-format.pipe';
 import { PathogenNotificationComponent } from './pathogen-notification.component';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
 import { ClipboardDataService } from './services/clipboard-data.service';
-import { DemisPortalSharedModule, FormlyDatepickerComponent, FormlyRepeaterComponent, PasteBoxComponent } from '@gematik/demis-portal-core-library';
+import {
+  DATEPICKER_VALIDATION_MESSAGES,
+  DemisPortalSharedModule,
+  FormlyDatepickerComponent,
+  FormlyRepeaterComponent,
+  PasteBoxComponent,
+} from '@gematik/demis-portal-core-library';
 import { defaultAppearanceExtension, defaultPlaceholderExtension } from './utils/formly-extensions';
 import { withFormlyFieldSelect } from '@ngx-formly/material/select';
 
@@ -141,7 +147,7 @@ import { withFormlyFieldSelect } from '@ngx-formly/material/select';
           { name: 'validation', component: ValidationWrapperComponent },
           { name: 'expansion-panel', component: ExpansionPanelWrapperComponent },
         ],
-        validationMessages: [{ name: 'required', message: 'Diese Angabe wird benötigt' }],
+        validationMessages: [...DATEPICKER_VALIDATION_MESSAGES, { name: 'required', message: 'Diese Angabe wird benötigt' }],
         extensions: [
           {
             name: 'default-placeholder',

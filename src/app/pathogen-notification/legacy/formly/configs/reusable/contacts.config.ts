@@ -18,19 +18,12 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { ContactPointInfo } from '../../../../../../api/notification';
 import { EMAIL_MAX_LENGTH, PHONE_MAX_LENGTH } from '../../../common-utils';
+import { FormlyConstants } from '@gematik/demis-portal-core-library';
+import { isContactPointUseDisabled } from '../../../../utils/pathogen-notification-mapper';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import UsageEnum = ContactPointInfo.UsageEnum;
-import { FormlyConstants } from '@gematik/demis-portal-core-library';
 
-export const contactsFormConfigFields: (needsContact: boolean, hospitalizationPerson?: boolean) => FormlyFieldConfig[] = (
-  needsContact,
-  hospitalizationPerson = false
-) => [
-  {
-    className: FormlyConstants.LAYOUT_HEADER,
-    template: '<h2>Kontaktmöglichkeiten</h2>',
-    expressions: { hide: () => !hospitalizationPerson },
-  },
+export const contactsFormConfigFields: (needsContact: boolean, isContactPointUseDisabled: boolean) => FormlyFieldConfig[] = needsContact => [
   {
     className: FormlyConstants.LAYOUT_HEADER,
     template: `<p>Bitte geben Sie mindestens eine Kontaktmöglichkeit an.</p>`,
@@ -59,10 +52,12 @@ export const contactsFormConfigFields: (needsContact: boolean, hospitalizationPe
               key: 'contactType',
               defaultValue: ContactTypeEnum.Phone,
             },
-            {
-              key: 'usage',
-              defaultValue: needsContact ? UsageEnum.Work : undefined,
-            },
+            !isContactPointUseDisabled()
+              ? {
+                  key: 'usage',
+                  defaultValue: needsContact ? UsageEnum.Work : undefined,
+                }
+              : {},
             {
               className: 'flex-grow-1',
               type: 'input',

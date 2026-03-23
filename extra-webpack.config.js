@@ -16,6 +16,7 @@
  */
 
 const singleSpaAngularWebpack = require('single-spa-angular/lib/webpack').default;
+const path = require('path');
 
 module.exports = (angularWebpackConfig, options) => {
   const singleSpaWebpackConfig = singleSpaAngularWebpack(angularWebpackConfig, options);
@@ -27,6 +28,12 @@ module.exports = (angularWebpackConfig, options) => {
     /main\.single-spa\.ts.*depends on.*systemjs-webpack-interop.*CommonJS or AMD dependencies/,
     /file\.service\.ts.*depends on.*transliterator.*CommonJS or AMD dependencies/,
   ];
+
+  // Prevent webpack from following symlinks to their real location.
+  // Without this, npm-linked libraries (e.g. portal-core) resolve @angular/*
+  // from their own node_modules, creating duplicate Angular runtimes → NG0203.
+  singleSpaWebpackConfig.resolve = singleSpaWebpackConfig.resolve || {};
+  singleSpaWebpackConfig.resolve.symlinks = false;
 
   // Feel free to modify this webpack config however you'd like to
   return singleSpaWebpackConfig;

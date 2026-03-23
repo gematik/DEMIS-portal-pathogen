@@ -24,11 +24,12 @@ import {
   updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled,
   updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled,
 } from '../../../legacy/formly/configs/reusable/commons';
-import { formlyInputField, formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
+import { FormlyConstants, formlyInputField, formlyRow } from '@gematik/demis-portal-core-library';
 import { TEXT_MAX_LENGTH } from '../../../legacy/common-utils';
 import { practitionerInfoFormConfigFields } from '../../../legacy/formly/configs/reusable/practitioner-info.config';
 import { contactsFormConfigFields } from '../../../legacy/formly/configs/reusable/contacts.config';
 import { ErrorDialogService } from '../../../services/error-dialog.service';
+import { isContactPointUseDisabled } from '../../../utils/pathogen-notification-mapper';
 
 export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dialogService: ErrorDialogService): FormlyFieldConfig[] => {
   let isResettingCheckbox = false;
@@ -127,7 +128,7 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
     },
     ...practitionerInfoFormConfigFields(),
     { template: '<h2>Kontaktmöglichkeiten</h2>' },
-    ...contactsFormConfigFields(true),
+    ...contactsFormConfigFields(true, isContactPointUseDisabled()),
   ];
 };
 

@@ -56,6 +56,8 @@ import { pathogenSpecimenFields } from './formly/configs/pathogen/pathogen-speci
 import { initialModelForClipboard } from './services/core/clipboard-constants';
 import { Router } from '@angular/router';
 import {
+  customCodeDisplay,
+  FollowUpMixedCodesService,
   FollowUpNotificationIdService,
   FormlyConstants,
   MaxHeightContentContainerComponent,
@@ -74,14 +76,14 @@ import { environment } from '../../environments/environment';
 })
 export class PathogenNotificationComponent implements OnInit, OnDestroy {
   dialog = inject(MatDialog);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly notificationStorageService = inject(PathogenNotificationStorageService);
   private readonly fhirPathogenNotificationService = inject(FhirPathogenNotificationService);
   private readonly clipboardDataService = inject(ClipboardDataService);
   private readonly logger = inject(NGXLogger);
   private readonly errorDialogService = inject(ErrorDialogService);
   private readonly followUpNotificationIdService = inject(FollowUpNotificationIdService);
-
-  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly followUpMixedCodesService = inject(FollowUpMixedCodesService);
 
   form: FormGroup = new FormGroup({});
   options: FormlyFormOptions = {};
@@ -274,13 +276,24 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           if (isMixedFollowUpNotificationEnabled()) {
             this.fhirPathogenNotificationService.fetchFollowUpCode(code).subscribe(response => {
               if (response) {
-                codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, response[0].code);
-                if (codeDisplay) {
+                if (response.length > 1) {
+                  const customCodeDisplays: customCodeDisplay[] = response.map(codeDisplay => ({
+                    code: codeDisplay.code,
+                    display: getDesignationValueIfAvailable(codeDisplay),
+                  }));
+                  this.followUpNotificationIdService.closeDialog();
+                  this.followUpMixedCodesService.openDialog(customCodeDisplays).subscribe(selectedCode => {
+                    codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, selectedCode);
+                    this.updateAfterPathogenSelection(codeDisplay);
+                    this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
+                  });
+                } else if (response.length === 1) {
+                  codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, response[0].code);
                   this.updateAfterPathogenSelection(codeDisplay);
-                  this.markFormularAsTouched('notifiedPerson');
-                  this.setFocusOnFirstStepHeader();
-                  this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
+                  this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
                 }
+                this.markFormularAsTouched('notifiedPerson');
+                this.setFocusOnFirstStepHeader();
               }
             });
           } else {
@@ -289,7 +302,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
               this.updateAfterPathogenSelection(codeDisplay);
               this.markFormularAsTouched('notifiedPerson');
               this.setFocusOnFirstStepHeader();
-              this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
+              this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
             } else {
               this.errorDialogService.showBasicErrorDialogWithRedirect(
                 'Der gespeicherte Erreger ' +
@@ -308,6 +321,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   getPathogenCodeDisplaysAndOpenFollowUpDialog() {
     this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays7_1().subscribe({
       next: (response: CodeDisplay[]) => {
+        this.pathogenCodeDisplays = response;
         this.followUpNotificationIdService.isMixedCodesActive = isMixedFollowUpNotificationEnabled();
         this.followUpNotificationIdService.openDialog({
           dialogData: {
@@ -484,7 +498,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       this.setValueForPathogenSelectionField('Influenzavirus');
     }
     if (this.isFollowUpNotification7_1()) {
-      this.model.pathogenForm.notificationCategory.initialNotificationId = this.followUpNotificationIdService.validatedNotificationId();
+      this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
     }
     this.form.markAllAsTouched();
   }
@@ -525,6 +539,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       ...this.model.pathogenForm,
       ...initialModelForClipboard(pathogenValueFromClipboard, this.pathogenCodeDisplays),
     };
+  }
+
+  private updateInitialNotificationId(notificationId: string) {
+    if (notificationId) {
+      this.model.pathogenForm.notificationCategory.initialNotificationId = notificationId;
+    }
   }
 
   private readonly setPathogenInformation = () => {

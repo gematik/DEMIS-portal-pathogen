@@ -176,7 +176,7 @@ export class FhirPathogenNotificationService {
         catchError(error => {
           this.logger.error('Error fetching follow up code', error);
           this.errorDialogService.showBasicErrorDialogWithRedirect(
-            'Für diese Meldekategorie nach § 6 Abs. 1 IfSG gibt es keine entsprechende Meldekategorie nach § 7 Abs. 1 IfSG. Daher besteht hier nicht die Möglichkeit einer Folgemeldung',
+            'Für diese Meldekategorie nach § 6 Abs. 1 IfSG gibt es keine entsprechende Meldekategorie nach § 7 Abs. 1 IfSG. Daher besteht hier nicht die Möglichkeit einer Folgemeldung.',
             'Fehler'
           );
           throw error;
@@ -186,7 +186,6 @@ export class FhirPathogenNotificationService {
 
   submitNotification(notification: PathogenTest, notificationType: NotificationType) {
     this.ngZone.run(() => this.messageDialogService.showSpinnerDialog({ message: 'Meldung wird gesendet' }));
-    this.messageDialogService.showSpinnerDialog({ message: 'Meldung wird gesendet' });
     notification = this.prepareNotification(notification);
     const fullUrl = this.getNotificationUrl(notificationType);
     this.httpClient

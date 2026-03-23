@@ -44,6 +44,7 @@ config:
     FEATURE_FLAG_PORTAL_ACCESSIBILITY: false
     FEATURE_FLAG_MIXED_FOLLOW_UP: false
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: false
+    FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true

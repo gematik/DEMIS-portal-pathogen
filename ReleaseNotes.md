@@ -2,6 +2,15 @@
 
 # Release portal-pathogen
 
+# Release 1.7.1
+- Removed usage parameter from contact
+- Updated Base Image to 1.29.5
+- Used fixed version of formly-datepicker from portal-core 3.0.7 and removed obsolete code
+- Updated @gematik/demis-portal-core-library to 3.0.9
+- Updated Angular dependencies
+- Added follow-up mixed dialog
+- Fixed duplicate spinner dialog display
+
 # Release 1.7.0
 - Updated @gematik/demis-portal-core-library to 3.0.5
 - Added accessibility statement footer link (FEATURE_FLAG_PORTAL_ACCESSIBILITY)
