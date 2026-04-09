@@ -197,8 +197,8 @@ const pathogenDataNonNominal = (todayDate: string) => {
   };
 };
 
-export const pathogenTestDummyData = (isNonNominal: boolean): any => {
-  return pathogenTestDummyDataSource(isNonNominal);
+export const pathogenTestDummyData = (is7_3Notification: boolean): any => {
+  return pathogenTestDummyDataSource(is7_3Notification);
 };
 
 export const pathogenFormDummyData = (isNonNominal: boolean): any => {
@@ -230,7 +230,7 @@ export const pathogenFormDummyDataNotifiedPersonNotByName = {
 };
 
 export const dummyDataForPathogenForm = (notificationType: NotificationType) => {
-  const isNonNominal = notificationType === NotificationType.NonNominalNotification7_3;
+  const is7_3Notification = notificationType === NotificationType.NonNominalNotification7_3 || notificationType === NotificationType.AnonymousNotification7_3;
 
   let notifiedPerson: NotifiedPerson | NotifiedPersonAnonymous;
   switch (notificationType) {
@@ -241,15 +241,18 @@ export const dummyDataForPathogenForm = (notificationType: NotificationType) => 
       notifiedPerson = pathogenFormDummyDataNotifiedPersonNotByName;
       break;
     case NotificationType.NominalNotification7_1:
-      notifiedPerson = pathogenFormDummyData(isNonNominal).notifiedPerson;
+      notifiedPerson = pathogenFormDummyData(is7_3Notification).notifiedPerson;
+      break;
+    case NotificationType.AnonymousNotification7_3:
+      notifiedPerson = pathogenFormDummyDataNotifiedPersonAnonymous;
       break;
   }
 
   return {
-    notifierFacility: pathogenFormDummyData(isNonNominal).notifierFacility,
-    submittingFacility: pathogenFormDummyData(isNonNominal).submittingFacility,
+    notifierFacility: pathogenFormDummyData(is7_3Notification).notifierFacility,
+    submittingFacility: pathogenFormDummyData(is7_3Notification).submittingFacility,
     notifiedPerson: notifiedPerson,
-    notificationCategory: pathogenFormDummyData(isNonNominal).notificationCategory,
-    pathogenDTO: pathogenFormDummyData(isNonNominal).pathogenDTO,
+    notificationCategory: pathogenFormDummyData(is7_3Notification).notificationCategory,
+    pathogenDTO: pathogenFormDummyData(is7_3Notification).pathogenDTO,
   };
 };

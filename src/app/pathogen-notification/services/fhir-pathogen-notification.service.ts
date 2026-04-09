@@ -90,6 +90,7 @@ export class FhirPathogenNotificationService {
     if (isNonNominalNotificationEnabled()) {
       switch (type) {
         case NotificationType.NonNominalNotification7_3:
+        case NotificationType.AnonymousNotification7_3:
           path = environment.notificationCategories_7_3;
           break;
         case NotificationType.NominalNotification7_1:
@@ -274,6 +275,8 @@ export class FhirPathogenNotificationService {
     switch (type) {
       case NotificationType.NonNominalNotification7_3:
         return url + environment.pathToPathogen_7_3_nonNominal;
+      case NotificationType.AnonymousNotification7_3:
+        return url + environment.pathToPathogen_7_3_anonymous;
       case NotificationType.NominalNotification7_1:
         return url + environment.pathToPathogen_7_1;
       default:

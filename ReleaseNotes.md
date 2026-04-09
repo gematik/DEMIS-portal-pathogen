@@ -2,6 +2,11 @@
 
 # Release portal-pathogen
 
+# Release 1.8.0
+- Updated disclaimer texts
+- Added anonymous notification §7.3
+- Updated @gematik/demis-portal-core-library to 3.2.0
+
 # Release 1.7.1
 - Removed usage parameter from contact
 - Updated Base Image to 1.29.5
@@ -84,6 +89,8 @@
 - Upgraded dependencies
 - Added test:coverage npm script to run a single test run with coverage report
 - fixed clipboard data bug which disables request for pathogen data based on notificationCategory changes
+
+## Release 1.8.0
 
 ## Release 1.5.0
 - Implementation of §7.1 follow-up notification (FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN)

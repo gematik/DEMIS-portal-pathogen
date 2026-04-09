@@ -41,7 +41,7 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   isPathogenInFavorites: Signal<boolean> = computed(() => {
     return this.favorites().some(fav => fav.code === this.pathogen.code);
   });
-  private readonly isNonNominalNotification7_3: boolean = false;
+  private readonly isNotification7_3: boolean = false;
 
   private readonly pathogenNotificationComponent: PathogenNotificationComponent = inject(PathogenNotificationComponent);
 
@@ -50,7 +50,8 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
     const pathogenNotificationStorageService = this.pathogenNotificationStorageService;
 
     this.pathogen = pathogenNotificationStorageService.getSelectedPathogenCodeDisplay();
-    this.isNonNominalNotification7_3 = this.pathogenNotificationComponent.isNonNominalNotification7_3();
+    this.isNotification7_3 =
+      this.pathogenNotificationComponent.isNonNominalNotification7_3() || this.pathogenNotificationComponent.isAnonymousNotification7_3();
     this.loadFavorites();
   }
 
@@ -62,7 +63,7 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   }
 
   loadFavorites(): void {
-    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNonNominalNotification7_3) || [];
+    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNotification7_3) || [];
     this.favorites.update(() => favorites);
   }
 
@@ -73,12 +74,12 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   }
 
   addPathogenToFavorites(): void {
-    this.pathogenNotificationStorageService.addFavoriteToList(this.pathogen, this.isNonNominalNotification7_3);
+    this.pathogenNotificationStorageService.addFavoriteToList(this.pathogen, this.isNotification7_3);
     this.loadFavorites();
   }
 
   removePathogenFromFavorites(): void {
-    this.pathogenNotificationStorageService.removeFavoriteFromList(this.pathogen, this.isNonNominalNotification7_3);
+    this.pathogenNotificationStorageService.removeFavoriteFromList(this.pathogen, this.isNotification7_3);
     this.loadFavorites();
   }
 

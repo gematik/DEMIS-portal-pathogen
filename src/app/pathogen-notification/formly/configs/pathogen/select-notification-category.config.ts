@@ -25,8 +25,11 @@ import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import { NotificationType } from '../../../common/routing-helper';
 import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
 
-const is7_3Notification = (federalStateCodeDisplays: CodeDisplay[]) => federalStateCodeDisplays.length === 0;
 const isFollowUpNotification = (notificationType: NotificationType) => notificationType === NotificationType.FollowUpNotification7_1;
+
+const showFederalStateSelection = (notificationType: NotificationType) => {
+  return notificationType === NotificationType.NominalNotification7_1;
+};
 
 export const selectNotificationCategoryFields = (
   federalStateCodeDisplays: CodeDisplay[],
@@ -71,7 +74,7 @@ export const selectNotificationCategoryFields = (
           required: true,
         },
         expressions: {
-          hide: () => is7_3Notification(federalStateCodeDisplays) || isFollowUpNotification(notificationType),
+          hide: () => !showFederalStateSelection(notificationType),
         },
       },
     ]),
@@ -87,9 +90,6 @@ export const selectNotificationCategoryFields = (
           required: true,
         },
         expressions: {
-          hide: (field: FormlyFieldConfig) => {
-            return !is7_3Notification(federalStateCodeDisplays) && !field.form?.value?.federalStateCodeDisplay && !isFollowUpNotification(notificationType);
-          },
           'props.disabled': () => {
             return isFollowUpNotification(notificationType);
           },

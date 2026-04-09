@@ -13,7 +13,8 @@
   "gatewayPaths": {
     "pathogen": "/notification/pathogen",
     "pathogen_7_1": "/notification/pathogen/7.1",
-    "pathogen_7_3_non_nominal": "/notification/pathogen/7.3/non_nominal"
+    "pathogen_7_3_non_nominal": "/notification/pathogen/7.3/non_nominal",
+    "pathogen_7_3_anonymous": "/notification/pathogen/7.3/anonymous"
   },
   "futsPaths": {
     "countryCodes": "/utils/countryCodes",
