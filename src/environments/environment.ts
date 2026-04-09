@@ -91,6 +91,10 @@ export class Environment {
     return this.gatewayPaths?.pathogen_7_3_non_nominal;
   }
 
+  public get pathToPathogen_7_3_anonymous(): string {
+    return this.gatewayPaths?.pathogen_7_3_anonymous;
+  }
+
   public get pathToFuts(): string {
     return this.config?.pathToFuts;
   }

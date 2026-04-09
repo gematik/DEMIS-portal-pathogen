@@ -49,6 +49,7 @@ import {
 import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
 import { buildMock, mainConfig, setupIntegrationTests } from './base';
+import { NotifiedPersonDisclaimer } from '../../app/pathogen-notification/utils/disclaimer-texts';
 
 describe('Pathogen - Notified Person Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -113,6 +114,10 @@ describe('Pathogen - Notified Person Integration Tests', () => {
 
     it('should be at notified person form', async () => {
       expect(fixture.nativeElement.textContent).toContain('Wohnsitz');
+    });
+
+    it('should show the default disclaimer text', async () => {
+      expect(fixture.nativeElement.textContent).toContain(NotifiedPersonDisclaimer.DEFAULT_DISCLAIMER);
     });
 
     describe('Validation of notifiedPerson ', () => {

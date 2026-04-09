@@ -213,6 +213,7 @@ export function transformPathogenFormToPathogenTest(
   //transform notified person
   switch (notificationType) {
     case NotificationType.FollowUpNotification7_1:
+    case NotificationType.AnonymousNotification7_3:
       result = transformAnonymousPerson(pathogenForm, result);
       break;
     case NotificationType.NonNominalNotification7_3:

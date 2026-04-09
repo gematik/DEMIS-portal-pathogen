@@ -48,12 +48,12 @@ export function getRouter(url = '/pathogen-notification') {
   } as Partial<Router>;
 }
 
-export function getFhirPathogenNotificationService(isNonNominal = false) {
+export function getFhirPathogenNotificationService(needsNoFederalStates = false) {
   return {
     fetchCountryCodeDisplays: jasmine.createSpy('fetchCountryCodeDisplays').and.returnValue(of(TEST_DATA.countryCodeDisplays)),
     fetchFederalStateCodeDisplays: jasmine
       .createSpy('fetchFederalStateCodeDisplays')
-      .and.returnValue(isNonNominal ? of([]) : of(TEST_DATA.federalStateCodeDisplays)),
+      .and.returnValue(needsNoFederalStates ? of([]) : of(TEST_DATA.federalStateCodeDisplays)),
     fetchPathogenCodeDisplaysByTypeAndState: jasmine
       .createSpy('fetchPathogenCodeDisplaysByTypeAndStateForFederalState')
       .and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),

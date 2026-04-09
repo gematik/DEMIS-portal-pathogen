@@ -19,7 +19,9 @@ import { buildMock, mainConfig, setupIntegrationTests } from './base';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
+import { switchToPage } from '../shared/test-utils';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
+import { NotifiedPersonDisclaimer } from '../../app/pathogen-notification/utils/disclaimer-texts';
 
 describe('Pathogen - Anonymous Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -47,5 +49,25 @@ describe('Pathogen - Anonymous Integration Tests', () => {
   it('should show 7.3 anonymous up header', () => {
     const textContent = fixture.nativeElement.textContent;
     expect(textContent.includes('Erregernachweis (anonym)')).toBeTrue();
+  });
+
+  it('should show favorites', async () => {
+    await switchToPage(4, fixture);
+    const textContent = fixture.nativeElement.textContent;
+    expect(textContent.includes('Favoriten')).toBeTrue();
+  });
+
+  it('should not show federalState select', async () => {
+    await switchToPage(4, fixture);
+    const federalStateSelect = fixture.nativeElement.querySelector('[id="federalStateCodeDisplay"]');
+    const pathogenDisplaySelect = fixture.nativeElement.querySelector('[id="pathogenDisplay"]');
+
+    expect(federalStateSelect).withContext('federalStateSelect should not be present but was found').toBeNull();
+    expect(pathogenDisplaySelect).withContext('pathogenDisplaySelect could not be found').toBeTruthy();
+  });
+
+  it('should show the anonymous disclaimer text on notified person page', async () => {
+    await switchToPage(3, fixture);
+    expect(fixture.nativeElement.textContent).toContain(NotifiedPersonDisclaimer.ANONYMOUS_DISCLAIMER);
   });
 });

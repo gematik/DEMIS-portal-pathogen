@@ -1,6 +1,6 @@
 {
   "name": "notification-portal-mf-pathogen",
-  "version": "1.7.1-snapshot",
+  "version": "1.8.0-snapshot",
   "overrides": {
     "ng-mocks": {
       "@angular/common": "$@angular/common",
@@ -41,10 +41,10 @@
     "@angular/platform-browser": "21.2.4",
     "@angular/platform-browser-dynamic": "21.2.4",
     "@angular/router": "21.2.4",
-    "@gematik/demis-portal-core-library": "3.0.9",
+    "@gematik/demis-portal-core-library": "3.2.0",
     "@ngx-formly/core": "7.1.0",
     "@ngx-formly/material": "7.1.0",
-    "lodash-es": "4.17.23",
+    "lodash-es": "4.18.1",
     "marked": "17.0.1",
     "ngx-logger": "5.0.12",
     "rxjs": "7.8.2",

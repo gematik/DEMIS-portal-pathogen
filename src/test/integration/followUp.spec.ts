@@ -30,6 +30,7 @@ import { TEST_DATA } from '../shared/test-data';
 import { setDiagnosticBasedOnPathogenSelection } from '../shared/test-setup-utils';
 import { lastValueFrom, of } from 'rxjs';
 import { ADD_BUTTON_CLIPBOARD } from '../shared/test-constants';
+import { NotifiedPersonDisclaimer } from '../../app/pathogen-notification/utils/disclaimer-texts';
 
 describe('Pathogen - Follow Up Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -177,6 +178,12 @@ describe('Pathogen - Follow Up Integration Tests', () => {
       it('should NOT call fetchFollowUpCode when FEATURE_FLAG_MIXED_FOLLOW_UP is false', async () => {
         expect(fhirService.fetchFollowUpCode).not.toHaveBeenCalled();
       });
+    });
+
+    it('should show the follow-up disclaimer text on notified person page', async () => {
+      await clickNextButton(fixture);
+      await clickNextButton(fixture);
+      expect(fixture.nativeElement.textContent).toContain(NotifiedPersonDisclaimer.FOLLOW_UP_DISCLAIMER);
     });
 
     describe('clipboard tests', () => {

@@ -17,11 +17,20 @@
 
 import { NotificationType } from '../common/routing-helper';
 
+export const NotifiedPersonDisclaimer = {
+  FOLLOW_UP_DISCLAIMER:
+    "Sie sind im Prozess des Absetzens einer Folgemeldung. Informationen zur betroffenen Person liegen dem zuständigen Gesundheitsamt bereits im Rahmen der getätigten Initialmeldung vor. Erneute Angaben zur betroffenen Person ermöglichen es dem Gesundheitsamt Plausibilitätschecks im Kontext des Zusammenführens der Meldungen durchzuführen. Bitte machen Sie daher, falls möglich, wiederholt Angaben zu 'Geschlecht' sowie 'Geburtsmonat/-jahr'.",
+  ANONYMOUS_DISCLAIMER:
+    "Sie sind im Prozess des Absetzens einer Meldung zu einer Anonymen Testung. Nichtnamentliche Angaben zur betroffenen Person ermöglichen Plausibilitätschecks im Kontext des Zusammenführens der Meldungen. Bitte machen Sie daher, falls möglich, Angaben zu 'Geschlecht' sowie 'Geburtsmonat/-jahr'.",
+  DEFAULT_DISCLAIMER:
+    'Grundsätzlich müssen Sie gemäß Infektionsschutzgesetz alle Ihnen vorliegenden Informationen im Meldeformular angeben, um die Meldepflicht zu erfüllen. Die Nachmeldung oder Korrektur von Angaben hat unverzüglich zu erfolgen.',
+};
+
 export const PathogenFormInfos = {
   insertAllKnownInfosToFulfillReportingObligation: `
     <div class="info-notification-text">
       <span class="material-icons-outlined primary-color-icon">error_outline</span>
-      <span class="message">Grundsätzlich müssen Sie gemäß Infektionsschutzgesetz alle Ihnen vorliegenden Informationen im Meldeformular angeben, um die Meldepflicht zu erfüllen. Die Nachmeldung oder Korrektur von Angaben hat unverzüglich zu erfolgen.</span>
+      <span class="message">${NotifiedPersonDisclaimer.DEFAULT_DISCLAIMER}</span>
     </div>
   `,
 

@@ -45,6 +45,7 @@ import {
   getResetModel,
   initializeDiagnosticFields,
   initializeSelectPathogenFields,
+  isAnonymousNotificationEnabled,
   isFollowUpNotificationEnabled,
   isMixedFollowUpNotificationEnabled,
   isNonNominalNotificationEnabled,
@@ -67,6 +68,7 @@ import {
 import { allowedRoutes, getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
 import { GENDER_OPTION_LIST } from './legacy/formly-options-lists';
 import { environment } from '../../environments/environment';
+import { NotifiedPersonDisclaimer } from './utils/disclaimer-texts';
 
 @Component({
   selector: 'app-pathogen-notification',
@@ -132,7 +134,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.changeLoadingState(true);
     const selectedFederalStateCode = this.notificationStorageService.getFederalStateCode() || this.defaultFederalState;
 
-    if (isNonNominalNotificationEnabled() || isFollowUpNotificationEnabled()) {
+    if (isFollowUpNotificationEnabled() || isNonNominalNotificationEnabled() || isAnonymousNotificationEnabled()) {
       this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
     }
 
@@ -167,6 +169,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           this.model.pathogenForm.notifierFacility.address.country = 'DE';
           setTimeout(() => this.markFormularAsTouched('notifierFacility'));
         }
+        if (this.isAnonymousNotification7_3()) {
+          setTimeout(() => this.markFormularAsTouched('notifiedPerson'));
+        }
 
         this.changeLoadingState(false);
         setTimeout(() => {
@@ -174,7 +179,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
             this.subscribeToFederalStateChanges();
           }
           this.subscribeToPathogenChanges();
-          if (!this.isFollowUpNotification7_1() && !this.isNonNominalNotification7_3()) {
+          if (!this.isFollowUpNotification7_1() && !this.isNonNominalNotification7_3() && !this.isAnonymousNotification7_3()) {
             this.subscribeToCurrentAddressTypeChanges();
           }
         });
@@ -224,9 +229,23 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   getNotifiedPersonFields(notificationType: NotificationType): FormlyFieldConfig[] {
     switch (notificationType) {
       case NotificationType.FollowUpNotification7_1:
-        return notifiedPersonAnonymousConfigFields(mapCodeDisplaysToOptionList(this.countryCodeDisplays), GENDER_OPTION_LIST);
+        return notifiedPersonAnonymousConfigFields(
+          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
+          GENDER_OPTION_LIST,
+          NotifiedPersonDisclaimer.FOLLOW_UP_DISCLAIMER
+        );
+      case NotificationType.AnonymousNotification7_3:
+        return notifiedPersonAnonymousConfigFields(
+          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
+          GENDER_OPTION_LIST,
+          NotifiedPersonDisclaimer.ANONYMOUS_DISCLAIMER
+        );
       case NotificationType.NonNominalNotification7_3:
-        return notifiedPersonNotByNameConfigFields(mapCodeDisplaysToOptionList(this.countryCodeDisplays), GENDER_OPTION_LIST);
+        return notifiedPersonNotByNameConfigFields(
+          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
+          GENDER_OPTION_LIST,
+          NotifiedPersonDisclaimer.DEFAULT_DISCLAIMER
+        );
       default:
         return notifiedPersonFormConfigFields(this.countryCodeDisplays);
     }
@@ -423,13 +442,21 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
         this.resetNotificationCategoryAndSpecimenList();
         if (fromHexHexButton) {
-          this.updateAfterPathogenSelection(pathogenTestDummyData(this.isNonNominalNotification7_3()).pathogenDTO.codeDisplay, true);
+          this.updateAfterPathogenSelection(pathogenTestDummyData(this.is7_3Notification()).pathogenDTO.codeDisplay, true);
         }
       });
   }
 
+  public is7_3Notification(): boolean {
+    return this.isNonNominalNotification7_3() || this.isAnonymousNotification7_3();
+  }
+
   public isNonNominalNotification7_3(): boolean {
     return this.notificationType === NotificationType.NonNominalNotification7_3;
+  }
+
+  public isAnonymousNotification7_3(): boolean {
+    return this.notificationType === NotificationType.AnonymousNotification7_3;
   }
 
   public isFollowUpNotification7_1(): boolean {
@@ -492,7 +519,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.model.pathogenForm = dummyDataForPathogenForm(this.notificationType);
 
     //fix for a bug where the pathogen field was not populated if it was cleared by user
-    if (this.isNonNominalNotification7_3()) {
+    if (this.is7_3Notification()) {
       this.setValueForPathogenSelectionField('HIV');
     } else {
       this.setValueForPathogenSelectionField('Influenzavirus');

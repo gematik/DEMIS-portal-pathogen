@@ -40,7 +40,7 @@ import { SideNavigationStepperComponent } from '../../app/pathogen-notification/
 import { FormlyMaterialModule } from '@ngx-formly/material';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
-import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
+import { allowedRoutes, NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
 export const mainConfig = {
   featureFlags: {
@@ -63,7 +63,8 @@ export const mainConfig = {
 };
 
 export function buildMock(activatedRoute = false, notificationType: NotificationType = NotificationType.NominalNotification7_1) {
-  const isNonnominal = notificationType === NotificationType.NonNominalNotification7_3;
+  const needsNoFederalStates =
+    notificationType === NotificationType.NonNominalNotification7_3 || notificationType === NotificationType.AnonymousNotification7_3;
   const builder = MockBuilder(PathogenNotificationComponent)
     .keep(
       RouterModule.forRoot([
@@ -87,17 +88,17 @@ export function buildMock(activatedRoute = false, notificationType: Notification
     .keep(MaxHeightContentContainerComponent)
     .keep(FormlyMaterialModule)
     .provide(MockProvider(ChangeDetectorRef))
-    .provide(MockProvider(FhirPathogenNotificationService, getFhirPathogenNotificationService(isNonnominal)))
+    .provide(MockProvider(FhirPathogenNotificationService, getFhirPathogenNotificationService(needsNoFederalStates)))
     .provide(MockProvider(PathogenNotificationStorageService, overrides.pathogenNotificationStorageService))
     .provide(provideHttpClient(withInterceptorsFromDi()))
     .provide(ClipboardDataService);
 
-  if (isNonnominal) {
-    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.3/non-nominal')));
-  } else if (notificationType === NotificationType.FollowUpNotification7_1) {
-    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.1/follow-up')));
+  if (notificationType === NotificationType.FollowUpNotification7_1) {
+    builder.provide(MockProvider(Router, getRouter(allowedRoutes.followUp)));
   } else if (notificationType === NotificationType.AnonymousNotification7_3) {
-    builder.provide(MockProvider(Router, getRouter('pathogen-notification/7.3/anonymous')));
+    builder.provide(MockProvider(Router, getRouter(allowedRoutes.anonymous)));
+  } else if (notificationType === NotificationType.NonNominalNotification7_3) {
+    builder.provide(MockProvider(Router, getRouter(allowedRoutes.nonNominal)));
   }
 
   if (activatedRoute) {
