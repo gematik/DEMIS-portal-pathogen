@@ -21,11 +21,10 @@ import { of } from 'rxjs';
 import { FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
 import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/common-utils';
 import { REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
-import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import { NotificationType } from '../../../common/routing-helper';
 import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
-
-const isFollowUpNotification = (notificationType: NotificationType) => notificationType === NotificationType.FollowUpNotification7_1;
+import { isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
+import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 
 const showFederalStateSelection = (notificationType: NotificationType) => {
   return notificationType === NotificationType.NominalNotification7_1;

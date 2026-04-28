@@ -85,7 +85,7 @@ export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
           label: 'Geburtsdatum',
           allowedPrecisions: ['day'],
           required: false,
-          minDate: new Date('1870-01-01'),
+          minDate: new Date('1900-01-01'),
           maxDate: new Date(),
           multiYear: true,
         },

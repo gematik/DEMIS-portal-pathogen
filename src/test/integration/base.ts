@@ -44,27 +44,36 @@ import { allowedRoutes, NotificationType } from '../../app/pathogen-notification
 
 export const mainConfig = {
   featureFlags: {
-    FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false,
-    FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: false,
+    FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true,
+    // FEATURE_FLAG_PORTAL_PAGE_STRUCTURE: true, activate with DEMIS-5606
+    FEATURE_FLAG_ANONYMOUS_NOTIFICATION: true,
+    FEATURE_FLAG_PORTAL_HEADER_FOOTER: true,
+    FEATURE_FLAG_PORTAL_ACCESSIBILITY: true,
     FEATURE_FLAG_MIXED_FOLLOW_UP: false,
+    FEATURE_FLAG_FOOTER_LINKS_CORRECTION: true,
+    FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE: true,
+    FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING: true,
+    FEATURE_FLAG_FOLLOW_UP_7_3: true,
   },
   gatewayPaths: {
-    pathogen: '/api/ng/notification/pathogen',
+    pathogen: '/notification/pathogen',
+    pathogen_7_1: '/notification/pathogen/7.1',
+    pathogen_7_3_non_nominal: '/notification/pathogen/7.3/non_nominal',
+    pathogen_7_3_anonymous: '/notification/pathogen/7.3/anonymous',
   },
   ngxLoggerConfig: {
     serverLogLevel: 1,
     disableConsoleLogging: true,
     level: 1,
   },
-  pathToGateway: '../gateway/notification',
-  pathToFuts: '../fhir-ui-data-model-translation',
+  pathToGateway: '../gateway/pathogen',
+  pathToFuts: '/translation/ui-data-model/v6/fhir',
   pathToDestinationLookup: '/destination-lookup/v1',
   production: false,
 };
 
 export function buildMock(activatedRoute = false, notificationType: NotificationType = NotificationType.NominalNotification7_1) {
-  const needsNoFederalStates =
-    notificationType === NotificationType.NonNominalNotification7_3 || notificationType === NotificationType.AnonymousNotification7_3;
+  const needsNoFederalStates = notificationType !== NotificationType.NominalNotification7_1;
   const builder = MockBuilder(PathogenNotificationComponent)
     .keep(
       RouterModule.forRoot([
@@ -99,6 +108,8 @@ export function buildMock(activatedRoute = false, notificationType: Notification
     builder.provide(MockProvider(Router, getRouter(allowedRoutes.anonymous)));
   } else if (notificationType === NotificationType.NonNominalNotification7_3) {
     builder.provide(MockProvider(Router, getRouter(allowedRoutes.nonNominal)));
+  } else if (notificationType === NotificationType.FollowUpNotification7_3) {
+    builder.provide(MockProvider(Router, getRouter(allowedRoutes.followUpNonNominal)));
   }
 
   if (activatedRoute) {

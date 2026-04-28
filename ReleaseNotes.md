@@ -2,12 +2,22 @@
 
 # Release portal-pathogen
 
-# Release 1.8.0
+## Release 1.9.0
+- Updated NGINX-Base-Image to 1.29.8
+- Removed FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN
+- Updated @gematik/demis-portal-core-library to 3.2.1
+- Added filtering of validation errors in the dialog after submitting a notification (FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING)
+- Used §7.1 paths for §7.1 notification instead of default paths
+- Added §7.3 follow up notification handling (FEATURE_FLAG_FOLLOW_UP_7_3)
+- Updated NGINX-Base-Image to 1.30.0
+- Set Datepicker minDate to 1900
+
+## Release 1.8.0
 - Updated disclaimer texts
 - Added anonymous notification §7.3
 - Updated @gematik/demis-portal-core-library to 3.2.0
 
-# Release 1.7.1
+## Release 1.7.1
 - Removed usage parameter from contact
 - Updated Base Image to 1.29.5
 - Used fixed version of formly-datepicker from portal-core 3.0.7 and removed obsolete code
@@ -16,7 +26,7 @@
 - Added follow-up mixed dialog
 - Fixed duplicate spinner dialog display
 
-# Release 1.7.0
+## Release 1.7.0
 - Updated @gematik/demis-portal-core-library to 3.0.5
 - Added accessibility statement footer link (FEATURE_FLAG_PORTAL_ACCESSIBILITY)
 - Updated Angular to v21
@@ -27,7 +37,7 @@
 - Fixed change detection bug in spinner-dialog
 - Changed imprint link and add ids in footer (FEATURE_FLAG_FOOTER_LINKS_CORRECTION)
 
-# Release 1.6.5
+## Release 1.6.5
 - Removed data-cy attributes from elements
 - Updated @gematik/demis-portal-core-library to 2.3.9
 - Fixed vulnerabilities in dependencies
@@ -36,7 +46,7 @@
 - Added possibility to pass staticSystemVersion to gateway
 - Removed feature flag NEW_API_ENDPOINTS
 
-# Release 1.6.4
+## Release 1.6.4
 - Updated @gematik/demis-portal-core-library to 2.3.8
 - Changed info icon in formly templates
 - Disabled Sandbox for ChromeHeadless browser to run karma tests in CI
@@ -46,18 +56,18 @@
 - Added routing and header for § 7.3 anonymous notification (FEATURE_FLAG_ANONYMOUS_NOTIFICATION)
 - Fixed vulnerabilities in dependencies
 
-# Release 1.6.3
+## Release 1.6.3
 - Removed FEATURE_FLAG_PORTAL_ERROR_DIALOG
 - Updated @gematik/demis-portal-core-library to 2.3.6
 - Updated Angular dependencies to version 19.2.17
 - Improved clipboard logic for follow-up notification
 - Refined follow-up pop-up dialog text
 
-# Release 1.6.2
+## Release 1.6.2
 - Updated @gematik/demis-portal-core-library to 2.3.3
 - Implemented notifiedPersonNotByName config from Portal-Core
 
-# Release 1.6.1
+## Release 1.6.1
 - Removed FEATURE_FLAG_PORTAL_SUBMIT and FEATURE_FLAG_PORTAL_ERROR_DIALOG_ON_SUBMIT
 - Implemented HeaderSection from Portal-Core (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE)
 - Implemented validation to ensure that the notificationCategory for follow-up notifications matches the selected notificationType
@@ -68,7 +78,7 @@
 - Removed FEATURE_FLAG_PATHOGEN_DATEPICKER
 - Updated NGINX-Base-Image to 1.29.3
 
-# Release 1.6.0
+## Release 1.6.0
 - Added GET call to fetch notificationCategory based on notificationId (follow-up)
 - Improve UX of autocomplete fields
 - Removed FEATURE_FLAG_PORTAL_REPEAT
@@ -79,18 +89,16 @@
 - Update @gematik/demis-portal-core-library to 2.2.3
 - Add new clipboard key for laboratoryOrderId
 
-# Release 1.5.2
+## Release 1.5.2
 - Use submit- and spinner-dialog from Portal-Core (FEATURE_FLAG_PORTAL_SUBMIT)
 
-# Release 1.5.1
+## Release 1.5.1
 - Fixed a bug, where validation errors where not shown
 - Removed a date mapping function in favor of an updated version of the datepicker
 - Improved notificationId info text
 - Upgraded dependencies
 - Added test:coverage npm script to run a single test run with coverage report
 - fixed clipboard data bug which disables request for pathogen data based on notificationCategory changes
-
-## Release 1.8.0
 
 ## Release 1.5.0
 - Implementation of §7.1 follow-up notification (FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN)

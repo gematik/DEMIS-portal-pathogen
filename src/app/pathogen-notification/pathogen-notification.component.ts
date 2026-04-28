@@ -45,10 +45,10 @@ import {
   getResetModel,
   initializeDiagnosticFields,
   initializeSelectPathogenFields,
-  isAnonymousNotificationEnabled,
-  isFollowUpNotificationEnabled,
+  isAnonymousPersonNotification,
+  isFollowUpNotification,
   isMixedFollowUpNotificationEnabled,
-  isNonNominalNotificationEnabled,
+  isNonNominalNotification,
   updatePathogenForm,
 } from './utils/pathogen-notification-mapper';
 import { applyFilter } from './formly/configs/pathogen/select-notification-category.config';
@@ -134,9 +134,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.changeLoadingState(true);
     const selectedFederalStateCode = this.notificationStorageService.getFederalStateCode() || this.defaultFederalState;
 
-    if (isFollowUpNotificationEnabled() || isNonNominalNotificationEnabled() || isAnonymousNotificationEnabled()) {
-      this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
-    }
+    this.notificationType = getNotificationTypeByRouterUrl(this.router.url);
 
     forkJoin([
       this.fhirPathogenNotificationService.fetchCountryCodeDisplays(),
@@ -169,22 +167,25 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           this.model.pathogenForm.notifierFacility.address.country = 'DE';
           setTimeout(() => this.markFormularAsTouched('notifierFacility'));
         }
-        if (this.isAnonymousNotification7_3()) {
+        if (isAnonymousPersonNotification(this.notificationType)) {
           setTimeout(() => this.markFormularAsTouched('notifiedPerson'));
         }
 
         this.changeLoadingState(false);
         setTimeout(() => {
-          if (this.notificationType === NotificationType.NominalNotification7_1) {
+          if (this.isNominalNotification7_1()) {
             this.subscribeToFederalStateChanges();
           }
           this.subscribeToPathogenChanges();
-          if (!this.isFollowUpNotification7_1() && !this.isNonNominalNotification7_3() && !this.isAnonymousNotification7_3()) {
+          if (this.isNominalNotification7_1()) {
             this.subscribeToCurrentAddressTypeChanges();
           }
         });
         if (this.isFollowUpNotification7_1()) {
           this.getPathogenCodeDisplaysAndOpenFollowUpDialog();
+        }
+        if (this.isFollowUpNotification7_3()) {
+          this.getPathogenCodeDisplaysNonNominalAndOpenFollowUpDialog();
         }
       });
 
@@ -198,7 +199,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.clipboardDataService.pathogenDataIsChangingFromClipboard.subscribe((pathogenIsChanging: boolean) => {
       this.pathogenIsChangingFromClipboard = pathogenIsChanging;
     });
-    this.handleFollowUpNotification7_1();
+    this.handleFollowUpNotification();
   }
 
   populateWithFavoriteSelection(pathogen: CodeDisplay): void {
@@ -233,6 +234,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           mapCodeDisplaysToOptionList(this.countryCodeDisplays),
           GENDER_OPTION_LIST,
           NotifiedPersonDisclaimer.FOLLOW_UP_DISCLAIMER
+        );
+      case NotificationType.FollowUpNotification7_3:
+        return notifiedPersonAnonymousConfigFields(
+          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
+          GENDER_OPTION_LIST,
+          NotifiedPersonDisclaimer.FOLLOW_UP_NONNOMINAL_DISCLAIMER
         );
       case NotificationType.AnonymousNotification7_3:
         return notifiedPersonAnonymousConfigFields(
@@ -280,8 +287,8 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     );
   }
 
-  private handleFollowUpNotification7_1() {
-    if (this.isFollowUpNotification7_1()) {
+  private handleFollowUpNotification() {
+    if (isFollowUpNotification(this.notificationType)) {
       this.followUpNotificationIdService.hasValidNotificationId$
         .pipe(
           takeUntil(this.unsubscriber),
@@ -292,8 +299,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           const code = this.followUpNotificationIdService.followUpNotificationCategory();
           let codeDisplay: CodeDisplay;
 
-          if (isMixedFollowUpNotificationEnabled()) {
-            this.fhirPathogenNotificationService.fetchFollowUpCode(code).subscribe(response => {
+          if ((isMixedFollowUpNotificationEnabled() && this.isFollowUpNotification7_1()) || this.isFollowUpNotification7_3()) {
+            const fetchFollowUpCode = this.fhirPathogenNotificationService.fetchFollowUpCode(code, this.notificationType);
+            fetchFollowUpCode.subscribe(response => {
               if (response) {
                 if (response.length > 1) {
                   const customCodeDisplays: customCodeDisplay[] = response.map(codeDisplay => ({
@@ -338,7 +346,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   getPathogenCodeDisplaysAndOpenFollowUpDialog() {
-    this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays7_1().subscribe({
+    this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays('7.1').subscribe({
       next: (response: CodeDisplay[]) => {
         this.pathogenCodeDisplays = response;
         this.followUpNotificationIdService.isMixedCodesActive = isMixedFollowUpNotificationEnabled();
@@ -348,7 +356,26 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
             linkTextContent: 'eines namentlichen Erregernachweises nach § 7 Abs. 1 IfSG',
             pathToDestinationLookup: environment.pathToDestinationLookup,
             errorUnsupportedNotificationCategory:
-              'Aktuell sind Nichtnamentliche Folgemeldungen eines Erregernachweises gemäß § 7 Abs. 1 IfSG nur für eine § 7 Abs. 1 IfSG Initialmeldung möglich.',
+              'Diese Meldekategorie wird für diese Meldungsart nicht unterstützt. Bitte stellen Sie sicher, dass Sie auf eine Meldung nach § 7 Abs. 1 IfSG referenzieren.',
+          },
+          notificationCategoryCodes: response.map(codeDisplays => codeDisplays.code),
+        });
+      },
+    });
+  }
+
+  getPathogenCodeDisplaysNonNominalAndOpenFollowUpDialog() {
+    this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays('7.3').subscribe({
+      next: (response: CodeDisplay[]) => {
+        this.pathogenCodeDisplays = response;
+        this.followUpNotificationIdService.isMixedCodesActive = isMixedFollowUpNotificationEnabled();
+        this.followUpNotificationIdService.openDialog({
+          dialogData: {
+            routerLink: '/' + allowedRoutes.nonNominal,
+            linkTextContent: 'eines nichtnamentlichennamentlichen Erregernachweises nach § 7 Abs. 3 IfSG',
+            pathToDestinationLookup: environment.pathToDestinationLookup,
+            errorUnsupportedNotificationCategory:
+              'Diese Meldekategorie wird für diese Meldungsart nicht unterstützt. Bitte stellen Sie sicher, dass Sie auf eine Meldung nach § 7 Abs. 3 IfSG referenzieren.',
           },
           notificationCategoryCodes: response.map(codeDisplays => codeDisplays.code),
         });
@@ -442,25 +469,25 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
         this.resetNotificationCategoryAndSpecimenList();
         if (fromHexHexButton) {
-          this.updateAfterPathogenSelection(pathogenTestDummyData(this.is7_3Notification()).pathogenDTO.codeDisplay, true);
+          this.updateAfterPathogenSelection(pathogenTestDummyData(isNonNominalNotification(this.notificationType)).pathogenDTO.codeDisplay, true);
         }
       });
   }
 
-  public is7_3Notification(): boolean {
-    return this.isNonNominalNotification7_3() || this.isAnonymousNotification7_3();
-  }
-
-  public isNonNominalNotification7_3(): boolean {
-    return this.notificationType === NotificationType.NonNominalNotification7_3;
-  }
-
-  public isAnonymousNotification7_3(): boolean {
-    return this.notificationType === NotificationType.AnonymousNotification7_3;
+  getNotificationType() {
+    return this.notificationType;
   }
 
   public isFollowUpNotification7_1(): boolean {
     return this.notificationType === NotificationType.FollowUpNotification7_1;
+  }
+
+  public isFollowUpNotification7_3(): boolean {
+    return this.notificationType === NotificationType.FollowUpNotification7_3;
+  }
+
+  private isNominalNotification7_1(): boolean {
+    return this.notificationType === NotificationType.NominalNotification7_1;
   }
 
   private updateAfterPathogenSelection(selectedPathogenCodeDisplay: CodeDisplay, fromHexHexButton = false, fromClipboard = false) {
@@ -519,12 +546,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.model.pathogenForm = dummyDataForPathogenForm(this.notificationType);
 
     //fix for a bug where the pathogen field was not populated if it was cleared by user
-    if (this.is7_3Notification()) {
+    if (isNonNominalNotification(this.notificationType)) {
       this.setValueForPathogenSelectionField('HIV');
     } else {
       this.setValueForPathogenSelectionField('Influenzavirus');
     }
-    if (this.isFollowUpNotification7_1()) {
+    if (isFollowUpNotification(this.notificationType)) {
       this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
     }
     this.form.markAllAsTouched();

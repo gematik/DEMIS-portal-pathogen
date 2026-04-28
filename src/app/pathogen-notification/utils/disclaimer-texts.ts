@@ -24,6 +24,8 @@ export const NotifiedPersonDisclaimer = {
     "Sie sind im Prozess des Absetzens einer Meldung zu einer Anonymen Testung. Nichtnamentliche Angaben zur betroffenen Person ermöglichen Plausibilitätschecks im Kontext des Zusammenführens der Meldungen. Bitte machen Sie daher, falls möglich, Angaben zu 'Geschlecht' sowie 'Geburtsmonat/-jahr'.",
   DEFAULT_DISCLAIMER:
     'Grundsätzlich müssen Sie gemäß Infektionsschutzgesetz alle Ihnen vorliegenden Informationen im Meldeformular angeben, um die Meldepflicht zu erfüllen. Die Nachmeldung oder Korrektur von Angaben hat unverzüglich zu erfolgen.',
+  FOLLOW_UP_NONNOMINAL_DISCLAIMER:
+    "Sie sind im Prozess des Absetzens einer Folgemeldung. Nichtnamentliche Informationen zur betroffenen Person liegen dem Robert Koch-Institut bereits im Rahmen der getätigten Initialmeldung vor. Erneute Angaben zur betroffenen Person ermöglichen Plausibilitätschecks im Kontext des Zusammenführens der Meldungen. Bitte machen Sie daher, falls möglich, wiederholt Angaben zu 'Geschlecht' sowie 'Geburtsmonat/-jahr'.",
 };
 
 export const PathogenFormInfos = {

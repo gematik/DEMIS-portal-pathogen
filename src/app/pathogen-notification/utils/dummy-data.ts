@@ -28,6 +28,7 @@ import {
 import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
 import { transformPathogenTestToPathogenForm } from './data-transformation';
 import { NotificationType } from '../common/routing-helper';
+import { isNonNominalNotification } from './pathogen-notification-mapper';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
@@ -230,18 +231,19 @@ export const pathogenFormDummyDataNotifiedPersonNotByName = {
 };
 
 export const dummyDataForPathogenForm = (notificationType: NotificationType) => {
-  const is7_3Notification = notificationType === NotificationType.NonNominalNotification7_3 || notificationType === NotificationType.AnonymousNotification7_3;
+  const is_7_3NotificationType = isNonNominalNotification(notificationType);
 
   let notifiedPerson: NotifiedPerson | NotifiedPersonAnonymous;
   switch (notificationType) {
     case NotificationType.FollowUpNotification7_1:
+    case NotificationType.FollowUpNotification7_3:
       notifiedPerson = pathogenFormDummyDataNotifiedPersonAnonymous;
       break;
     case NotificationType.NonNominalNotification7_3:
       notifiedPerson = pathogenFormDummyDataNotifiedPersonNotByName;
       break;
     case NotificationType.NominalNotification7_1:
-      notifiedPerson = pathogenFormDummyData(is7_3Notification).notifiedPerson;
+      notifiedPerson = pathogenFormDummyData(is_7_3NotificationType).notifiedPerson;
       break;
     case NotificationType.AnonymousNotification7_3:
       notifiedPerson = pathogenFormDummyDataNotifiedPersonAnonymous;
@@ -249,10 +251,10 @@ export const dummyDataForPathogenForm = (notificationType: NotificationType) => 
   }
 
   return {
-    notifierFacility: pathogenFormDummyData(is7_3Notification).notifierFacility,
-    submittingFacility: pathogenFormDummyData(is7_3Notification).submittingFacility,
+    notifierFacility: pathogenFormDummyData(is_7_3NotificationType).notifierFacility,
+    submittingFacility: pathogenFormDummyData(is_7_3NotificationType).submittingFacility,
     notifiedPerson: notifiedPerson,
-    notificationCategory: pathogenFormDummyData(is7_3Notification).notificationCategory,
-    pathogenDTO: pathogenFormDummyData(is7_3Notification).pathogenDTO,
+    notificationCategory: pathogenFormDummyData(is_7_3NotificationType).notificationCategory,
+    pathogenDTO: pathogenFormDummyData(is_7_3NotificationType).pathogenDTO,
   };
 };

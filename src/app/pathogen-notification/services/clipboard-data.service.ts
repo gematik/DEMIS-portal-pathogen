@@ -25,8 +25,8 @@ import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenFor
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
 import { addContact, ANONYMOUS_PERSON_RULES, ClipboardRules, FACILITY_RULES, initialModelForClipboard, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
-import { MessageDialogService } from '@gematik/demis-portal-core-library';
 import { NotificationType } from '../common/routing-helper';
+import { isFollowUpNotification } from '../utils/pathogen-notification-mapper';
 
 @Injectable({
   providedIn: 'root',
@@ -42,7 +42,6 @@ export class ClipboardDataService {
   public readonly dialog = inject(MatDialog);
   protected readonly logger = inject(NGXLogger);
   private readonly notificationStorageService = inject(PathogenNotificationStorageService);
-  private readonly messageDialogService = inject(MessageDialogService);
 
   SUBMITTING_FACILITY_RULES: ClipboardRules = {
     'S.name': value => ({ submittingFacility: { facilityInfo: { institutionName: value } } }),
@@ -172,7 +171,7 @@ export class ClipboardDataService {
     transformedModel = await this.resetCurrentAddressOnTypeChange(transformedModel, transformedClipboardDataForAddress);
 
     this.setSignalToFetchPathogenData(true, transformedClipboardData);
-    const isFollowUp = notificationType === NotificationType.FollowUpNotification7_1;
+    const isFollowUp = isFollowUpNotification(notificationType);
     const personRules = isFollowUp ? ANONYMOUS_PERSON_RULES : NOMINAL_PERSON_RULES;
     const pathogenRule = isFollowUp ? {} : this.PATHOGEN_CLIPBOARD_RULE;
 

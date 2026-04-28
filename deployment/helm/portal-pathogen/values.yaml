@@ -32,13 +32,16 @@ config:
   futsPaths:
     countryCodes: /utils/countryCodes
     federalStates_7_1: /laboratory/7.1/federalStates
+    notificationCategories_7_1: /laboratory/7.1
     notificationCategories_7_3: /laboratory/7.3
     notificationCategoriesForFederalState_7_1: /laboratory/7.1/federalState/
     laboratoryDataForSpecificCode_7_1: /laboratory/7.1/federalState/pathogenData/
     laboratoryDataForSpecificCode_7_3: /laboratory/7.3/pathogenData/
+    laboratoryDataForSpecificCodeDefault: /laboratory/federalState/pathogenData/
+    followUpCode_7_1: /laboratory/7.1/followup/
+    followUpCode_7_3: /laboratory/7.3/followup/
   featureFlags: #Always set this to false here; feature flags will then be activated as needed via the stage configurations.
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false
-    FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN: false
     FEATURE_FLAG_PORTAL_PAGE_STRUCTURE: false
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: false
     FEATURE_FLAG_PORTAL_HEADER_FOOTER: false
@@ -46,6 +49,8 @@ config:
     FEATURE_FLAG_MIXED_FOLLOW_UP: false
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: false
     FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE: false
+    FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING: false
+    FEATURE_FLAG_FOLLOW_UP_7_3: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true

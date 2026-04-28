@@ -24,8 +24,7 @@ import { EXTRACTION_START_ERROR_MSG } from '../../../common/pathogen-formly-vali
 import { NotificationType } from '../../../common/routing-helper';
 import { FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
 import { PathogenFormInfos } from '../../../utils/disclaimer-texts';
-
-const isFollowUpNotification = (notificationType: NotificationType) => notificationType === NotificationType.FollowUpNotification7_1;
+import { isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
 
 export const pathogenSpecimenFields = (
   notificationType: NotificationType,

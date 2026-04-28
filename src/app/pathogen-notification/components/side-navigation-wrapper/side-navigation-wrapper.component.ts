@@ -26,7 +26,7 @@ import { SideNavigationStepperComponent } from '../side-navigation-stepper/side-
 import { ClipboardDataService } from '../../services/clipboard-data.service';
 import { Router } from '@angular/router';
 import { getNotificationTypeByRouterUrl, NotificationType } from '../../common/routing-helper';
-import { isAnonymousNotificationEnabled, isFollowUpNotificationEnabled } from '../../utils/pathogen-notification-mapper';
+import { isAnonymousNotificationEnabled } from '../../utils/pathogen-notification-mapper';
 
 @Component({
   selector: 'app-side-navigation-wrapper',
@@ -86,7 +86,6 @@ export class SideNavigationWrapperComponent {
   }
 
   protected readonly NotificationType = NotificationType;
-  protected readonly isFollowUpNotificationEnabled = isFollowUpNotificationEnabled;
   protected readonly isAnonymousNotificationEnabled = isAnonymousNotificationEnabled;
 
   readonly headingTitle = computed(() => {
@@ -96,22 +95,28 @@ export class SideNavigationWrapperComponent {
       case NotificationType.NonNominalNotification7_3:
         return 'Erregernachweis';
       case NotificationType.FollowUpNotification7_1:
-        return this.isFollowUpNotificationEnabled() ? 'Folgemeldung' : '';
+        return 'Folgemeldung';
       case NotificationType.AnonymousNotification7_3:
         return this.isAnonymousNotificationEnabled() ? 'Erregernachweis (anonym)' : '';
+      case NotificationType.FollowUpNotification7_3:
+        return 'Folgemeldung (§ 7.3)';
       default:
-        return '';
+        return 'Erregernachweis';
     }
   });
 
   readonly headingDescription = computed(() => {
     switch (this.notificationType()) {
+      case NotificationType.NominalNotification7_1:
+        return 'Meldung eines Erregernachweises gemäß § 7 Abs. 1 IfSG';
       case NotificationType.NonNominalNotification7_3:
-        return 'Meldung eines Erregernachweises gemäß § 7 Abs. 3 IfSG';
+        return 'Meldung eines Nachweises von Krankheitserregern gemäß § 7 Abs. 3 IfSG ohne Angaben von Personendaten';
       case NotificationType.FollowUpNotification7_1:
-        return 'Nichtnamentliche Folgemeldung eines Erregernachweises gemäß § 7 Abs. 1 IfSG';
+        return 'Meldung eines Nachweises von Krankheitserregern gemäß § 7 Abs. 1 IfSG ohne Angaben von Personendaten';
+      case NotificationType.FollowUpNotification7_3:
+        return 'Meldung eines Nachweises von Krankheitserregern gemäß § 7 Abs. 3 IfSG ohne Angaben von Personendaten';
       case NotificationType.AnonymousNotification7_3:
-        return 'Anonyme Meldung eines Nachweises von Krankheitserregern gemäß § 7 Abs. 3 IfSG';
+        return 'Meldung eines Erregernachweises einer anonymen Testung gemäß § 7 Abs. 3 IfSG';
       default:
         return '';
     }

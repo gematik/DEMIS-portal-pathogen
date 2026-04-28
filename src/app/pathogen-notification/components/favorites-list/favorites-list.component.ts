@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { Component, OnDestroy, OnInit, signal, WritableSignal, inject } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { FieldType } from '@ngx-formly/core';
 import { CodeDisplay } from 'src/api/notification';
 import { getDesignationValueIfAvailable } from '../../legacy/common-utils';
@@ -24,6 +24,7 @@ import { PathogenNotificationStorageService } from '../../services/pathogen-noti
 import { NgTemplateOutlet } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton, MatIconButton } from '@angular/material/button';
+import { isNonNominalNotification } from '../../utils/pathogen-notification-mapper';
 
 @Component({
   selector: 'app-favorites-list',
@@ -37,12 +38,11 @@ export class FavoritesListComponent extends FieldType implements OnInit, OnDestr
 
   favorites: WritableSignal<CodeDisplay[]> = signal([]);
   protected readonly getDesignationValueIfAvailable = getDesignationValueIfAvailable;
-  private readonly isNotification7_3: boolean = false;
+  private readonly isNonNominalNotification7_3: boolean = false;
 
   constructor() {
     super();
-    this.isNotification7_3 =
-      this.pathogenNotificationComponent.isNonNominalNotification7_3() || this.pathogenNotificationComponent.isAnonymousNotification7_3();
+    this.isNonNominalNotification7_3 = isNonNominalNotification(this.pathogenNotificationComponent.getNotificationType());
     this.loadFavorites();
   }
 
@@ -54,7 +54,7 @@ export class FavoritesListComponent extends FieldType implements OnInit, OnDestr
   }
 
   loadFavorites(): void {
-    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNotification7_3) || [];
+    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNonNominalNotification7_3) || [];
     this.favorites.update(() => favorites);
   }
 
@@ -70,7 +70,7 @@ export class FavoritesListComponent extends FieldType implements OnInit, OnDestr
 
   removePathogenFromFavorites(pathogen: CodeDisplay): void {
     const updatedFavorites = this.favorites().filter(fav => fav.code !== pathogen.code);
-    this.pathogenNotificationStorageService.updateFavorites(updatedFavorites, this.isNotification7_3);
+    this.pathogenNotificationStorageService.updateFavorites(updatedFavorites, this.isNonNominalNotification7_3);
   }
 
   ngOnDestroy(): void {
