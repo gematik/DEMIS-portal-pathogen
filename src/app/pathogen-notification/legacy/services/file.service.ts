@@ -27,14 +27,10 @@ import transliterator from 'transliterator';
 export class FileService {
   abbreviation = '.pdf';
 
-  // simplify with removal of FEATURE_FLAG_ANONYMOUS_NOTIFICATION
   getFileNameByNotificationType(notification: PathogenTest, notificationType: NotificationType, notificationId: string): string {
-    const isNonNominalType =
-      notificationType === NotificationType.NonNominalNotification7_3 ||
-      notificationType === NotificationType.FollowUpNotification7_1 ||
-      notificationType === NotificationType.AnonymousNotification7_3;
+    const isNominalType = notificationType === NotificationType.NominalNotification7_1;
 
-    return isNonNominalType ? this.convertFileNameForNonNominal(notificationId) : this.convertFileNameForPerson(notification.notifiedPerson.info);
+    return isNominalType ? this.convertFileNameForPerson(notification.notifiedPerson.info) : this.convertFileNameForNonNominal(notificationId);
   }
 
   /**

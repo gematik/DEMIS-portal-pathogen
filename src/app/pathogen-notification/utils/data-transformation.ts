@@ -189,31 +189,11 @@ export function transformDiagnostic(pathogenForm: any, result: any, pathogenData
   return result;
 }
 
-export function transformPathogenFormToPathogenTest(
-  pathogenForm: any,
-  notificationType: NotificationType,
-  selectedPathogen?: CodeDisplay,
-  pathogenData?: PathogenData
-): PathogenTest {
-  let result: any = {};
-  if (pathogenForm.notifierFacility) {
-    result.notifierFacility = {
-      ...pathogenForm.notifierFacility,
-      contact: {
-        ...pathogenForm.notifierFacility.contact,
-        salutation:
-          !!pathogenForm.notifierFacility.contact?.salutation && pathogenForm.notifierFacility.contact.salutation !== ExtendedSalutationEnum.None
-            ? pathogenForm.notifierFacility.contact.salutation
-            : undefined,
-      },
-      contacts: transformContactsToPathogenTest(pathogenForm.notifierFacility.contacts || []),
-    };
-  }
-
-  //transform notified person
+function transformNotifiedPerson(notificationType: NotificationType, result: any, pathogenForm: any) {
   switch (notificationType) {
     case NotificationType.FollowUpNotification7_1:
     case NotificationType.AnonymousNotification7_3:
+    case NotificationType.FollowUpNotification7_3:
       result = transformAnonymousPerson(pathogenForm, result);
       break;
     case NotificationType.NonNominalNotification7_3:
@@ -223,7 +203,10 @@ export function transformPathogenFormToPathogenTest(
       result = transformNominalPerson(pathogenForm, result);
       break;
   }
+  return result;
+}
 
+function transformSubmittingFacility(pathogenForm: any, result: any) {
   if (pathogenForm.submittingFacility) {
     result.submittingFacility = {
       ...pathogenForm.submittingFacility,
@@ -237,6 +220,36 @@ export function transformPathogenFormToPathogenTest(
       contacts: transformContactsToPathogenTest(pathogenForm.submittingFacility?.contacts || []),
     };
   }
+  return result;
+}
+
+function transformNotifierFacility(pathogenForm: any, result: any) {
+  if (pathogenForm.notifierFacility) {
+    result.notifierFacility = {
+      ...pathogenForm.notifierFacility,
+      contact: {
+        ...pathogenForm.notifierFacility.contact,
+        salutation:
+          !!pathogenForm.notifierFacility.contact?.salutation && pathogenForm.notifierFacility.contact.salutation !== ExtendedSalutationEnum.None
+            ? pathogenForm.notifierFacility.contact.salutation
+            : undefined,
+      },
+      contacts: transformContactsToPathogenTest(pathogenForm.notifierFacility.contacts || []),
+    };
+  }
+  return result;
+}
+
+export function transformPathogenFormToPathogenTest(
+  pathogenForm: any,
+  notificationType: NotificationType,
+  selectedPathogen?: CodeDisplay,
+  pathogenData?: PathogenData
+): PathogenTest {
+  let result: any = {};
+  result = transformNotifierFacility(pathogenForm, result);
+  result = transformNotifiedPerson(notificationType, result, pathogenForm);
+  result = transformSubmittingFacility(pathogenForm, result);
 
   if (!!selectedPathogen && !!pathogenData) {
     result = transformDiagnostic(pathogenForm, result, pathogenData, selectedPathogen);

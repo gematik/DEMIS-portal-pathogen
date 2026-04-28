@@ -15,13 +15,14 @@
     find details in the "Readme" file.
  */
 
-import { isAnonymousNotificationEnabled, isFollowUpNotificationEnabled, isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
+import { isAnonymousNotificationEnabled, isFollowUpNonNominalEnabled, isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
 
 export enum NotificationType {
   NominalNotification7_1,
   FollowUpNotification7_1,
   NonNominalNotification7_3,
   AnonymousNotification7_3,
+  FollowUpNotification7_3,
 }
 
 type AllowedRoutes = Record<string, string>;
@@ -31,16 +32,19 @@ export const allowedRoutes: AllowedRoutes = {
   nonNominal: 'pathogen-notification/7.3/non-nominal',
   followUp: 'pathogen-notification/7.1/follow-up',
   anonymous: 'pathogen-notification/7.3/anonymous',
+  followUpNonNominal: 'pathogen-notification/7.3/follow-up',
   main: 'pathogen-notification',
 };
 
 export const getNotificationTypeByRouterUrl = (url: string): NotificationType => {
   if (isNonNominalNotificationEnabled() && url.includes(allowedRoutes.nonNominal)) {
     return NotificationType.NonNominalNotification7_3;
-  } else if (isFollowUpNotificationEnabled() && url.includes(allowedRoutes.followUp)) {
+  } else if (url.includes(allowedRoutes.followUp)) {
     return NotificationType.FollowUpNotification7_1;
   } else if (isAnonymousNotificationEnabled() && url.includes(allowedRoutes.anonymous)) {
     return NotificationType.AnonymousNotification7_3;
+  } else if (isFollowUpNonNominalEnabled() && url.includes(allowedRoutes.followUpNonNominal)) {
+    return NotificationType.FollowUpNotification7_3;
   } else {
     return NotificationType.NominalNotification7_1;
   }

@@ -23,10 +23,10 @@ import { CodeDisplay, PathogenData, PathogenTest, ValidationError } from '../../
 import { environment } from '../../../environments/environment';
 import { catchError } from 'rxjs/operators';
 import { ErrorDialogService } from './error-dialog.service';
-import { cloneObject, MessageDialogService, SubmitDialogProps, trimStrings } from '@gematik/demis-portal-core-library';
-import { isNonNominalNotificationEnabled } from '../utils/pathogen-notification-mapper';
+import { cloneObject, ErrorMessage, MessageDialogService, SubmitDialogProps, trimStrings } from '@gematik/demis-portal-core-library';
 import { NotificationType } from '../common/routing-helper';
 import { FileService } from '../legacy/services/file.service';
+import { isFollowUpNotification, isNonNominalNotification } from '../utils/pathogen-notification-mapper';
 
 @Injectable({
   providedIn: 'root',
@@ -54,19 +54,15 @@ export class FhirPathogenNotificationService {
 
   fetchDiagnosticsBasedOnPathogenSelection(pathogenCode: string, type: NotificationType): Observable<PathogenData> {
     let path: string;
-    if (isNonNominalNotificationEnabled()) {
-      switch (type) {
-        case NotificationType.NonNominalNotification7_3:
-          path = `${environment.laboratoryDataForSpecificCode_7_3}${pathogenCode}`;
-          break;
-        case NotificationType.NominalNotification7_1:
-          path = `${environment.laboratoryDataForSpecificCode_7_1}${pathogenCode}`;
-          break;
-        default:
-          path = `${environment.laboratoryDataForSpecificCode_7_1}${pathogenCode}`;
-      }
-    } else {
-      path = `${environment.pathToFuts}/laboratory/federalState/pathogenData/${pathogenCode}`;
+    switch (type) {
+      case NotificationType.NonNominalNotification7_3:
+        path = `${environment.laboratoryDataForSpecificCode_7_3}${pathogenCode}`;
+        break;
+      case NotificationType.NominalNotification7_1:
+        path = `${environment.laboratoryDataForSpecificCode_7_1}${pathogenCode}`;
+        break;
+      default:
+        path = `${environment.notificationCategoriesForSpecificCodeDefault}${pathogenCode}`;
     }
     return this.httpClient
       .get<PathogenData>(path, {
@@ -86,24 +82,13 @@ export class FhirPathogenNotificationService {
   }
 
   fetchPathogenCodeDisplaysByTypeAndState(type: NotificationType, federalStateCode?: string): Observable<CodeDisplay[]> {
-    let path: string;
-    if (isNonNominalNotificationEnabled()) {
-      switch (type) {
-        case NotificationType.NonNominalNotification7_3:
-        case NotificationType.AnonymousNotification7_3:
-          path = environment.notificationCategories_7_3;
-          break;
-        case NotificationType.NominalNotification7_1:
-          path = `${environment.notificationCategoriesForFederalState_7_1}${federalStateCode}`;
-          break;
-        default:
-          path = `${environment.notificationCategoriesForFederalState_7_1}${federalStateCode}`;
-      }
-    } else {
-      path = `${environment.pathToFuts}/laboratory/federalState/${federalStateCode}`;
+    if (isFollowUpNotification(type)) {
+      // only §7.1 nominal needs federal states
+      return of([]);
     }
+    const pathToCodeDisplaysByNotificationType = this.getCodeDisplaysByNotificationType(type, federalStateCode);
     return this.httpClient
-      .get<CodeDisplay[]>(path, {
+      .get<CodeDisplay[]>(pathToCodeDisplaysByNotificationType, {
         headers: this.futsHeaders,
       })
       .pipe(
@@ -116,29 +101,36 @@ export class FhirPathogenNotificationService {
       );
   }
 
-  fetchAllPathogenCodeDisplays7_1(): Observable<CodeDisplay[]> {
-    const path = `${environment.pathToFuts}/laboratory/7.1`;
+  private getCodeDisplaysByNotificationType(type: NotificationType, federalStateCode: string) {
+    switch (type) {
+      case NotificationType.NonNominalNotification7_3:
+      case NotificationType.AnonymousNotification7_3:
+        return environment.notificationCategories_7_3;
+      default:
+        return `${environment.notificationCategoriesForFederalState_7_1}${federalStateCode}`;
+    }
+  }
+
+  fetchAllPathogenCodeDisplays(paragraph: '7.1' | '7.3'): Observable<CodeDisplay[]> {
+    const path = paragraph === '7.1' ? environment.notificationCategories_7_1 : environment.notificationCategories_7_3;
     return this.httpClient
       .get<CodeDisplay[]>(path, {
         headers: this.futsHeaders,
       })
       .pipe(
         catchError(error => {
-          this.logger.error('Error fetching §7.1 pathogen code displays', error);
-          this.errorDialogService.showBasicErrorDialogWithRedirect(error, '§7.1 Meldetatbestände konnten nicht abgerufen werden.');
+          this.logger.error(`Error fetching §${paragraph} pathogen code displays`, error);
+          this.errorDialogService.showBasicErrorDialogWithRedirect(error, `§${paragraph} Meldetatbestände konnten nicht abgerufen werden.`);
           throw error;
         })
       );
   }
 
   fetchFederalStateCodeDisplays = (type: NotificationType): Observable<CodeDisplay[]> => {
-    if (type === NotificationType.NonNominalNotification7_3) {
+    if (type !== NotificationType.NominalNotification7_1) {
       return of([]);
     }
-    let path = environment.pathToFederalStates_7_1;
-    if (!isNonNominalNotificationEnabled()) {
-      path = `${environment.pathToFuts}/laboratory/federalStates`;
-    }
+    const path = environment.pathToFederalStates_7_1;
     return this.httpClient
       .get<CodeDisplay[]>(path, {
         headers: this.futsHeaders,
@@ -167,8 +159,15 @@ export class FhirPathogenNotificationService {
       );
   };
 
-  fetchFollowUpCode = (notificationCategory: string): Observable<CodeDisplay[]> => {
-    const path = `${environment.pathToFuts}/laboratory/7.1/followup/${notificationCategory}`;
+  fetchFollowUpCode = (notificationCategory: string, notificationType: NotificationType): Observable<CodeDisplay[]> => {
+    const is7_1 = notificationType === NotificationType.FollowUpNotification7_1;
+    const path = is7_1
+      ? `${environment.notificationCategory_FollowUp_7_1}${notificationCategory}`
+      : `${environment.notificationCategory_FollowUp_7_3}${notificationCategory}`;
+
+    const paragraph = isNonNominalNotification(notificationType) ? '§ 7 Abs. 3 IfSG' : '§ 7 Abs. 1 IfSG';
+    const errorMessage = `Diese Meldekategorie wird für diese Meldungsart nicht unterstützt. Bitte stellen Sie sicher, dass Sie auf eine Meldung nach ${paragraph} referenzieren.`;
+
     return this.httpClient
       .get<CodeDisplay[]>(path, {
         headers: this.futsHeaders,
@@ -176,10 +175,7 @@ export class FhirPathogenNotificationService {
       .pipe(
         catchError(error => {
           this.logger.error('Error fetching follow up code', error);
-          this.errorDialogService.showBasicErrorDialogWithRedirect(
-            'Für diese Meldekategorie nach § 6 Abs. 1 IfSG gibt es keine entsprechende Meldekategorie nach § 7 Abs. 1 IfSG. Daher besteht hier nicht die Möglichkeit einer Folgemeldung.',
-            'Fehler'
-          );
+          this.errorDialogService.showBasicErrorDialogWithRedirect(errorMessage, 'Fehler');
           throw error;
         })
       );
@@ -214,6 +210,7 @@ export class FhirPathogenNotificationService {
             this.messageDialogService.showErrorDialog({
               errorTitle: 'Meldung konnte nicht zugestellt werden!',
               errors,
+              logFilteringEnabled: environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING,
             });
           });
         },
@@ -240,7 +237,7 @@ export class FhirPathogenNotificationService {
     };
   }
 
-  private extractErrorDetails(err: any): { text: string; queryString: string }[] {
+  private extractErrorDetails(err: any): ErrorMessage[] {
     const response = err?.error ?? err;
     const errorMessage = this.messageDialogService.extractMessageFromError(response);
     const validationErrors = response?.validationErrors || [];
@@ -248,6 +245,7 @@ export class FhirPathogenNotificationService {
       return validationErrors.map((ve: ValidationError) => ({
         text: ve.message,
         queryString: ve.message || '',
+        severity: ve.severity,
       }));
     } else {
       return [
@@ -267,20 +265,20 @@ export class FhirPathogenNotificationService {
   }
 
   getNotificationUrl(type: NotificationType): string {
-    const url = environment.pathToGateway;
+    const pathToGateway = environment.pathToGateway;
 
-    if (!isNonNominalNotificationEnabled()) {
-      return url + environment.pathToPathogen;
-    }
     switch (type) {
-      case NotificationType.NonNominalNotification7_3:
-        return url + environment.pathToPathogen_7_3_nonNominal;
-      case NotificationType.AnonymousNotification7_3:
-        return url + environment.pathToPathogen_7_3_anonymous;
       case NotificationType.NominalNotification7_1:
-        return url + environment.pathToPathogen_7_1;
+      case NotificationType.FollowUpNotification7_1:
+        return pathToGateway + environment.pathToPathogen_7_1;
+      case NotificationType.NonNominalNotification7_3:
+      case NotificationType.FollowUpNotification7_3:
+        return pathToGateway + environment.pathToPathogen_7_3_nonNominal;
+      case NotificationType.AnonymousNotification7_3:
+        return pathToGateway + environment.pathToPathogen_7_3_anonymous;
+
       default:
-        return url + environment.pathToPathogen;
+        return pathToGateway + environment.pathToPathogen;
     }
   }
 }

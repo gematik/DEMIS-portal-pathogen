@@ -24,10 +24,26 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { NotificationType } from '../common/routing-helper';
 
 export const isNonNominalNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION;
-export const isFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN;
 export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_ANONYMOUS_NOTIFICATION;
 export const isMixedFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_MIXED_FOLLOW_UP;
 export const isContactPointUseDisabled = () => environment.featureFlags?.FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE;
+export const isFollowUpNonNominalEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_7_3 && isNonNominalNotificationEnabled();
+
+export const isNonNominalNotification = (notificationType: NotificationType) => {
+  return (
+    notificationType === NotificationType.NonNominalNotification7_3 ||
+    notificationType === NotificationType.AnonymousNotification7_3 ||
+    notificationType === NotificationType.FollowUpNotification7_3
+  );
+};
+
+export const isAnonymousPersonNotification = (notificationType: NotificationType) =>
+  notificationType === NotificationType.FollowUpNotification7_1 ||
+  notificationType === NotificationType.AnonymousNotification7_3 ||
+  notificationType === NotificationType.FollowUpNotification7_3;
+
+export const isFollowUpNotification = (notificationType: NotificationType) =>
+  notificationType === NotificationType.FollowUpNotification7_1 || notificationType === NotificationType.FollowUpNotification7_3;
 
 export const initializeSelectPathogenFields = (
   federalStateCodeDisplays: CodeDisplay[],

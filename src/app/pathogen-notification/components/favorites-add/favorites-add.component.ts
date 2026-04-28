@@ -22,6 +22,7 @@ import { CodeDisplay } from 'src/api/notification';
 import { PathogenNotificationStorageService } from '../../services/pathogen-notification-storage.service';
 import { MatIcon } from '@angular/material/icon';
 import { PathogenNotificationComponent } from '../../pathogen-notification.component';
+import { isNonNominalNotification } from '../../utils/pathogen-notification-mapper';
 
 @Component({
   selector: 'app-favorites-add',
@@ -41,7 +42,7 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   isPathogenInFavorites: Signal<boolean> = computed(() => {
     return this.favorites().some(fav => fav.code === this.pathogen.code);
   });
-  private readonly isNotification7_3: boolean = false;
+  private readonly isNonNominalNotification7_3: boolean = false;
 
   private readonly pathogenNotificationComponent: PathogenNotificationComponent = inject(PathogenNotificationComponent);
 
@@ -50,8 +51,7 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
     const pathogenNotificationStorageService = this.pathogenNotificationStorageService;
 
     this.pathogen = pathogenNotificationStorageService.getSelectedPathogenCodeDisplay();
-    this.isNotification7_3 =
-      this.pathogenNotificationComponent.isNonNominalNotification7_3() || this.pathogenNotificationComponent.isAnonymousNotification7_3();
+    this.isNonNominalNotification7_3 = isNonNominalNotification(this.pathogenNotificationComponent.getNotificationType());
     this.loadFavorites();
   }
 
@@ -63,7 +63,7 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   }
 
   loadFavorites(): void {
-    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNotification7_3) || [];
+    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNonNominalNotification7_3) || [];
     this.favorites.update(() => favorites);
   }
 
@@ -74,12 +74,12 @@ export class FavoritesAddComponent extends FieldType implements OnInit, OnDestro
   }
 
   addPathogenToFavorites(): void {
-    this.pathogenNotificationStorageService.addFavoriteToList(this.pathogen, this.isNotification7_3);
+    this.pathogenNotificationStorageService.addFavoriteToList(this.pathogen, this.isNonNominalNotification7_3);
     this.loadFavorites();
   }
 
   removePathogenFromFavorites(): void {
-    this.pathogenNotificationStorageService.removeFavoriteFromList(this.pathogen, this.isNotification7_3);
+    this.pathogenNotificationStorageService.removeFavoriteFromList(this.pathogen, this.isNonNominalNotification7_3);
     this.loadFavorites();
   }
 

@@ -79,6 +79,9 @@ export class Environment {
     return this.config?.pathToGateway;
   }
 
+  /**
+   *  @deprecated Use paragraph paths instead
+   */
   public get pathToPathogen(): string {
     return this.gatewayPaths?.pathogen;
   }
@@ -123,8 +126,16 @@ export class Environment {
     return this.config?.pathToFuts + this.config?.futsPaths?.notificationCategories_7_3;
   }
 
+  public get notificationCategories_7_1(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.notificationCategories_7_1;
+  }
+
   public get notificationCategoriesForFederalState_7_1(): string {
     return this.config?.pathToFuts + this.config?.futsPaths?.notificationCategoriesForFederalState_7_1;
+  }
+
+  public get notificationCategoriesForSpecificCodeDefault(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.laboratoryDataForSpecificCodeDefault;
   }
 
   public get laboratoryDataForSpecificCode_7_1(): string {
@@ -133,6 +144,14 @@ export class Environment {
 
   public get laboratoryDataForSpecificCode_7_3(): string {
     return this.config?.pathToFuts + this.config?.futsPaths?.laboratoryDataForSpecificCode_7_3;
+  }
+
+  public get notificationCategory_FollowUp_7_1(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.followUpCode_7_1;
+  }
+
+  public get notificationCategory_FollowUp_7_3(): string {
+    return this.config?.pathToFuts + this.config?.futsPaths?.followUpCode_7_3;
   }
 
   public get futsHeaders(): HttpHeaders {
