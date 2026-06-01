@@ -47,7 +47,6 @@ import {
   initializeSelectPathogenFields,
   isAnonymousPersonNotification,
   isFollowUpNotification,
-  isMixedFollowUpNotificationEnabled,
   isNonNominalNotification,
   updatePathogenForm,
 } from './utils/pathogen-notification-mapper';
@@ -299,48 +298,29 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           const code = this.followUpNotificationIdService.followUpNotificationCategory();
           let codeDisplay: CodeDisplay;
 
-          if ((isMixedFollowUpNotificationEnabled() && this.isFollowUpNotification7_1()) || this.isFollowUpNotification7_3()) {
-            const fetchFollowUpCode = this.fhirPathogenNotificationService.fetchFollowUpCode(code, this.notificationType);
-            fetchFollowUpCode.subscribe(response => {
-              if (response) {
-                if (response.length > 1) {
-                  const customCodeDisplays: customCodeDisplay[] = response.map(codeDisplay => ({
-                    code: codeDisplay.code,
-                    display: getDesignationValueIfAvailable(codeDisplay),
-                  }));
-                  this.followUpNotificationIdService.closeDialog();
-                  this.followUpMixedCodesService.openDialog(customCodeDisplays).subscribe(selectedCode => {
-                    codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, selectedCode);
-                    this.updateAfterPathogenSelection(codeDisplay);
-                    this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
-                  });
-                } else if (response.length === 1) {
-                  codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, response[0].code);
+          const fetchFollowUpCode = this.fhirPathogenNotificationService.fetchFollowUpCode(code, this.notificationType);
+          fetchFollowUpCode.subscribe(response => {
+            if (response) {
+              if (response.length > 1) {
+                const customCodeDisplays: customCodeDisplay[] = response.map(codeDisplay => ({
+                  code: codeDisplay.code,
+                  display: getDesignationValueIfAvailable(codeDisplay),
+                }));
+                this.followUpNotificationIdService.closeDialog();
+                this.followUpMixedCodesService.openDialog(customCodeDisplays).subscribe(selectedCode => {
+                  codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, selectedCode);
                   this.updateAfterPathogenSelection(codeDisplay);
                   this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
-                }
-                this.markFormularAsTouched('notifiedPerson');
-                this.setFocusOnFirstStepHeader();
+                });
+              } else if (response.length === 1) {
+                codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, response[0].code);
+                this.updateAfterPathogenSelection(codeDisplay);
+                this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
               }
-            });
-          } else {
-            codeDisplay = findCodeDisplayByCodeValue(this.pathogenCodeDisplays, code);
-            if (codeDisplay) {
-              this.updateAfterPathogenSelection(codeDisplay);
               this.markFormularAsTouched('notifiedPerson');
               this.setFocusOnFirstStepHeader();
-              this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
-            } else {
-              this.errorDialogService.showBasicErrorDialogWithRedirect(
-                'Der gespeicherte Erreger ' +
-                  this.followUpNotificationIdService.followUpNotificationCategory() +
-                  ' für die ID ' +
-                  this.followUpNotificationIdService.validatedNotificationId +
-                  ' wird für die §7.1er Meldungen nicht unterstützt.',
-                'Fehler'
-              );
             }
-          }
+          });
         });
     }
   }
@@ -349,16 +329,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays('7.1').subscribe({
       next: (response: CodeDisplay[]) => {
         this.pathogenCodeDisplays = response;
-        this.followUpNotificationIdService.isMixedCodesActive = isMixedFollowUpNotificationEnabled();
         this.followUpNotificationIdService.openDialog({
           dialogData: {
             routerLink: '/' + allowedRoutes.nominal,
             linkTextContent: 'eines namentlichen Erregernachweises nach § 7 Abs. 1 IfSG',
             pathToDestinationLookup: environment.pathToDestinationLookup,
-            errorUnsupportedNotificationCategory:
-              'Diese Meldekategorie wird für diese Meldungsart nicht unterstützt. Bitte stellen Sie sicher, dass Sie auf eine Meldung nach § 7 Abs. 1 IfSG referenzieren.',
           },
-          notificationCategoryCodes: response.map(codeDisplays => codeDisplays.code),
         });
       },
     });
@@ -368,16 +344,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     this.fhirPathogenNotificationService.fetchAllPathogenCodeDisplays('7.3').subscribe({
       next: (response: CodeDisplay[]) => {
         this.pathogenCodeDisplays = response;
-        this.followUpNotificationIdService.isMixedCodesActive = isMixedFollowUpNotificationEnabled();
         this.followUpNotificationIdService.openDialog({
           dialogData: {
             routerLink: '/' + allowedRoutes.nonNominal,
-            linkTextContent: 'eines nichtnamentlichennamentlichen Erregernachweises nach § 7 Abs. 3 IfSG',
+            linkTextContent: 'eines nichtnamentlichen Erregernachweises nach § 7 Abs. 3 IfSG',
             pathToDestinationLookup: environment.pathToDestinationLookup,
-            errorUnsupportedNotificationCategory:
-              'Diese Meldekategorie wird für diese Meldungsart nicht unterstützt. Bitte stellen Sie sicher, dass Sie auf eine Meldung nach § 7 Abs. 3 IfSG referenzieren.',
           },
-          notificationCategoryCodes: response.map(codeDisplays => codeDisplays.code),
         });
       },
     });

@@ -31,7 +31,6 @@ import { practitionerInfoFormConfigFields } from './practitioner-info.config';
 import { oneTimeCodeConfigField } from './oneTimeCode.config';
 import { tap } from 'rxjs/operators';
 import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
-import { isContactPointUseDisabled } from '../../../../utils/pathogen-notification-mapper';
 
 export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDisplay[], needsContact = true): FormlyFieldConfig[] => {
   return [
@@ -58,7 +57,7 @@ export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDi
         },
       },
     },
-    ...notifierFacilityFormConfigFields(countryCodeDisplays).concat(contactsFormConfigFields(needsContact, isContactPointUseDisabled())),
+    ...notifierFacilityFormConfigFields(countryCodeDisplays).concat(contactsFormConfigFields(needsContact)),
   ];
 };
 

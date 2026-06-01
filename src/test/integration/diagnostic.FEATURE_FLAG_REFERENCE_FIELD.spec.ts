@@ -41,6 +41,7 @@ import {
   FIELD_MATERIAL,
   FIELD_METHOD,
   FIELD_METHOD_0,
+  FIELD_NOTIFICATION_ID_REFERENCE,
   FIELD_PATHOGEN,
   FIELD_PATHOGEN_DISPLAY,
   FIELD_RECEIVED_DATE,
@@ -63,7 +64,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MethodPathogenDTO } from '../../api/notification';
 import { RESULT_OPTION_LIST } from '../../app/pathogen-notification/legacy/formly-options-lists';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
-import { buildMock, setupIntegrationTests } from './base';
+import { buildMock, mainConfig, setupIntegrationTests } from './base';
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 
 // file can be replaced with diagnostic.FEATURE_FLAG_REFERENCE_FIELD.spec.ts after removal of FEATURE_FLAG_REFERENCE_FIELD
@@ -102,7 +103,10 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
 
   beforeEach(async () => await buildMock(true));
   beforeEach(() => {
-    const result = setupIntegrationTests();
+    const result = setupIntegrationTests({
+      ...mainConfig,
+      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_REFERENCE_FIELD: true },
+    });
 
     fixture = result.fixture;
     component = result.component;
@@ -126,6 +130,7 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
     let pathogenDisplay: MatAutocompleteHarness;
     let pathogen: MatAutocompleteHarness;
     let reportStatus: MatRadioGroupHarness;
+    let notificationIdReference: MatRadioGroupHarness;
     let initialNotificationId: MatInputHarness;
     let laboratoryOrderId: MatInputHarness;
     let interpretation: MatInputHarness;
@@ -144,6 +149,7 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
       pathogen = await getAutocomplete(loader, `#${FIELD_PATHOGEN}`);
       reportStatus = await getRadioGroup(loader, `#${FIELD_REPORT_STATUS}`);
       initialNotificationId = await getInput(loader, `#${FIELD_INIT_NOTIFICATION_ID}`);
+      notificationIdReference = await getRadioGroup(loader, `#${FIELD_NOTIFICATION_ID_REFERENCE}`);
       laboratoryOrderId = await getInput(loader, `#${FIELD_INIT_NOTIFICATION_ID}`);
       interpretation = await getInput(loader, `#${FIELD_INTERPRETATION}`);
     });
@@ -162,6 +168,8 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
 
       expect(await initialNotificationId.getValue()).toBe(VALUE_EMPTY);
       expect(await initialNotificationId.isDisabled()).toBe(true);
+
+      expect(await notificationIdReference.getCheckedValue()).toBe(null);
 
       expect(await laboratoryOrderId.getValue()).toBe(VALUE_EMPTY);
       expect(await laboratoryOrderId.isDisabled()).toBe(true);

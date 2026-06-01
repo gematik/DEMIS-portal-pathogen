@@ -2,6 +2,16 @@
 
 # Release portal-pathogen
 
+## Release 1.9.1
+- Removed FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE
+- Removed FEATURE_FLAG_MIXED_FOLLOW_UP
+- Removed FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING
+- Updated @gematik/demis-portal-core-library to 4.2.2
+- Added correctly configurable logging
+- Updated NGINX-Base-Image to 1.31.0
+- Removed feature flag FEATURE_FLAG_PORTAL_PAGE_STRUCTURE
+- Added reference field and logic (FEATURE_FLAG_REFERENCE_FIELD)
+
 ## Release 1.9.0
 - Updated NGINX-Base-Image to 1.29.8
 - Removed FEATURE_FLAG_FOLLOW_UP_NOTIFICATION_PORTAL_PATHOGEN

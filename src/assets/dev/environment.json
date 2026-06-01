@@ -1,15 +1,12 @@
 {
   "featureFlags": {
     "FEATURE_FLAG_NON_NOMINAL_NOTIFICATION": true,
-    "FEATURE_FLAG_PORTAL_PAGE_STRUCTURE": true,
     "FEATURE_FLAG_ANONYMOUS_NOTIFICATION": true,
     "FEATURE_FLAG_PORTAL_HEADER_FOOTER": true,
     "FEATURE_FLAG_PORTAL_ACCESSIBILITY": true,
-    "FEATURE_FLAG_MIXED_FOLLOW_UP": true,
     "FEATURE_FLAG_FOOTER_LINKS_CORRECTION": true,
-    "FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE": true,
-    "FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING": true,
-    "FEATURE_FLAG_FOLLOW_UP_7_3": true
+    "FEATURE_FLAG_FOLLOW_UP_7_3": true,
+    "FEATURE_FLAG_REFERENCE_FIELD": true
   },
   "gatewayPaths": {
     "pathogen": "/notification/pathogen",
@@ -34,7 +31,7 @@
     "level": 1
   },
   "pathToGateway": "../gateway/pathogen",
-  "pathToFuts": "/translation/ui-data-model/v6/fhir",
+  "pathToFuts": "/translation/ui-data-model/laboratory/v6/fhir",
   "pathToDestinationLookup": "/destination-lookup/v1",
   "production": false
 }

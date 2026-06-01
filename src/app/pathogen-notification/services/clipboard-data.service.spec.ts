@@ -19,7 +19,7 @@ import { Gender, PathogenData, PractitionerInfo } from 'src/api/notification';
 import { ClipboardDataService } from './clipboard-data.service';
 import { ANONYMOUS_PERSON_RULES, FACILITY_RULES, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { TestBed } from '@angular/core/testing';
-import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
+import { LoggerModule } from 'ngx-logger';
 import { MockProvider } from 'ng-mocks';
 import { ActivatedRoute } from '@angular/router';
 import { overrides } from '../../../test/shared/test-setup-utils';
@@ -37,12 +37,7 @@ describe('ClipboardDataService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        LoggerModule.forRoot({
-          level: NgxLoggerLevel.DEBUG,
-          serverLogLevel: NgxLoggerLevel.ERROR,
-        }),
-      ],
+      imports: [LoggerModule.forRoot(environment.defaultLoggerConfiguration)],
       providers: [ClipboardDataService, MockProvider(ActivatedRoute, overrides.activatedRoute)],
     });
     service = TestBed.inject(ClipboardDataService);

@@ -183,13 +183,6 @@ describe('Pathogen - Follow Up Integration Tests', () => {
 
           expect(document.querySelector('.mat-mdc-dialog-container')).toBeNull();
         });
-        if (is7_1) {
-          describe('isMixedFollowUpNotificationEnabled === false', () => {
-            it('should NOT call fetchFollowUpCode when FEATURE_FLAG_MIXED_FOLLOW_UP is false', async () => {
-              expect(fhirService.fetchFollowUpCode).not.toHaveBeenCalled();
-            });
-          });
-        }
         it('should show the follow-up disclaimer text on notified person page', async () => {
           await clickNextButton(fixture);
           await clickNextButton(fixture);
@@ -231,14 +224,10 @@ describe('Pathogen - Follow Up Integration Tests', () => {
         });
       });
 
-      describe('Mixed Follow-Up (FEATURE_FLAG_MIXED_FOLLOW_UP enabled)', () => {
+      describe('Mixed Follow-Up', () => {
         beforeEach(() => {
           const result = setupIntegrationTests({
-            ...mainConfig,
-            featureFlags: {
-              ...mainConfig.featureFlags,
-              FEATURE_FLAG_MIXED_FOLLOW_UP: true,
-            },
+            mainConfig,
           });
 
           fixture = result.fixture;

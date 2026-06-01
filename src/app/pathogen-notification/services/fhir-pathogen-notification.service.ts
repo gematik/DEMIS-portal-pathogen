@@ -210,7 +210,6 @@ export class FhirPathogenNotificationService {
             this.messageDialogService.showErrorDialog({
               errorTitle: 'Meldung konnte nicht zugestellt werden!',
               errors,
-              logFilteringEnabled: environment.featureFlags?.FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING,
             });
           });
         },

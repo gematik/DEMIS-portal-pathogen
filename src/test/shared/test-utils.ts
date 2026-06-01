@@ -179,10 +179,6 @@ export async function switchToPage(pageNumber: number, fixture: ComponentFixture
   }
 }
 
-export function getStepHeader(fixture: ComponentFixture<any>): string {
-  return fixture.nativeElement.querySelector('.oval-label').textContent;
-}
-
 export function createClipboardStringFromObject(
   myObject: TestDataDiagnosticPage | TestDataNotificationCategoryPage | TestDataFacilityPage | TestDataNotifiedPersonPage,
   start: string

@@ -58,11 +58,7 @@ describe('FhirPathogenNotificationService', () => {
         followUpCode_7_1: '/laboratory/7.1/followup/',
         followUpCode_7_3: '/laboratory/7.3/followup/',
       },
-      ngxLoggerConfig: {
-        disableConsoleLogging: false,
-        level: 1,
-        serverLogLevel: 0,
-      },
+      ngxLoggerConfig: environment.defaultLoggerConfiguration,
       pathToGateway: '../gateway/pathogen',
       pathToFuts: '/translation/ui-data-model/v6/fhir',
       pathToDestinationLookup: '/destination-lookup/v1',

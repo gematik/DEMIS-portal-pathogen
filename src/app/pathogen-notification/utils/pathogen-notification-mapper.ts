@@ -25,9 +25,8 @@ import { NotificationType } from '../common/routing-helper';
 
 export const isNonNominalNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION;
 export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_ANONYMOUS_NOTIFICATION;
-export const isMixedFollowUpNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_MIXED_FOLLOW_UP;
-export const isContactPointUseDisabled = () => environment.featureFlags?.FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE;
 export const isFollowUpNonNominalEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_7_3 && isNonNominalNotificationEnabled();
+export const isReferenceFieldEnabled = () => environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD;
 
 export const isNonNominalNotification = (notificationType: NotificationType) => {
   return (
