@@ -16,6 +16,7 @@
  */
 
 import { NotificationType } from '../common/routing-helper';
+import { isFollowUpNotification } from './pathogen-notification-mapper';
 
 export const NotifiedPersonDisclaimer = {
   FOLLOW_UP_DISCLAIMER:
@@ -39,7 +40,7 @@ export const PathogenFormInfos = {
   specificReportingObligations: (notificationType: NotificationType): string => {
     if (notificationType === NotificationType.NominalNotification7_1) {
       return PathogenFormInfos.stateSpecificReportingObligations;
-    } else if (notificationType === NotificationType.FollowUpNotification7_1) {
+    } else if (isFollowUpNotification(notificationType)) {
       return PathogenFormInfos.followUpNotificationSpecificReportingObligations;
     }
     return '';

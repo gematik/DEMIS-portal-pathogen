@@ -133,6 +133,7 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
           pathogenDisplay: 'Influenzavirus',
           pathogen: 'Influenza A-Virus' as unknown as CodeDisplay,
           reportStatus: ReportStatusEnum.Final,
+          notificationIdReference: 'noReference',
         },
     pathogenDTO: isNonNominal
       ? pathogenDataNonNominalWithDate.pathogenDTO
@@ -170,6 +171,7 @@ const pathogenDataNonNominal = (todayDate: string) => {
       pathogenDisplay: 'HIV',
       pathogen: 'Humanes Immundefizienz-Virus' as unknown as CodeDisplay,
       reportStatus: ReportStatusEnum.Final,
+      notificationIdReference: 'noReference',
     },
     pathogenDTO: {
       codeDisplay: {

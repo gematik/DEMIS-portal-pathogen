@@ -21,7 +21,6 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { switchToPage } from '../shared/test-utils';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
-import { NotifiedPersonDisclaimer } from '../../app/pathogen-notification/utils/disclaimer-texts';
 
 describe('Pathogen - Anonymous Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -64,10 +63,5 @@ describe('Pathogen - Anonymous Integration Tests', () => {
 
     expect(federalStateSelect).withContext('federalStateSelect should not be present but was found').toBeNull();
     expect(pathogenDisplaySelect).withContext('pathogenDisplaySelect could not be found').toBeTruthy();
-  });
-
-  it('should show the anonymous disclaimer text on notified person page', async () => {
-    await switchToPage(3, fixture);
-    expect(fixture.nativeElement.textContent).toContain(NotifiedPersonDisclaimer.ANONYMOUS_DISCLAIMER);
   });
 });

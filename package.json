@@ -1,6 +1,6 @@
 {
   "name": "notification-portal-mf-pathogen",
-  "version": "1.9.0-snapshot",
+  "version": "1.9.1-snapshot",
   "overrides": {
     "ng-mocks": {
       "@angular/common": "$@angular/common",
@@ -41,7 +41,7 @@
     "@angular/platform-browser": "21.2.4",
     "@angular/platform-browser-dynamic": "21.2.4",
     "@angular/router": "21.2.4",
-    "@gematik/demis-portal-core-library": "3.2.1",
+    "@gematik/demis-portal-core-library": "4.2.2",
     "@ngx-formly/core": "7.1.0",
     "@ngx-formly/material": "7.1.0",
     "lodash-es": "4.18.1",
@@ -57,13 +57,13 @@
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "21.0.3",
-    "@angular-devkit/build-angular": "21.2.2",
+    "@angular-devkit/build-angular": "21.2.11",
     "@angular-eslint/builder": "21.3.0",
-    "@angular/build": "21.2.2",
-    "@angular/cli": "21.2.2",
+    "@angular/build": "21.2.11",
+    "@angular/cli": "21.2.11",
     "@angular/compiler-cli": "21.2.4",
     "@eslint/js": "9.39.3",
-    "@openapitools/openapi-generator-cli": "2.28.0",
+    "@openapitools/openapi-generator-cli": "2.32.0",
     "@types/jasmine": "6.0.0",
     "@types/lodash-es": "4.17.12",
     "@types/luxon": "3.7.1",

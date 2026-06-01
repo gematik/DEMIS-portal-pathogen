@@ -29,11 +29,7 @@ describe('DataTransformation', () => {
         pathogen: '/notification/pathogen',
       },
       futsPaths: {},
-      ngxLoggerConfig: {
-        serverLogLevel: 1,
-        disableConsoleLogging: true,
-        level: 1,
-      },
+      ngxLoggerConfig: environment.defaultLoggerConfiguration,
       pathToGateway: '../gateway/pathogen',
       pathToFuts: '/translation/ui-data-model/v6/fhir',
       pathToDestinationLookup: '/destination-lookup/v1',

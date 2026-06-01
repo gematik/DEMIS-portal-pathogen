@@ -22,19 +22,10 @@
   </mat-drawer>
 
   <mat-drawer-content>
-    @if (FEATURE_FLAG_PORTAL_PAGE_STRUCTURE) {
-      <div id="pathogen-tab-section-header" class="section-header">
-        <gem-demis-section-header id="pathogen-tab-section-headline" [level]="1"
-                                  [titleText]="currentStepHeadline()" />
-      </div>
-    } @else {
-      <div id="pathogen-tab-section-header_deprecated" class="section-header_deprecated">
-        <h1>{{ currentStepHeadline() }}</h1>
-        <div class="oval-label">
-          Schritt {{ currentStep() + 1 }} von {{ maxNumberOfSteps() }}
-        </div>
-      </div>
-    }
+    <div id="pathogen-tab-section-header" class="section-header">
+      <gem-demis-section-header id="pathogen-tab-section-headline" [level]="1"
+                                [titleText]="currentStepHeadline()" />
+    </div>
     <div class="section-body">
       <ng-content />
     </div>

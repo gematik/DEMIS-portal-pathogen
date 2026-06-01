@@ -1,7 +1,6 @@
 <app-side-navigation-wrapper
   [currentStepHeadline]="field.fieldGroup[selectedIndex].props.label"
   [currentStep]="selectedIndex"
-  [maxNumberOfSteps]="field.fieldGroup.length"
   [model]="field.model"
   [steps]="field.fieldGroup"
 >
@@ -15,7 +14,7 @@
       <mat-tab
         [label]="tab.props.label"
       >
-        <gem-demis-max-height-content-container [elementSelectorsToSubtract]="['app-navbar', '#pathogen-tab-section-header_deprecated', '#pathogen-tab-section-header', '#pathogen-actions-bar']">
+        <gem-demis-max-height-content-container [elementSelectorsToSubtract]="['app-navbar', '#pathogen-tab-section-header', '#pathogen-actions-bar']">
           <formly-field [field]="tab" />
         </gem-demis-max-height-content-container>
         <mat-toolbar id="pathogen-actions-bar">

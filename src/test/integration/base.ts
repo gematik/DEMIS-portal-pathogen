@@ -45,14 +45,10 @@ import { allowedRoutes, NotificationType } from '../../app/pathogen-notification
 export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true,
-    // FEATURE_FLAG_PORTAL_PAGE_STRUCTURE: true, activate with DEMIS-5606
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: true,
     FEATURE_FLAG_PORTAL_HEADER_FOOTER: true,
     FEATURE_FLAG_PORTAL_ACCESSIBILITY: true,
-    FEATURE_FLAG_MIXED_FOLLOW_UP: false,
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: true,
-    FEATURE_FLAG_WITHOUT_CONTACT_POINT_USE: true,
-    FEATURE_FLAG_PORTAL_ERROR_DIALOG_FILTERING: true,
     FEATURE_FLAG_FOLLOW_UP_7_3: true,
   },
   gatewayPaths: {
@@ -60,11 +56,6 @@ export const mainConfig = {
     pathogen_7_1: '/notification/pathogen/7.1',
     pathogen_7_3_non_nominal: '/notification/pathogen/7.3/non_nominal',
     pathogen_7_3_anonymous: '/notification/pathogen/7.3/anonymous',
-  },
-  ngxLoggerConfig: {
-    serverLogLevel: 1,
-    disableConsoleLogging: true,
-    level: 1,
   },
   pathToGateway: '../gateway/pathogen',
   pathToFuts: '/translation/ui-data-model/v6/fhir',

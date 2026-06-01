@@ -58,6 +58,7 @@ export const FIELD_PATHOGEN_DISPLAY = 'pathogenDisplay';
 export const FIELD_PATHOGEN = 'pathogen';
 export const FIELD_REPORT_STATUS = 'reportStatus';
 export const FIELD_INIT_NOTIFICATION_ID = 'initialNotificationId';
+export const FIELD_NOTIFICATION_ID_REFERENCE = 'notificationIdReference';
 export const FIELD_INTERPRETATION = 'interpretation';
 export const FIELD_LAB_ORDER_ID = 'laboratoryOrderId';
 export const FIELD_EXTRACTION_DATE = 'extractionDate-datepicker-input-field';

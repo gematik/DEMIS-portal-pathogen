@@ -47,7 +47,6 @@ export class SideNavigationWrapperComponent {
   private readonly pathogenNotificationComponent = inject(PathogenNotificationComponent);
 
   readonly currentStep = input(0);
-  readonly maxNumberOfSteps = input(0);
   readonly currentStepHeadline = input('');
   readonly steps = input<FormlyFieldConfig[]>(undefined);
   readonly model = input<any>(undefined);
@@ -58,10 +57,6 @@ export class SideNavigationWrapperComponent {
 
   constructor() {
     this.notificationType.set(getNotificationTypeByRouterUrl(this.router.url));
-  }
-
-  get FEATURE_FLAG_PORTAL_PAGE_STRUCTURE() {
-    return environment.featureFlags?.FEATURE_FLAG_PORTAL_PAGE_STRUCTURE ?? false;
   }
 
   public get FEATURE_FLAG_PORTAL_HEADER_FOOTER(): boolean {
