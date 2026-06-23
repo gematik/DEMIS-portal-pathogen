@@ -6,7 +6,8 @@
     "FEATURE_FLAG_PORTAL_ACCESSIBILITY": true,
     "FEATURE_FLAG_FOOTER_LINKS_CORRECTION": true,
     "FEATURE_FLAG_FOLLOW_UP_7_3": true,
-    "FEATURE_FLAG_REFERENCE_FIELD": true
+    "FEATURE_FLAG_REFERENCE_FIELD": true,
+    "FEATURE_FLAG_REMOVABLE_ANALYT": true
   },
   "gatewayPaths": {
     "pathogen": "/notification/pathogen",

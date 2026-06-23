@@ -29,7 +29,6 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ChangeDetectorRef } from '@angular/core';
-import { PathogenNotificationModule } from '../../app/pathogen-notification/pathogen-notification.module';
 import { NGXLogger } from 'ngx-logger';
 import { FormWrapperComponent } from '../../app/pathogen-notification/components/form-wrapper/form-wrapper.component';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -39,8 +38,33 @@ import { SideNavigationWrapperComponent } from '../../app/pathogen-notification/
 import { SideNavigationStepperComponent } from '../../app/pathogen-notification/components/side-navigation-stepper/side-navigation-stepper.component';
 import { FormlyMaterialModule } from '@ngx-formly/material';
 import { MatStepperModule } from '@angular/material/stepper';
-import { MaxHeightContentContainerComponent } from '@gematik/demis-portal-core-library';
+import { MaxHeightContentContainerComponent, PasteBoxComponent } from '@gematik/demis-portal-core-library';
 import { allowedRoutes, NotificationType } from '../../app/pathogen-notification/common/routing-helper';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { FormlyMatDatepickerModule } from '@ngx-formly/material/datepicker';
+import { FavoritesAddComponent } from '../../app/pathogen-notification/components/favorites-add/favorites-add.component';
+import { FavoritesListComponent } from '../../app/pathogen-notification/components/favorites-list/favorites-list.component';
+import { HexhexbuttonComponent } from '../../app/pathogen-notification/legacy/components/hexhexbutton/hexhexbutton.component';
+import { AutocompleteTypeComponent } from '../../app/pathogen-notification/legacy/formly/types/autocomplete/autocomplete-type.component';
+import { RepeatComponent } from '../../app/pathogen-notification/legacy/formly/types/repeat/repeat.component';
+import { ExpansionPanelWrapperComponent } from '../../app/pathogen-notification/legacy/formly/wrappers/expansion-panel-wrapper/expansion-panel.wrapper';
+import { ValidationWrapperComponent } from '../../app/pathogen-notification/legacy/formly/wrappers/validation-wrapper/validation-wrapper.component';
+import { ContactTypePipe } from '../../app/pathogen-notification/legacy/pipes/contact-type.pipe';
+import { DateFormatPipe } from '../../app/pathogen-notification/legacy/pipes/date-format.pipe';
+import { StringFormatPipe } from '../../app/pathogen-notification/legacy/pipes/string-format.pipe';
+import { PathogenFormlyConfig } from '../../app/pathogen-notification/formly/configs/formly-app-config';
+import { NotificationFormValidationConfig } from '../../app/pathogen-notification/legacy/notification-form-validation-module';
+import { PathogenFormValidationConfig } from '../../app/pathogen-notification/common/pathogen-formly-validation-module';
 
 export const mainConfig = {
   featureFlags: {
@@ -50,6 +74,7 @@ export const mainConfig = {
     FEATURE_FLAG_PORTAL_ACCESSIBILITY: true,
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: true,
     FEATURE_FLAG_FOLLOW_UP_7_3: true,
+    FEATURE_FLAG_REFERENCE_FIELD: true,
   },
   gatewayPaths: {
     pathogen: '/notification/pathogen',
@@ -74,7 +99,29 @@ export function buildMock(activatedRoute = false, notificationType: Notification
         },
       ])
     )
-    .keep(PathogenNotificationModule)
+    .keep(FormlyMatDatepickerModule)
+    .keep(MatAutocompleteModule)
+    .keep(MatButtonModule)
+    .keep(MatDialogModule)
+    .keep(MatExpansionModule)
+    .keep(MatFormFieldModule)
+    .keep(MatIconModule)
+    .keep(MatInputModule)
+    .keep(MatOptionModule)
+    .keep(MatSidenavModule)
+    .keep(MatTabsModule)
+    .keep(MatToolbarModule)
+    .keep(DateFormatPipe)
+    .keep(ContactTypePipe)
+    .keep(StringFormatPipe)
+    .keep(RepeatComponent)
+    .keep(AutocompleteTypeComponent)
+    .keep(ExpansionPanelWrapperComponent)
+    .keep(ValidationWrapperComponent)
+    .keep(HexhexbuttonComponent)
+    .keep(FavoritesListComponent)
+    .keep(FavoritesAddComponent)
+    .keep(PasteBoxComponent)
     .keep(NoopAnimationsModule)
     .keep(MatIconTestingModule)
     .mock(NGXLogger)
@@ -82,7 +129,16 @@ export function buildMock(activatedRoute = false, notificationType: Notification
     .keep(ReactiveFormsModule)
     .keep(MatStepperModule)
     .keep(MatProgressSpinnerModule)
-    .keep(FormlyModule.forRoot())
+    .keep(
+      FormlyModule.forRoot({
+        types: [...(PathogenFormlyConfig.types ?? [])],
+        wrappers: [...(PathogenFormlyConfig.wrappers ?? [])],
+        extensions: [...(PathogenFormlyConfig.extensions ?? [])],
+        validators: [...(NotificationFormValidationConfig.validators ?? []), ...(PathogenFormValidationConfig.validators ?? [])],
+        validationMessages: [...(NotificationFormValidationConfig.validationMessages ?? []), ...(PathogenFormlyConfig.validationMessages ?? [])],
+        extras: NotificationFormValidationConfig.extras,
+      })
+    )
     .keep(SideNavigationWrapperComponent)
     .keep(SideNavigationStepperComponent)
     .keep(MaxHeightContentContainerComponent)

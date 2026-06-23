@@ -484,6 +484,10 @@ describe('Pathogen - Clipboard Integration Tests', () => {
           expectedValue: TEST_NOTIFICATION_CATEGORY.reportStatus.value,
           selector: TEST_NOTIFICATION_CATEGORY.reportStatus.selector,
         });
+        await verifyRadioButton(loader, {
+          expectedValue: TEST_NOTIFICATION_CATEGORY.notificationIdReference.value,
+          selector: TEST_NOTIFICATION_CATEGORY.notificationIdReference.selector,
+        });
         await verifyInputFieldValues(loader, [
           {
             expectedValue: TEST_NOTIFICATION_CATEGORY.initialNotificationId.value,

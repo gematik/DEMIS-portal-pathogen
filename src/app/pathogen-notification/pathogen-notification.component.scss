@@ -1,21 +1,3 @@
-:host ::ng-deep {
-  .info-notification-text {
-    display: inline-flex;
-    align-items: flex-start;
-    gap: 4px;
-    margin-bottom: 20px;
-    margin-right: 15px;
-
-    span.message {
-      padding-top: 4px;
-    }
-  }
-
-  formly-group.row formly-field formly-wrapper-mat-form-field mat-form-field {
-    margin-bottom: 10px;
-  }
-}
-
 .loading-indicator {
   max-width: 1140px;
   display: flex;

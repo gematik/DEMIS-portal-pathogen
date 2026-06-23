@@ -288,6 +288,112 @@ describe('DataTransformation', () => {
     });
   });
 
+  describe('fillSpecimenList - analyt handling', () => {
+    const selectedPathogen = TEST_DATA.pathogenCodeDisplays[0];
+    const analytCodeDisplay = { code: 'analyt-1', display: 'Analyt substance', designations: [{ language: 'de-DE', value: 'Analyt Substanz' }] };
+
+    const pathogenDataWithSubstances = {
+      ...TEST_DATA.diagnosticBasedOnPathogenSelectionINVP,
+      substances: [analytCodeDisplay],
+    };
+
+    const baseDiagnosticForm = {
+      notificationCategory: {
+        federalStateCodeDisplay: 'DE-BW',
+        pathogen: 'Influenza A-Virus',
+        pathogenDisplay: 'Influenzavirus',
+        reportStatus: 'preliminary',
+      },
+      pathogenDTO: {
+        codeDisplay: selectedPathogen,
+        specimenList: [
+          {
+            specimenDTO: {
+              extractionDate: '05.02.2025',
+              receivedDate: '05.02.2025',
+              resistanceList: [],
+              resistanceGeneList: [],
+              material: 'Anderes Untersuchungsmaterial',
+              methodPathogenList: [
+                {
+                  method: 'DNA-Sequenzierung',
+                  analyt: 'Analyt Substanz',
+                  result: 'POS',
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+
+    it('should use analyt as CodeDisplay directly when FEATURE_FLAG_REMOVABLE_ANALYT is enabled', () => {
+      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_REMOVABLE_ANALYT: true };
+
+      const analytAsCodeDisplay = { code: 'analyt-1', display: 'Analyt substance', designations: [{ language: 'de-DE', value: 'Analyt Substanz' }] };
+      const pathogenForm = {
+        ...baseDiagnosticForm,
+        pathogenDTO: {
+          ...baseDiagnosticForm.pathogenDTO,
+          specimenList: [
+            {
+              specimenDTO: {
+                ...baseDiagnosticForm.pathogenDTO.specimenList[0].specimenDTO,
+                methodPathogenList: [
+                  {
+                    method: 'DNA-Sequenzierung',
+                    analyt: analytAsCodeDisplay,
+                    result: 'POS',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = transformDiagnostic(pathogenForm, {}, pathogenDataWithSubstances, selectedPathogen);
+
+      expect(result.pathogenDTO.specimenList[0].methodPathogenList[0].analyt).toEqual(analytAsCodeDisplay);
+    });
+
+    it('should look up analyt via findCodeDisplayByDisplayValue when FEATURE_FLAG_REMOVABLE_ANALYT is disabled', () => {
+      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_REMOVABLE_ANALYT: false };
+
+      const result = transformDiagnostic(baseDiagnosticForm, {}, pathogenDataWithSubstances, selectedPathogen);
+
+      expect(result.pathogenDTO.specimenList[0].methodPathogenList[0].analyt).toEqual(analytCodeDisplay);
+    });
+
+    it('should not include analyt when methodPathogen has no analyt value', () => {
+      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_REMOVABLE_ANALYT: true };
+
+      const pathogenForm = {
+        ...baseDiagnosticForm,
+        pathogenDTO: {
+          ...baseDiagnosticForm.pathogenDTO,
+          specimenList: [
+            {
+              specimenDTO: {
+                ...baseDiagnosticForm.pathogenDTO.specimenList[0].specimenDTO,
+                methodPathogenList: [
+                  {
+                    method: 'DNA-Sequenzierung',
+                    result: 'POS',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = transformDiagnostic(pathogenForm, {}, pathogenDataWithSubstances, selectedPathogen);
+
+      expect(result.pathogenDTO.specimenList[0].methodPathogenList[0].analyt).toBeUndefined();
+    });
+  });
+
   describe('transformStaticSystemVersions', () => {
     it('should set staticSystemVersions when available in pathogenData', () => {
       const pathogenForm = {};

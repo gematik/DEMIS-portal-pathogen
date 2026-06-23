@@ -10,7 +10,7 @@
   white-space: pre-wrap !important;
   min-width: 500px !important;
   min-height: 50px;
-  margin-top: 15px;
+  margin-bottom: 15px;
   text-align: left;
   display: flex;
   align-items: center;
@@ -27,6 +27,6 @@
 
 .favorites-list-remove-button {
   color: var(--color-primary);
-  margin-top: 15px;
+  margin-bottom: 15px;
   margin-left: -15px;
 }

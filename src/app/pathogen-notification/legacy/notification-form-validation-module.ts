@@ -16,7 +16,7 @@
  */
 
 import { AbstractControl, ValidationErrors } from '@angular/forms';
-import { FieldTypeConfig, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
+import { ConfigOption, FieldTypeConfig, FormlyFieldConfig } from '@ngx-formly/core';
 
 import { FieldType } from '@ngx-formly/material';
 import { isArray } from 'lodash-es';
@@ -58,7 +58,7 @@ import {
   ZIP_INTERNATIONAL_REG_EXP,
 } from './common-utils';
 
-export const NotificationFormValidationModule = FormlyModule.forRoot({
+export const NotificationFormValidationConfig: ConfigOption = {
   extras: { checkExpressionOn: 'modelChange' },
   validators: [
     { name: 'bsNrValidator', validation: bsNrValidation },
@@ -102,7 +102,7 @@ export const NotificationFormValidationModule = FormlyModule.forRoot({
     { name: 'optionMismatch', message: 'Keine Übereinstimmung gefunden' },
     { name: 'optionIncomplete', message: 'Unvollständige Eingabe' },
   ],
-});
+};
 
 //********** FUNKTIONEN **************
 

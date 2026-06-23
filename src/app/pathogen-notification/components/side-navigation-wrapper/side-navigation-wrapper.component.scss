@@ -30,8 +30,9 @@ gem-demis-forms-footer {
   padding: 0 20px;
 }
 
+// TODO: can be removed when portal-core sidenav and gem-demis-section-header is used
 .section-header {
-  padding: 45px 20px 20px;
+  padding: 45px 20px 0;
 }
 
 

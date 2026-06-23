@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { Gender, PathogenData, PractitionerInfo } from 'src/api/notification';
+import { Gender, NotificationLaboratoryCategory, PathogenData, PractitionerInfo } from 'src/api/notification';
 import { ClipboardDataService } from './clipboard-data.service';
 import { ANONYMOUS_PERSON_RULES, FACILITY_RULES, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { TestBed } from '@angular/core/testing';
@@ -147,7 +147,135 @@ describe('ClipboardDataService', () => {
 
     it('should log an error and throw when value set is not found', () => {
       service.setPathogenData({} as PathogenData);
-      expect(() => service.augmentCode('someCode', 'materials')).toThrowError('PT_4711_no-valueset: materials');
+      expect(() => service.augmentDisplay('someCode', 'materials')).toThrowError('PT_4711_no-valueset: materials');
+    });
+  });
+
+  describe('DIAGNOSTIC_CLIPBOARD_RULES - T.analyt', () => {
+    const substanceCode = '710543001';
+    const substanceDisplay = 'Treponema pallidum IgG';
+    const pathogenDataWithSubstances: PathogenData = {
+      codeDisplay: { code: 'invp', display: 'Influenzavirus' },
+      header: 'Influenzavirus',
+      subheader: '',
+      methods: [],
+      materials: [],
+      answerSet: [],
+      substances: [
+        {
+          code: substanceCode,
+          display: 'Treponema-pallidum-IgG-Antikörper',
+          designations: [{ language: 'de-DE', value: substanceDisplay }],
+        },
+      ],
+      resistances: [],
+      resistanceGenes: [],
+    } as any;
+
+    beforeEach(() => {
+      service.setPathogenData(pathogenDataWithSubstances);
+    });
+
+    it('should set analyt as CodeDisplay object when FEATURE_FLAG_REMOVABLE_ANALYT is enabled', async () => {
+      environment.pathogenConfig = {
+        ...environment.pathogenConfig,
+        featureFlags: { FEATURE_FLAG_REMOVABLE_ANALYT: true },
+      };
+
+      const model = {};
+      const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.analyt', substanceCode]], model);
+
+      expect(problems).toEqual([]);
+      expect((model as any).pathogenDTO.specimenList[0].specimenDTO.methodPathogenList[0].analyt).toEqual({
+        display: substanceDisplay,
+        code: substanceCode,
+      });
+    });
+
+    it('should set analyt as display string when FEATURE_FLAG_REMOVABLE_ANALYT is disabled', async () => {
+      environment.pathogenConfig = {
+        ...environment.pathogenConfig,
+        featureFlags: { FEATURE_FLAG_REMOVABLE_ANALYT: false },
+      };
+
+      const model = {};
+      const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.analyt', substanceCode]], model);
+
+      expect(problems).toEqual([]);
+      expect((model as any).pathogenDTO.specimenList[0].specimenDTO.methodPathogenList[0].analyt).toBe(substanceDisplay);
+    });
+  });
+
+  describe('DIAGNOSTIC_CLIPBOARD_RULES - T.reference', () => {
+    it('should map NONE to NoReference enum value', async () => {
+      const model = {};
+      const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.reference', 'NONE']], model);
+
+      expect(problems).toEqual([]);
+      expect((model as any).notificationCategory.notificationIdReference).toBe(NotificationLaboratoryCategory.NotificationIdReferenceEnum.NoReference);
+    });
+
+    it('should map OWN to RelatesToOwnFacility enum value', async () => {
+      const model = {};
+      const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.reference', 'OWN']], model);
+
+      expect(problems).toEqual([]);
+      expect((model as any).notificationCategory.notificationIdReference).toBe(NotificationLaboratoryCategory.NotificationIdReferenceEnum.RelatesToOwnFacility);
+    });
+
+    it('should map OTHER to RelatesToOtherFacility enum value', async () => {
+      const model = {};
+      const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.reference', 'OTHER']], model);
+
+      expect(problems).toEqual([]);
+      expect((model as any).notificationCategory.notificationIdReference).toBe(
+        NotificationLaboratoryCategory.NotificationIdReferenceEnum.RelatesToOtherFacility
+      );
+    });
+
+    it('should return undefined for unknown value', async () => {
+      const model = {};
+      const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.reference', 'INVALID']], model);
+
+      expect(problems).toEqual([]);
+      expect((model as any).notificationCategory.notificationIdReference).toBeUndefined();
+    });
+
+    it('should exclude T.reference rule when FEATURE_FLAG_REFERENCE_FIELD is disabled', async () => {
+      environment.pathogenConfig = {
+        ...environment.pathogenConfig,
+        featureFlags: { FEATURE_FLAG_REFERENCE_FIELD: false },
+      };
+
+      const diagnosticRules = { ...service.DIAGNOSTIC_CLIPBOARD_RULES };
+      if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
+        delete diagnosticRules['T.reference'];
+      }
+
+      const model = {};
+      const problems = await service.fillModel(diagnosticRules, [['T.reference', 'OWN']], model);
+
+      expect(problems.length).toBe(1);
+      expect(problems[0]).toContain('T.reference');
+      expect((model as any).notificationCategory).toBeUndefined();
+    });
+
+    it('should include T.reference rule when FEATURE_FLAG_REFERENCE_FIELD is enabled', async () => {
+      environment.pathogenConfig = {
+        ...environment.pathogenConfig,
+        featureFlags: { FEATURE_FLAG_REFERENCE_FIELD: true },
+      };
+
+      const diagnosticRules = { ...service.DIAGNOSTIC_CLIPBOARD_RULES };
+      if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
+        delete diagnosticRules['T.reference'];
+      }
+
+      const model = {};
+      const problems = await service.fillModel(diagnosticRules, [['T.reference', 'OWN']], model);
+
+      expect(problems).toEqual([]);
+      expect((model as any).notificationCategory.notificationIdReference).toBe(NotificationLaboratoryCategory.NotificationIdReferenceEnum.RelatesToOwnFacility);
     });
   });
 });
