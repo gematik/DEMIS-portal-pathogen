@@ -19,10 +19,11 @@ import { inject, Injectable, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { merge } from 'lodash-es';
 import { NGXLogger } from 'ngx-logger';
-import { AddressType, CodeDisplay, PathogenData, PathogenTest } from '../../../api/notification';
+import { AddressType, CodeDisplay, NotificationLaboratoryCategory, PathogenData, PathogenTest } from '../../../api/notification';
 import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
 import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenForm } from '../utils/data-transformation';
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
+import { environment } from '../../../environments/environment';
 import { addContact, ANONYMOUS_PERSON_RULES, ClipboardRules, FACILITY_RULES, initialModelForClipboard, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
 import { NotificationType } from '../common/routing-helper';
@@ -89,29 +90,36 @@ export class ClipboardDataService {
 
   DIAGNOSTIC_CLIPBOARD_RULES: ClipboardRules = {
     'T.pathogen': value => {
-      return { notificationCategory: { pathogen: this.augmentCode(value, 'answerSet') } };
+      return { notificationCategory: { pathogen: this.augmentDisplay(value, 'answerSet') } };
     },
     'T.interpretation': value => ({
       pathogenDTO: { specimenList: [{ specimenDTO: { methodPathogenList: [{ result: value }] } }] },
     }),
     'T.reportStatus': value => ({ notificationCategory: { reportStatus: value } }),
     'T.interpretationText': value => ({ notificationCategory: { interpretation: value } }),
+    'T.reference': value => ({ notificationCategory: { notificationIdReference: this.extractNotificationIdReferenceFromEnum(value) } }),
     'T.relatesTo': value => ({ notificationCategory: { initialNotificationId: value } }),
     'T.serviceRequest': value => ({ notificationCategory: { laboratoryOrderId: value } }),
     'T.collectedDate': value => ({ pathogenDTO: { specimenList: [{ specimenDTO: { extractionDate: value } }] } }),
     'T.receivedDate': value => ({ pathogenDTO: { specimenList: [{ specimenDTO: { receivedDate: value } }] } }),
     'T.material': value => ({
-      pathogenDTO: { specimenList: [{ specimenDTO: { material: this.augmentCode(value, 'materials') } }] },
+      pathogenDTO: { specimenList: [{ specimenDTO: { material: this.augmentDisplay(value, 'materials') } }] },
     }),
     'T.method': value => ({
-      pathogenDTO: { specimenList: [{ specimenDTO: { methodPathogenList: [{ method: this.augmentCode(value, 'methods') }] } }] },
+      pathogenDTO: { specimenList: [{ specimenDTO: { methodPathogenList: [{ method: this.augmentDisplay(value, 'methods') }] } }] },
     }),
     'T.analyt': value => ({
       pathogenDTO: {
         specimenList: [
           {
             specimenDTO: {
-              methodPathogenList: [{ analyt: this.augmentCode(value, 'substances') }],
+              methodPathogenList: [
+                {
+                  analyt: environment.featureFlags?.FEATURE_FLAG_REMOVABLE_ANALYT
+                    ? { display: this.augmentDisplay(value, 'substances'), code: value }
+                    : this.augmentDisplay(value, 'substances'),
+                },
+              ],
             },
           },
         ],
@@ -128,6 +136,18 @@ export class ClipboardDataService {
       }
     },
   };
+
+  private extractNotificationIdReferenceFromEnum(value: string): string {
+    switch (value) {
+      case 'NONE':
+        return NotificationLaboratoryCategory.NotificationIdReferenceEnum.NoReference;
+      case 'OWN':
+        return NotificationLaboratoryCategory.NotificationIdReferenceEnum.RelatesToOwnFacility;
+      case 'OTHER':
+        return NotificationLaboratoryCategory.NotificationIdReferenceEnum.RelatesToOtherFacility;
+    }
+    return undefined;
+  }
 
   setPathogenData(pathogenData: PathogenData) {
     this.pathogenData = pathogenData;
@@ -207,8 +227,13 @@ export class ClipboardDataService {
       'T.reportStatus',
       'T.interpretationText',
       'T.serviceRequest',
+      'T.reference',
       'T.relatesTo',
     ];
+
+    if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
+      notificationRules = notificationRules.filter(rule => rule !== 'T.reference');
+    }
 
     if (notificationType === NotificationType.FollowUpNotification7_1) {
       notificationRules = notificationRules.filter(rule => rule !== 'T.relatesTo');
@@ -249,6 +274,9 @@ export class ClipboardDataService {
     this.setSignalToFetchPathogenData(false, transformedClipboardData);
 
     const diagnosticRules = { ...this.DIAGNOSTIC_CLIPBOARD_RULES };
+    if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
+      delete diagnosticRules['T.reference'];
+    }
     if (notificationType === NotificationType.FollowUpNotification7_1) {
       delete diagnosticRules['T.relatesTo'];
     }
@@ -378,7 +406,7 @@ export class ClipboardDataService {
     return val && (val as Promise<any>).then !== undefined;
   }
 
-  augmentCode(code: string, valueSetName: 'materials' | 'methods' | 'answerSet' | 'substances' | 'resitances' | 'resistanceGenes'): string {
+  augmentDisplay(code: string, valueSetName: 'materials' | 'methods' | 'answerSet' | 'substances' | 'resistances' | 'resistanceGenes'): string {
     if (this.pathogenData) {
       const codeDisplays = this.pathogenData[valueSetName];
       if (!codeDisplays) throw Error(`PT_4711_no-valueset: ${valueSetName}`);

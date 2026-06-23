@@ -22,9 +22,10 @@ import { isoToGermanFormat } from '../../../legacy/common-utils';
 import { RESISTANCE_GENE_RESULT_OPTION_LIST, RESISTANCE_RESULT_OPTION_LIST, RESULT_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import { EXTRACTION_START_ERROR_MSG } from '../../../common/pathogen-formly-validation-module';
 import { NotificationType } from '../../../common/routing-helper';
-import { FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
+import { customCodeDisplay, FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
 import { PathogenFormInfos } from '../../../utils/disclaimer-texts';
 import { isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
+import { environment } from '../../../../../environments/environment';
 
 export const pathogenSpecimenFields = (
   notificationType: NotificationType,
@@ -32,7 +33,9 @@ export const pathogenSpecimenFields = (
   methodDisplays: string[],
   resistanceGeneDisplays?: string[],
   resistanceDisplays?: string[],
+  //TODO: analytDisplays can be removed after FEATURE_FLAG_REMOVABLE_ANALYT is removed
   analytDisplays?: string[],
+  analytOptions?: customCodeDisplay[],
   pathogenHeader?: string,
   pathogenSubheader?: string
 ): FormlyFieldConfig[] => {
@@ -182,20 +185,42 @@ export const pathogenSpecimenFields = (
                         validation: ['optionMatches'],
                       },
                     },
-                    {
-                      id: 'analyt',
-                      key: 'analyt',
-                      type: 'autocomplete',
-                      className: FormlyConstants.COLMD11 + ' analyt',
-                      props: {
-                        label: 'Analyt',
-                        filter: (term: string) => applyFilter(term, analytDisplays),
-                      },
-                      asyncValidators: {
-                        validation: ['optionMatches'],
-                      },
-                      expressions: { hide: () => analytDisplays?.length === 0 },
-                    },
+                    ...(environment.featureFlags?.FEATURE_FLAG_REMOVABLE_ANALYT
+                      ? [
+                          {
+                            id: 'analyt',
+                            key: 'analyt',
+                            type: 'filterable-select',
+                            className: FormlyConstants.COLMD11 + ' analyt',
+                            props: {
+                              label: 'Analyt',
+                              placeholder: 'Bitte auswählen',
+                              optionValueKey: 'code',
+                              optionLabelKey: 'display',
+                              options: analytOptions,
+                              hintStart: 'Angabe des Analyten notwendig, wenn Angabe für ausgewähltes Testverfahren zutrifft',
+                            },
+
+                            expressions: { hide: () => analytOptions?.length === 0 },
+                          },
+                        ]
+                      : [
+                          {
+                            id: 'analyt',
+                            key: 'analyt',
+                            type: 'autocomplete',
+                            className: FormlyConstants.COLMD11 + ' analyt',
+                            props: {
+                              label: 'Analyt',
+                              filter: (term: string) => applyFilter(term, analytDisplays),
+                              hintStart: 'Angabe des Analyten notwendig, wenn Angabe für ausgewähltes Testverfahren zutrifft',
+                            },
+                            asyncValidators: {
+                              validation: ['optionMatches'],
+                            },
+                            expressions: { hide: () => analytDisplays?.length === 0 },
+                          },
+                        ]),
                     {
                       id: 'result',
                       key: 'result',

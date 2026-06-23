@@ -73,6 +73,7 @@ import {
   CLIPBOARD_VALUE_MATERIAL,
   CLIPBOARD_VALUE_METHOD,
   CLIPBOARD_VALUE_NOTIFICATION_CATEGORY,
+  CLIPBOARD_VALUE_NOTIFICATION_ID_REFERENCE,
   CLIPBOARD_VALUE_NOTIFIER_EMAIL,
   CLIPBOARD_VALUE_NOTIFIER_FAMILY,
   CLIPBOARD_VALUE_NOTIFIER_GIVEN,
@@ -102,6 +103,7 @@ import {
   FIELD_LAB_ORDER_ID,
   FIELD_MATERIAL,
   FIELD_METHOD_0,
+  FIELD_NOTIFICATION_ID_REFERENCE,
   FIELD_NOTIFIER_FACILITY_ADDRESS_CITY,
   FIELD_NOTIFIER_FACILITY_ADDRESS_HOUSE_NUMBER,
   FIELD_NOTIFIER_FACILITY_ADDRESS_STREET,
@@ -137,6 +139,7 @@ export interface TestDataNotificationCategoryPage {
   pathogenDisplay: TestDataStructure;
   pathogen: TestDataStructure;
   reportStatus: TestDataStructure;
+  notificationIdReference: TestDataStructure;
   initialNotificationId: TestDataStructure;
   interpretation: TestDataStructure;
   laboratoryOrderId: TestDataStructure;
@@ -388,6 +391,12 @@ export const TEST_NOTIFICATION_CATEGORY: TestDataNotificationCategoryPage = {
     value: ReportStatusEnum.Final,
     clipboardDataKey: 'T.reportStatus',
     clipboardValue: CLIPBOARD_VALUE_REPORTSTATUS,
+  },
+  notificationIdReference: {
+    selector: `#${FIELD_NOTIFICATION_ID_REFERENCE}`,
+    value: NotificationLaboratoryCategory.NotificationIdReferenceEnum.RelatesToOwnFacility,
+    clipboardDataKey: 'T.reference',
+    clipboardValue: CLIPBOARD_VALUE_NOTIFICATION_ID_REFERENCE,
   },
   initialNotificationId: {
     selector: `#${FIELD_INIT_NOTIFICATION_ID}`,

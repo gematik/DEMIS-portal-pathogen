@@ -169,7 +169,7 @@ const pathogenDataNonNominal = (todayDate: string) => {
     pathogen: 'hivp',
     notificationCategory: {
       pathogenDisplay: 'HIV',
-      pathogen: 'Humanes Immundefizienz-Virus' as unknown as CodeDisplay,
+      pathogen: 'Humanes Immundefizienz-Virus, Typ 1' as unknown as CodeDisplay,
       reportStatus: ReportStatusEnum.Final,
       notificationIdReference: 'noReference',
     },

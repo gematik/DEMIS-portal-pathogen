@@ -29,6 +29,7 @@ import {
 import { ExtendedSalutationEnum, findCodeDisplayByDisplayValue, getDesignationValueIfAvailable } from '../legacy/common-utils';
 import { isString, merge } from 'lodash-es';
 import { NotificationType } from '../common/routing-helper';
+import { environment } from '../../../environments/environment';
 
 export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
   const result: any = {};
@@ -161,7 +162,10 @@ function fillSpecimenList(specimenDTOS: SpecimenDTOForm[], pathogenData: Pathoge
           ...methodPathogen,
           method: findCodeDisplayByDisplayValue(pathogenData.methods, methodPathogen.method),
           ...(methodPathogen.analyt && {
-            analyt: findCodeDisplayByDisplayValue(pathogenData.substances, methodPathogen.analyt),
+            analyt: findCodeDisplayByDisplayValue(
+              pathogenData.substances,
+              environment.featureFlags?.FEATURE_FLAG_REMOVABLE_ANALYT ? (methodPathogen.analyt as CodeDisplay).display : (methodPathogen.analyt as string)
+            ),
           }),
         })),
         resistanceList: transformDiagnosticIfNotEmpty(thisItem.resistanceList, pathogenData.resistances, 'resistance'),
@@ -324,6 +328,7 @@ interface SpecimenForm {
 
 export interface MethodPathogenFrom {
   method: string;
-  analyt?: string;
+  //TODO string can be removed after FEATURE_FLAG_REMOVABLE_ANALYT is removed
+  analyt?: string | CodeDisplay;
   result: MethodPathogenDTO.ResultEnum;
 }

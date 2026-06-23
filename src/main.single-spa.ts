@@ -16,23 +16,30 @@
  */
 
 import { enableProdMode, importProvidersFrom, NgZone, provideZoneChangeDetection } from '@angular/core';
-import { NavigationStart, Router, RouterLink, RouterModule } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 import { getSingleSpaExtraProviders, singleSpaAngular } from 'single-spa-angular';
 import { singleSpaPropsSubject } from './single-spa/single-spa-props';
 import { AppProps } from 'single-spa';
 import { setPublicPath } from 'systemjs-webpack-interop';
 import { environment } from './environments/environment';
 import { AppComponent } from './app/app.component';
-import { MatTabsModule } from '@angular/material/tabs';
 import { LoggerModule } from 'ngx-logger';
-import { PathogenNotificationModule } from './app/pathogen-notification/pathogen-notification.module';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { ReactiveFormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app/app-routing.module';
-import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
+import { bootstrapApplication } from '@angular/platform-browser';
 import { AuthInterceptor } from './app/pathogen-notification/services/auth/auth.interceptor';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { allowedRoutes } from './app/pathogen-notification/common/routing-helper';
+import { provideFormlyCore } from '@ngx-formly/core';
+import { PathogenFormlyConfig } from './app/pathogen-notification/formly/configs/formly-app-config';
+import { withFormlyMaterial } from '@ngx-formly/material';
+import { withFormlyFieldSelect } from '@ngx-formly/material/select';
+import { ClipboardDataService } from './app/pathogen-notification/services/clipboard-data.service';
+import { FhirPathogenNotificationService } from './app/pathogen-notification/services/fhir-pathogen-notification.service';
+import { FormlyMatDatepickerModule } from '@ngx-formly/material/datepicker';
+import { NotificationFormValidationConfig } from './app/pathogen-notification/legacy/notification-form-validation-module';
+import { PathogenFormValidationConfig } from './app/pathogen-notification/common/pathogen-formly-validation-module';
+import { withDemisFormlyCore } from '@gematik/demis-portal-core-library';
 
 const appId = 'notification-portal-mf-pathogen';
 let router: Router;
@@ -43,16 +50,7 @@ const lifecycles = singleSpaAngular({
     const appPromise = bootstrapApplication(AppComponent, {
       providers: [
         provideZoneChangeDetection(),
-        importProvidersFrom(
-          RouterModule,
-          RouterLink,
-          BrowserModule,
-          AppRoutingModule,
-          ReactiveFormsModule,
-          PathogenNotificationModule,
-          LoggerModule.forRoot(environment.ngxLoggerConfig),
-          MatTabsModule
-        ),
+        importProvidersFrom(AppRoutingModule, LoggerModule.forRoot(environment.ngxLoggerConfig), FormlyMatDatepickerModule),
         {
           provide: HTTP_INTERCEPTORS,
           useClass: AuthInterceptor,
@@ -61,6 +59,16 @@ const lifecycles = singleSpaAngular({
         getSingleSpaExtraProviders(),
         provideHttpClient(withInterceptorsFromDi()),
         provideAnimations(),
+        ClipboardDataService,
+        FhirPathogenNotificationService,
+        provideFormlyCore([
+          NotificationFormValidationConfig,
+          PathogenFormValidationConfig,
+          PathogenFormlyConfig,
+          ...withFormlyMaterial(),
+          withFormlyFieldSelect(),
+          ...withDemisFormlyCore(),
+        ]),
       ],
     });
 

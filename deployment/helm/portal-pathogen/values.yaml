@@ -48,6 +48,7 @@ config:
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: false
     FEATURE_FLAG_FOLLOW_UP_7_3: false
     FEATURE_FLAG_REFERENCE_FIELD: false
+    FEATURE_FLAG_REMOVABLE_ANALYT: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true

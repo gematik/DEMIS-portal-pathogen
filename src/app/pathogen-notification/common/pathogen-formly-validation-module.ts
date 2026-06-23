@@ -15,18 +15,18 @@
     find details in the "Readme" file.
  */
 
-import { FormlyModule } from '@ngx-formly/core';
+import { ConfigOption } from '@ngx-formly/core';
 import { AbstractControl } from '@angular/forms';
 import { endDateValidator } from '../legacy/notification-form-validation-module';
 
-export const PathogenFormValidationModule = FormlyModule.forRoot({
+export const PathogenFormValidationConfig: ConfigOption = {
   validators: [
     {
       name: 'receivedDateStartDateValidator',
       validation: receivedDateStartDateValidation,
     },
   ],
-});
+};
 
 export const EXTRACTION_START_ERROR_MSG = 'Das Entnahmedatum darf nicht nach dem Eingangsdatum liegen';
 

@@ -22,7 +22,7 @@ import { format, isValid, parse } from 'date-fns';
 import { DateTime } from 'luxon';
 
 import { CodeDisplay, Designation, Gender, PractitionerInfo } from '../../../api/notification';
-import { selectOption } from '@gematik/demis-portal-core-library';
+import { customCodeDisplay, selectOption } from '@gematik/demis-portal-core-library';
 // CONST:..................................
 
 /*** id: de-DE ***/
@@ -175,6 +175,10 @@ export function mapCodeDisplaysToOptionList(codeDisplays: CodeDisplay[]): select
   return codeDisplays.map(value => {
     return { value: value.code, label: getDesignationValueIfAvailable(value) };
   });
+}
+
+export function formatCodeDisplayToDesignationOption(cd: CodeDisplay): customCodeDisplay {
+  return { code: cd.code, display: getDesignationValueIfAvailable(cd) };
 }
 
 export function getDesignationValueIfAvailable(codeDisplay?: CodeDisplay): string | undefined {

@@ -214,7 +214,7 @@ export const selectNotificationCategoryFields = (
   return [
     formlyRow([
       {
-        className: FormlyConstants.LAYOUT_HEADER,
+        className: 'col-sm-10',
         template: specificReportingObligations(notificationType),
         key: 'selectPathogenInfoWrapper',
       },

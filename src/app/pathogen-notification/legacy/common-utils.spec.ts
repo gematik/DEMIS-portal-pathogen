@@ -15,8 +15,8 @@
     find details in the "Readme" file.
  */
 
-import { formatDateToYYMMDD, germanToIsoFormat, getEnumKeyByValue, isoToGermanFormat } from './common-utils';
-import { Gender } from '../../../api/notification';
+import { formatCodeDisplayToDesignationOption, formatDateToYYMMDD, germanToIsoFormat, getEnumKeyByValue, isoToGermanFormat } from './common-utils';
+import { CodeDisplay, Gender } from '../../../api/notification';
 
 describe('common-utils', () => {
   describe('isoToGermanFormat', () => {
@@ -114,6 +114,38 @@ describe('common-utils', () => {
 
     it('returns error if gender value does not exist', () => {
       expect(() => getEnumKeyByValue(Gender, 'INVALID')).toThrowError("Unknown value 'INVALID'");
+    });
+  });
+
+  describe('formatCodeDisplayToDesignationOption', () => {
+    it('should return code and German designation as display', () => {
+      const codeDisplay: CodeDisplay = {
+        code: 'ABC',
+        display: 'English Display',
+        designations: [{ language: 'de', value: 'Deutsche Anzeige' }],
+      };
+      const result = formatCodeDisplayToDesignationOption(codeDisplay);
+      expect(result).toEqual({ code: 'ABC', display: 'Deutsche Anzeige' });
+    });
+
+    it('should fall back to display when no German designation exists', () => {
+      const codeDisplay: CodeDisplay = {
+        code: 'ABC',
+        display: 'Fallback Display',
+        designations: [{ language: 'fr', value: 'Affichage français' }],
+      };
+      const result = formatCodeDisplayToDesignationOption(codeDisplay);
+      expect(result).toEqual({ code: 'ABC', display: 'Fallback Display' });
+    });
+
+    it('should fall back to display when designations array is empty', () => {
+      const codeDisplay: CodeDisplay = {
+        code: 'ABC',
+        display: 'Default Display',
+        designations: [],
+      };
+      const result = formatCodeDisplayToDesignationOption(codeDisplay);
+      expect(result).toEqual({ code: 'ABC', display: 'Default Display' });
     });
   });
 });
