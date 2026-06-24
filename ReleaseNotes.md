@@ -2,11 +2,11 @@
 
 # Release portal-pathogen
 
-## Release 1.9.2
+## Release 1.9.3
 - Added generic filter select from portal-core for analyt (FEATURE_FLAG_REMOVABLE_ANALYT)
 - Removed NgModule configuration
 - Fixed styling errors for different spacings and diversity problems
-- Updated @gematik/demis-portal-core-library to 4.2.4
+- Updated @gematik/demis-portal-core-library to 4.2.5
 - Added new clipboard key for reference field (FEATURE_FLAG_REFERENCE_FIELD)
 
 ## Release 1.9.1
