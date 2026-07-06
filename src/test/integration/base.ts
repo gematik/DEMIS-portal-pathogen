@@ -71,10 +71,10 @@ export const mainConfig = {
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true,
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: true,
     FEATURE_FLAG_PORTAL_HEADER_FOOTER: true,
-    FEATURE_FLAG_PORTAL_ACCESSIBILITY: true,
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: true,
     FEATURE_FLAG_FOLLOW_UP_7_3: true,
     FEATURE_FLAG_REFERENCE_FIELD: true,
+    FEATURE_FLAG_UUID_VALIDATION: true,
   },
   gatewayPaths: {
     pathogen: '/notification/pathogen',

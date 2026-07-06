@@ -66,6 +66,7 @@ export const ZIP_GERMANY_SHORT_REG_EXP = /^\d{3}$/; // 3-stellige Nummer
 export const ZIP_INTERNATIONAL_REG_EXP = /(?=^[\w\- ]{3,50}$)(?=.*\d)/;
 export const NAME_REG_EXP = /^[^@\\*?$|=´'"[\]{}<>0-9]{0,100}$/; // from https://wiki.gematik.de/x/JRlpGw
 export const NUMBER_OF_BEDS = /^\d{0,6}$/;
+export const UUID_REG_EXP = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const REQUIRED_FIELD = 'Pflichtfeld';
 export const MINIMUM_LENGTH_NOT_REACHED = 'Minimallänge nicht erreicht';
@@ -76,6 +77,7 @@ export const PARTIAL_DATE_FORMAT_ERROR_MSG = 'Kein gültiges Datum (Beispiele: 2
 export const DATE_IN_FUTURE_ERROR_MSG = 'Das Datum darf nicht in der Zukunft liegen';
 export const EMAIL_ERROR_MSG = 'Keine gültige E-Mail (Beispiel: meine.Email@email.de)';
 export const BLANK_ERROR_MSG = 'Es muss mindestens ein Zeichen eingegeben werden';
+export const UUID_MSG = 'Die Meldungs-ID muss dem UUID-Format entsprechen.';
 export const HOUSE_NBR_ERROR_MSG = 'Keine gültige Hausnummer';
 export const END_DATE_LATER_THAN_START_DATE_ERROR_MSG = 'Das Startdatum darf nicht nach dem Enddatum liegen';
 export const PHONE_ERROR_MSG = 'Die Telefonnummer muss mit 0 oder + beginnen, gefolgt von mindestens 6 Ziffern.';

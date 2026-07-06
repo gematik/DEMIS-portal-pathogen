@@ -168,7 +168,7 @@ const pathogenDataNonNominal = (todayDate: string) => {
   return {
     pathogen: 'hivp',
     notificationCategory: {
-      pathogenDisplay: 'HIV',
+      pathogenDisplay: 'Humanes Immundefizienz-Virus (HIV)',
       pathogen: 'Humanes Immundefizienz-Virus, Typ 1' as unknown as CodeDisplay,
       reportStatus: ReportStatusEnum.Final,
       notificationIdReference: 'noReference',
@@ -177,7 +177,7 @@ const pathogenDataNonNominal = (todayDate: string) => {
       codeDisplay: {
         code: 'hivp',
         display: 'Humanes Immundefizienz-Virus (HIV)',
-        designations: [{ language: 'de-DE', value: 'HIV' }],
+        designations: [{ language: 'de-DE', value: 'Humanes Immundefizienz-Virus (HIV)' }],
       },
       specimenList: [
         {

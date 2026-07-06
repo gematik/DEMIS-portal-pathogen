@@ -19,12 +19,13 @@ import { NotificationType } from '../common/routing-helper';
 import { isFollowUpNotification } from './pathogen-notification-mapper';
 
 export const NotifiedPersonDisclaimer = {
+  DEFAULT_DISCLAIMER:
+    'Grundsätzlich müssen Sie gemäß Infektionsschutzgesetz alle Ihnen vorliegenden Informationen im Meldeformular angeben, um die Meldepflicht zu erfüllen. Die Nachmeldung oder Korrektur von Angaben hat unverzüglich zu erfolgen.',
   FOLLOW_UP_DISCLAIMER:
     "Sie sind im Prozess des Absetzens einer Folgemeldung. Informationen zur betroffenen Person liegen dem zuständigen Gesundheitsamt bereits im Rahmen der getätigten Initialmeldung vor. Erneute Angaben zur betroffenen Person ermöglichen es dem Gesundheitsamt Plausibilitätschecks im Kontext des Zusammenführens der Meldungen durchzuführen. Bitte machen Sie daher, falls möglich, wiederholt Angaben zu 'Geschlecht' sowie 'Geburtsmonat/-jahr'.",
   ANONYMOUS_DISCLAIMER:
     "Sie sind im Prozess des Absetzens einer Meldung zu einer Anonymen Testung. Nichtnamentliche Angaben zur betroffenen Person ermöglichen Plausibilitätschecks im Kontext des Zusammenführens der Meldungen. Bitte machen Sie daher, falls möglich, Angaben zu 'Geschlecht' sowie 'Geburtsmonat/-jahr'.",
-  DEFAULT_DISCLAIMER:
-    'Grundsätzlich müssen Sie gemäß Infektionsschutzgesetz alle Ihnen vorliegenden Informationen im Meldeformular angeben, um die Meldepflicht zu erfüllen. Die Nachmeldung oder Korrektur von Angaben hat unverzüglich zu erfolgen.',
+  NON_NOMINAL_DISCLAIMER: `Sie möchten eine nichtnamentliche Meldung nach § 7 Abs. 3 IfSG absetzen. Die hier erforderlichen Angaben zur betroffenen Person werden ausschließlich zur Bildung des Pseudonyms verwendet und nach der Pseudonymisierung verworfen. Das Pseudonym dient der Zuordnung zusammengehöriger Meldungen. Benutzen Sie bitte korrekte Personendaten, um dies zu gewährleisten. Mehr Informationen finden Sie <a href="https://wiki.gematik.de/x/CpOgK" target="_blank" rel="noopener noreferrer">hier</a>.`,
   FOLLOW_UP_NONNOMINAL_DISCLAIMER:
     "Sie sind im Prozess des Absetzens einer Folgemeldung. Nichtnamentliche Informationen zur betroffenen Person liegen dem Robert Koch-Institut bereits im Rahmen der getätigten Initialmeldung vor. Erneute Angaben zur betroffenen Person ermöglichen Plausibilitätschecks im Kontext des Zusammenführens der Meldungen. Bitte machen Sie daher, falls möglich, wiederholt Angaben zu 'Geschlecht' sowie 'Geburtsmonat/-jahr'.",
 };

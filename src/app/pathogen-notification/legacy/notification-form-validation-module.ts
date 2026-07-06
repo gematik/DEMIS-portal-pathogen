@@ -50,6 +50,8 @@ import {
   TEXT_ERROR_MSG,
   TEXT_REG_EXP,
   UI_LUXON_DATE_FORMAT,
+  UUID_MSG,
+  UUID_REG_EXP,
   ZIP_GERMANY_ERROR_MSG,
   ZIP_GERMANY_REG_EXP,
   ZIP_GERMANY_SHORT_ERROR_MSG,
@@ -94,6 +96,7 @@ export const NotificationFormValidationConfig: ConfigOption = {
     },
     { name: 'numberOfBedsValidator', validation: numberOfBedsValidation },
     { name: 'nonBlankValidator', validation: nonBlankValidator },
+    { name: 'uuidValidator', validation: uuidValidator },
     { name: 'optionMatches', validation: optionMatchesValidation },
   ],
   validationMessages: [
@@ -235,6 +238,11 @@ export function validateNotBlank(s: string): any {
   return matchesRegExp(/\S/, s) ? null : setValidationMessage(BLANK_ERROR_MSG);
 }
 
+export function validateUUID(s: string): any {
+  if (!s) return null;
+  return matchesRegExp(UUID_REG_EXP, s) ? null : setValidationMessage(UUID_MSG);
+}
+
 export function validateEmail(email: string, required = true): boolean {
   if (required || email) {
     return validateEmailRegex(email);
@@ -351,6 +359,9 @@ function numberOfBedsValidation(control: AbstractControl): any {
 
 function nonBlankValidator(control: AbstractControl): any {
   return validateNotBlank(control.value);
+}
+function uuidValidator(control: AbstractControl): any {
+  return validateUUID(control.value);
 }
 
 export async function optionMatchesValidation(control: AbstractControl, field: FieldType<FieldTypeConfig>): Promise<ValidationErrors> {

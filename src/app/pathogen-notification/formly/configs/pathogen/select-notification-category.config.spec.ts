@@ -20,6 +20,7 @@ import { NotificationLaboratoryCategory } from 'src/api/notification';
 import { NotificationType } from '../../../common/routing-helper';
 import { applyFilter, selectNotificationCategoryFields } from './select-notification-category.config';
 import { environment } from 'src/environments/environment';
+import { validateUUID } from '../../../legacy/notification-form-validation-module';
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
 
@@ -221,7 +222,7 @@ describe('selectNotificationCategoryFields', () => {
       expect(field).toBeDefined();
       expect(field!.type).toBe('radio');
       expect(field!.props!.required).toBe(true);
-      expect(field!.props!.label).toBe('Verweis auf vorherige Meldung');
+      expect(field!.props!.label).toBe('Verweis auf vorherige Meldung (Initiale Meldungs-ID)');
     });
 
     it('should set defaultValue of notificationIdReference to RelatesToOtherFacility for FollowUp', () => {
@@ -403,6 +404,39 @@ describe('selectNotificationCategoryFields', () => {
         const mockField = { parent: { model: { notificationIdReference: NotificationIdReferenceEnum.RelatesToOwnFacility } } } as unknown as FormlyFieldConfig;
         const classNameFn = field!.expressions!['className'] as (f: FormlyFieldConfig) => string;
         expect(classNameFn(mockField)).toContain('grayed-out-element');
+      });
+    });
+
+    describe('initialNotificationId UUID validation', () => {
+      it('should include uuidValidator in validators', () => {
+        const fields = getFields();
+        const field = findFieldById(fields, 'initialNotificationId');
+        expect(field!.validators!.validation).toContain('uuidValidator');
+      });
+
+      it('should return error message for invalid UUID format', () => {
+        const result = validateUUID('invalid-uuid-format');
+        expect(result).toEqual({ fieldMatch: { message: 'Die Meldungs-ID muss dem UUID-Format entsprechen.' } });
+      });
+
+      it('should return error message for partially valid UUID', () => {
+        const result = validateUUID('12345678-1234-1234-1234');
+        expect(result).toEqual({ fieldMatch: { message: 'Die Meldungs-ID muss dem UUID-Format entsprechen.' } });
+      });
+
+      it('should return null for valid UUID', () => {
+        const result = validateUUID('12345678-1234-1234-1234-123456789abc');
+        expect(result).toBeNull();
+      });
+
+      it('should return null for empty value', () => {
+        const result = validateUUID('');
+        expect(result).toBeNull();
+      });
+
+      it('should return null for null value', () => {
+        const result = validateUUID(null);
+        expect(result).toBeNull();
       });
     });
   });
