@@ -23,7 +23,7 @@ import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/commo
 import { NOTIFICATION_ID_REFERENCE_LIST, REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import { NotificationType } from '../../../common/routing-helper';
 import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
-import { isFollowUpNotification, isReferenceFieldEnabled } from '../../../utils/pathogen-notification-mapper';
+import { isFollowUpNotification, isReferenceFieldEnabled, isUUIDValidationEnabled } from '../../../utils/pathogen-notification-mapper';
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
 
@@ -106,7 +106,7 @@ const initialNotificationIdField = (notificationType: NotificationType): FormlyF
     placeholder: 'Meldungs-ID, auf die sich bezogen wird',
   },
   validators: {
-    validation: ['textValidator', 'nonBlankValidator'],
+    validation: initialNotificationIdValidators(),
   },
   expressions: {
     className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
@@ -129,7 +129,7 @@ const referenceFieldBranch = (notificationType: NotificationType): FormlyFieldCo
       defaultValue: isFollowUpNotification(notificationType) ? NotificationIdReferenceEnum.RelatesToOtherFacility : undefined,
       props: {
         required: true,
-        label: 'Verweis auf vorherige Meldung',
+        label: 'Verweis auf vorherige Meldung (Initiale Meldungs-ID)',
         options: NOTIFICATION_ID_REFERENCE_LIST,
       },
       expressions: {
@@ -320,6 +320,10 @@ const initialNotificationIdClassName = (ffc: FormlyFieldConfig, notificationType
   } else {
     return isGrayedOutSelection(model.reportStatus !== ReportStatusEnum.Amended || isFollowUpNotification(notificationType));
   }
+};
+
+const initialNotificationIdValidators = (): string[] => {
+  return isUUIDValidationEnabled ? ['textValidator', 'nonBlankValidator', 'uuidValidator'] : ['textValidator', 'nonBlankValidator'];
 };
 
 const reportClassName = (ffc: FormlyFieldConfig): string => {

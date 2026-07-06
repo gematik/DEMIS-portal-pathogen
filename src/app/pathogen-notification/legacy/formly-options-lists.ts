@@ -55,8 +55,8 @@ export const REPORT_STATUS_OPTION_LIST = [
 
 export const NOTIFICATION_ID_REFERENCE_LIST = [
   { value: NotificationIdReferenceEnum.NoReference, label: 'Kein Verweis' },
-  { value: NotificationIdReferenceEnum.RelatesToOwnFacility, label: 'Meldung meiner Einrichtung' },
-  { value: NotificationIdReferenceEnum.RelatesToOtherFacility, label: 'Meldung einer anderen Einrichtung' },
+  { value: NotificationIdReferenceEnum.RelatesToOwnFacility, label: 'Initialmeldung meiner Einrichtung' },
+  { value: NotificationIdReferenceEnum.RelatesToOtherFacility, label: 'Initialmeldung einer anderen Einrichtung' },
 ];
 
 export const RESISTANCE_RESULT_OPTION_LIST = [

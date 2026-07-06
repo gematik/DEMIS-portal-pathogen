@@ -21,7 +21,6 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MockedComponentFixture } from 'ng-mocks';
 import { switchToPage } from '../shared/test-utils';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
-import { NotifiedPersonDisclaimer } from '../../app/pathogen-notification/utils/disclaimer-texts';
 
 describe('Pathogen - Nonnominal Integration Tests', () => {
   let component: PathogenNotificationComponent;
@@ -69,6 +68,8 @@ describe('Pathogen - Nonnominal Integration Tests', () => {
 
   it('should show the default disclaimer text on notified person page', async () => {
     await switchToPage(3, fixture);
-    expect(fixture.nativeElement.textContent).toContain(NotifiedPersonDisclaimer.DEFAULT_DISCLAIMER);
+    expect(fixture.nativeElement.textContent).toContain(
+      'Sie möchten eine nichtnamentliche Meldung nach § 7 Abs. 3 IfSG absetzen. Die hier erforderlichen Angaben zur betroffenen Person werden ausschließlich zur Bildung des Pseudonyms verwendet und nach der Pseudonymisierung verworfen. Das Pseudonym dient der Zuordnung zusammengehöriger Meldungen. Benutzen Sie bitte korrekte Personendaten, um dies zu gewährleisten. Mehr Informationen finden Sie hier.'
+    );
   });
 });

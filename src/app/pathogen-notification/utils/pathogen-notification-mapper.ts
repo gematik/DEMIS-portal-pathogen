@@ -27,6 +27,7 @@ export const isNonNominalNotificationEnabled = () => environment.featureFlags?.F
 export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_ANONYMOUS_NOTIFICATION;
 export const isFollowUpNonNominalEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_7_3 && isNonNominalNotificationEnabled();
 export const isReferenceFieldEnabled = () => environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD;
+export const isUUIDValidationEnabled = () => environment.featureFlags?.FEATURE_FLAG_UUID_VALIDATION;
 
 export const isNonNominalNotification = (notificationType: NotificationType) => {
   return (

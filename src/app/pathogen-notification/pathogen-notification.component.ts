@@ -251,7 +251,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         return notifiedPersonNotByNameConfigFields(
           mapCodeDisplaysToOptionList(this.countryCodeDisplays),
           GENDER_OPTION_LIST,
-          NotifiedPersonDisclaimer.DEFAULT_DISCLAIMER
+          NotifiedPersonDisclaimer.NON_NOMINAL_DISCLAIMER
         );
       default:
         return notifiedPersonFormConfigFields(this.countryCodeDisplays);
@@ -518,12 +518,6 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   private updateFormForHexHex() {
     this.model.pathogenForm = dummyDataForPathogenForm(this.notificationType);
 
-    //fix for a bug where the pathogen field was not populated if it was cleared by user
-    if (isNonNominalNotification(this.notificationType)) {
-      this.setValueForPathogenSelectionField('HIV');
-    } else {
-      this.setValueForPathogenSelectionField('Influenzavirus');
-    }
     if (isFollowUpNotification(this.notificationType)) {
       this.updateInitialNotificationId(this.followUpNotificationIdService.validatedNotificationId());
       this.model.pathogenForm.notificationCategory.notificationIdReference = 'relatesToOtherFacility';

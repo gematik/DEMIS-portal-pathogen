@@ -2,6 +2,14 @@
 
 # Release portal-pathogen
 
+## Release 1.9.4
+- Fixed third party license collection
+- Removed feature flag FEATURE_FLAG_PORTAL_ACCESSIBILITY
+- Added UUID validation for initialNotificationId field (FEATURE_FLAG_UUID_VALIDATION)
+- Changed notificationIdReference labels
+- Changed disclaimer text for non-nominal notified person
+- Updated NGINX-Base-Image to 1.31.2
+
 ## Release 1.9.3
 - Added generic filter select from portal-core for analyt (FEATURE_FLAG_REMOVABLE_ANALYT)
 - Removed NgModule configuration
