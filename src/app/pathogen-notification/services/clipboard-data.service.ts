@@ -115,9 +115,7 @@ export class ClipboardDataService {
             specimenDTO: {
               methodPathogenList: [
                 {
-                  analyt: environment.featureFlags?.FEATURE_FLAG_REMOVABLE_ANALYT
-                    ? { display: this.augmentDisplay(value, 'substances'), code: value }
-                    : this.augmentDisplay(value, 'substances'),
+                  analyt: { display: this.augmentDisplay(value, 'substances'), code: value },
                 },
               ],
             },

@@ -176,12 +176,7 @@ describe('ClipboardDataService', () => {
       service.setPathogenData(pathogenDataWithSubstances);
     });
 
-    it('should set analyt as CodeDisplay object when FEATURE_FLAG_REMOVABLE_ANALYT is enabled', async () => {
-      environment.pathogenConfig = {
-        ...environment.pathogenConfig,
-        featureFlags: { FEATURE_FLAG_REMOVABLE_ANALYT: true },
-      };
-
+    it('should set analyt as CodeDisplay object', async () => {
       const model = {};
       const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.analyt', substanceCode]], model);
 
@@ -190,19 +185,6 @@ describe('ClipboardDataService', () => {
         display: substanceDisplay,
         code: substanceCode,
       });
-    });
-
-    it('should set analyt as display string when FEATURE_FLAG_REMOVABLE_ANALYT is disabled', async () => {
-      environment.pathogenConfig = {
-        ...environment.pathogenConfig,
-        featureFlags: { FEATURE_FLAG_REMOVABLE_ANALYT: false },
-      };
-
-      const model = {};
-      const problems = await service.fillModel(service.DIAGNOSTIC_CLIPBOARD_RULES, [['T.analyt', substanceCode]], model);
-
-      expect(problems).toEqual([]);
-      expect((model as any).pathogenDTO.specimenList[0].specimenDTO.methodPathogenList[0].analyt).toBe(substanceDisplay);
     });
   });
 

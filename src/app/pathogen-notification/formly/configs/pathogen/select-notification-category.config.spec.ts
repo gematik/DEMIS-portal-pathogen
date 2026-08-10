@@ -407,6 +407,62 @@ describe('selectNotificationCategoryFields', () => {
       });
     });
 
+    describe('initialNotificationId onInit hook', () => {
+      it('should reset initialNotificationId value to undefined when notificationIdReference changes to NoReference', () => {
+        const fields = getFields(NotificationType.NominalNotification7_1);
+        const field = findFieldById(fields, 'initialNotificationId');
+        const model: { notificationIdReference: NotificationIdReferenceEnum | undefined } = {
+          notificationIdReference: NotificationIdReferenceEnum.RelatesToOwnFacility,
+        };
+        const subscribers: (() => void)[] = [];
+        const mockFormControl = {
+          setValue: jasmine.createSpy('setValue'),
+          markAsUntouched: jasmine.createSpy('markAsUntouched'),
+          markAsPristine: jasmine.createSpy('markAsPristine'),
+        };
+        const mockField = {
+          parent: { model },
+          options: { fieldChanges: { subscribe: (cb: () => void) => subscribers.push(cb) } },
+          formControl: mockFormControl,
+        } as unknown as FormlyFieldConfig;
+
+        field!.hooks!.onInit!(mockField);
+        model.notificationIdReference = NotificationIdReferenceEnum.NoReference;
+        subscribers.forEach(cb => cb());
+
+        expect(mockFormControl.setValue).toHaveBeenCalledWith(undefined);
+        expect(mockFormControl.markAsUntouched).toHaveBeenCalled();
+        expect(mockFormControl.markAsPristine).toHaveBeenCalled();
+      });
+
+      it('should not reset initialNotificationId value when notificationIdReference changes to RelatesToOwnFacility', () => {
+        const fields = getFields(NotificationType.NominalNotification7_1);
+        const field = findFieldById(fields, 'initialNotificationId');
+        const model: { notificationIdReference: NotificationIdReferenceEnum | undefined } = {
+          notificationIdReference: NotificationIdReferenceEnum.NoReference,
+        };
+        const subscribers: (() => void)[] = [];
+        const mockFormControl = {
+          setValue: jasmine.createSpy('setValue'),
+          markAsUntouched: jasmine.createSpy('markAsUntouched'),
+          markAsPristine: jasmine.createSpy('markAsPristine'),
+        };
+        const mockField = {
+          parent: { model },
+          options: { fieldChanges: { subscribe: (cb: () => void) => subscribers.push(cb) } },
+          formControl: mockFormControl,
+        } as unknown as FormlyFieldConfig;
+
+        field!.hooks!.onInit!(mockField);
+        model.notificationIdReference = NotificationIdReferenceEnum.RelatesToOwnFacility;
+        subscribers.forEach(cb => cb());
+
+        expect(mockFormControl.setValue).not.toHaveBeenCalled();
+        expect(mockFormControl.markAsUntouched).toHaveBeenCalled();
+        expect(mockFormControl.markAsPristine).toHaveBeenCalled();
+      });
+    });
+
     describe('initialNotificationId UUID validation', () => {
       it('should include uuidValidator in validators', () => {
         const fields = getFields();

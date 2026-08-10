@@ -16,24 +16,30 @@
  */
 
 import { FormlyExtension } from '@ngx-formly/core';
+import { environment } from '../../../environments/environment';
 import { VALUE_DEFAULT_PLACEHOLDER, VALUE_DEFUALT_SELECT_PLACEHOLDER } from '../legacy/common-utils';
 
 export const defaultPlaceholderExtension: FormlyExtension = {
   prePopulate(field): void {
-    let placeholder: string = VALUE_DEFAULT_PLACEHOLDER;
-
     if (field.props?.placeholder) {
       return;
     }
 
     if (field.type === 'select' || field.type === 'autocomplete') {
-      placeholder = VALUE_DEFUALT_SELECT_PLACEHOLDER;
+      field.props = {
+        ...field.props,
+        placeholder: VALUE_DEFUALT_SELECT_PLACEHOLDER,
+      };
+      return;
     }
 
-    field.props = {
-      ...field.props,
-      placeholder: placeholder,
-    };
+    // FLAG_CLEANUP(FEATURE_FLAG_PLACEHOLDER_REMOVAL): Remove this block and the legacy constant once placeholders are permanently removed.
+    if (!environment.featureFlags?.FEATURE_FLAG_PLACEHOLDER_REMOVAL) {
+      field.props = {
+        ...field.props,
+        placeholder: VALUE_DEFAULT_PLACEHOLDER,
+      };
+    }
   },
 };
 

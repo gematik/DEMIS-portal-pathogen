@@ -575,8 +575,6 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     const subPathogens = this.pathogenData.answerSet.map(formatCodeDisplayToDisplay);
     const resistanceGenes = this.pathogenData.resistanceGenes.map(formatCodeDisplayToDisplay);
     const resistances = this.pathogenData.resistances.map(formatCodeDisplayToDisplay);
-    //TODO: analyts can be removed after FEATURE_FLAG_REMOVABLE_ANALYT is removed
-    const analyts = this.pathogenData.substances.map(formatCodeDisplayToDisplay);
     const analytOptions = this.pathogenData.substances.map(formatCodeDisplayToDesignationOption);
 
     this.getSubPathogenSelectionField().props.filter = (term: string) => applyFilter(term, subPathogens);
@@ -587,7 +585,6 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       methods,
       resistanceGenes,
       resistances,
-      analyts,
       analytOptions,
       this.pathogenData.header,
       this.pathogenData.subheader ?? ''

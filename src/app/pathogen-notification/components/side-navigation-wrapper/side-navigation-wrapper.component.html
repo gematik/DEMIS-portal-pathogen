@@ -16,9 +16,7 @@
         <gem-demis-paste-box (dataPasted)="handlePasteBoxClick($event)" />
       </div>
     </div>
-    @if (FEATURE_FLAG_PORTAL_HEADER_FOOTER) {
-      <gem-demis-forms-footer [featureFlagFooterLink]="FEATURE_FLAG_FOOTER_LINKS_CORRECTION"/>
-    }
+    <gem-demis-forms-footer [featureFlagFooterLink]="FEATURE_FLAG_FOOTER_LINKS_CORRECTION"/>
   </mat-drawer>
 
   <mat-drawer-content>

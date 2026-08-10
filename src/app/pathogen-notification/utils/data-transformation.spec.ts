@@ -327,9 +327,7 @@ describe('DataTransformation', () => {
       },
     };
 
-    it('should use analyt as CodeDisplay directly when FEATURE_FLAG_REMOVABLE_ANALYT is enabled', () => {
-      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_REMOVABLE_ANALYT: true };
-
+    it('should use analyt as CodeDisplay directly', () => {
       const analytAsCodeDisplay = { code: 'analyt-1', display: 'Analyt substance', designations: [{ language: 'de-DE', value: 'Analyt Substanz' }] };
       const pathogenForm = {
         ...baseDiagnosticForm,
@@ -357,17 +355,7 @@ describe('DataTransformation', () => {
       expect(result.pathogenDTO.specimenList[0].methodPathogenList[0].analyt).toEqual(analytAsCodeDisplay);
     });
 
-    it('should look up analyt via findCodeDisplayByDisplayValue when FEATURE_FLAG_REMOVABLE_ANALYT is disabled', () => {
-      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_REMOVABLE_ANALYT: false };
-
-      const result = transformDiagnostic(baseDiagnosticForm, {}, pathogenDataWithSubstances, selectedPathogen);
-
-      expect(result.pathogenDTO.specimenList[0].methodPathogenList[0].analyt).toEqual(analytCodeDisplay);
-    });
-
     it('should not include analyt when methodPathogen has no analyt value', () => {
-      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_REMOVABLE_ANALYT: true };
-
       const pathogenForm = {
         ...baseDiagnosticForm,
         pathogenDTO: {
