@@ -43,11 +43,10 @@ config:
   featureFlags: #Always set this to false here; feature flags will then be activated as needed via the stage configurations.
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: false
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: false
-    FEATURE_FLAG_PORTAL_HEADER_FOOTER: false
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: false
     FEATURE_FLAG_FOLLOW_UP_7_3: false
     FEATURE_FLAG_REFERENCE_FIELD: false
-    FEATURE_FLAG_REMOVABLE_ANALYT: false
+    FEATURE_FLAG_PLACEHOLDER_REMOVAL: false
     FEATURE_FLAG_UUID_VALIDATION: false
   ngxLoggerConfig:
     level: 1

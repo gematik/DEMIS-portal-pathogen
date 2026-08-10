@@ -165,6 +165,9 @@ const referenceFieldBranch = (notificationType: NotificationType): FormlyFieldCo
             const currentRef = localModel(field).notificationIdReference;
             if (currentRef !== prevRef) {
               prevRef = currentRef;
+              if (currentRef === NotificationIdReferenceEnum.NoReference) {
+                field.formControl?.setValue(undefined);
+              }
               field.formControl?.markAsUntouched();
               field.formControl?.markAsPristine();
             }

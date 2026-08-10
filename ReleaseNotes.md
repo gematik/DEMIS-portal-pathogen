@@ -2,6 +2,12 @@
 
 # Release portal-pathogen
 
+## Release 1.9.5
+- Removed FEATURE_FLAG_REMOVABLE_ANALYT
+- Removed feature flag FEATURE_FLAG_PORTAL_HEADER_FOOTER: forms footer is now always rendered
+- Updated notificationIdReference handling to reset value when set to NoReference
+- Removed placeholder texts from non-select input fields
+
 ## Release 1.9.4
 - Fixed third party license collection
 - Removed feature flag FEATURE_FLAG_PORTAL_ACCESSIBILITY

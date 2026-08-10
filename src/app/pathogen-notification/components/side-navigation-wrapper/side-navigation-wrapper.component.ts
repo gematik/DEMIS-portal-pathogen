@@ -59,10 +59,6 @@ export class SideNavigationWrapperComponent {
     this.notificationType.set(getNotificationTypeByRouterUrl(this.router.url));
   }
 
-  public get FEATURE_FLAG_PORTAL_HEADER_FOOTER(): boolean {
-    return environment.featureFlags?.FEATURE_FLAG_PORTAL_HEADER_FOOTER;
-  }
-
   public get FEATURE_FLAG_FOOTER_LINKS_CORRECTION(): boolean {
     return environment.featureFlags?.FEATURE_FLAG_FOOTER_LINKS_CORRECTION ?? false;
   }
