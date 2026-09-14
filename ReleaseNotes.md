@@ -2,6 +2,12 @@
 
 # Release portal-pathogen
 
+## Release 1.9.6
+- Allowed resistance-status radio button labels to wrap on narrower screens
+- Added filterable select for subpathogen selection (FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN)
+- Updated @gematik/demis-portal-core-library to 4.3.1
+- Updated form layout classes
+
 ## Release 1.9.5
 - Removed FEATURE_FLAG_REMOVABLE_ANALYT
 - Removed feature flag FEATURE_FLAG_PORTAL_HEADER_FOOTER: forms footer is now always rendered

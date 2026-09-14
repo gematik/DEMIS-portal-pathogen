@@ -39,7 +39,7 @@ export const addressFormConfigFields = (
   {
     id: 'currentAddressInstitutionName',
     key: 'additionalInfo',
-    className: FormlyConstants.COLMD11,
+    className: FormlyConstants.COLMD12,
     type: 'input',
     props: {
       required: true,
@@ -61,7 +61,7 @@ export const addressFormConfigFields = (
   formlyInputField({
     id: `${idPrefix}street`,
     key: `street`,
-    className: FormlyConstants.COLMD8,
+    className: FormlyConstants.COLMD9,
     props: {
       label: 'Straße',
       required: required,
@@ -94,7 +94,7 @@ export const addressFormConfigFields = (
   formlyInputField({
     id: `${idPrefix}city`,
     key: 'city',
-    className: FormlyConstants.COLMD8,
+    className: FormlyConstants.COLMD9,
     props: {
       label: 'Stadt',
       required: required,
@@ -103,7 +103,7 @@ export const addressFormConfigFields = (
   {
     id: `${idPrefix}country`,
     key: 'country',
-    className: FormlyConstants.COLMD11,
+    className: FormlyConstants.COLMD12,
     type: 'select',
     defaultValue: GERMANY_COUNTRY_CODE,
     props: {
@@ -123,7 +123,7 @@ export const addressFormPanelConfigFields = (countryCodeDisplays: CodeDisplay[],
       formlyInputField({
         id: `${idPrefix}street`,
         key: 'street',
-        className: 'col-md-8',
+        className: 'col-md-9',
         props: {
           label: 'Straße',
           required: required,
@@ -158,7 +158,7 @@ export const addressFormPanelConfigFields = (countryCodeDisplays: CodeDisplay[],
       formlyInputField({
         id: `${idPrefix}city`,
         key: 'city',
-        className: 'col-md-8',
+        className: 'col-md-9',
         props: {
           label: 'Stadt',
           required: required,
@@ -174,7 +174,7 @@ export const addressFormPanelConfigFields = (countryCodeDisplays: CodeDisplay[],
         {
           id: `${idPrefix}country`,
           key: 'country',
-          className: 'col-md-11',
+          className: 'col-md-12',
           type: 'select',
           defaultValue: GERMANY_COUNTRY_CODE,
           props: {

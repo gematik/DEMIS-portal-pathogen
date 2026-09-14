@@ -43,7 +43,7 @@ export const contactsFormConfigFields: (needsContact: boolean) => FormlyFieldCon
         },
         defaultValue: needsContact ? [{}] : undefined,
         fieldArray: {
-          className: FormlyConstants.COLMD11,
+          className: FormlyConstants.COLMD12,
           fieldGroupClassName: undefined,
           fieldGroup: [
             {
@@ -82,7 +82,7 @@ export const contactsFormConfigFields: (needsContact: boolean) => FormlyFieldCon
         },
         defaultValue: needsContact ? [{}] : undefined,
         fieldArray: {
-          className: FormlyConstants.COLMD11,
+          className: FormlyConstants.COLMD12,
           fieldGroupClassName: undefined,
           fieldGroup: [
             {

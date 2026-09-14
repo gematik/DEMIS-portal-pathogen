@@ -122,13 +122,13 @@ function isSafeRoute(redirectUrl: string) {
  */
 function getCurrentUrlFromLocation(): string {
   // Check if we're using hash-based routing
-  if (window.location.hash) {
+  if (globalThis.location.hash) {
     // Extract the path after the # and remove the leading /
-    const hashPath = window.location.hash.substring(1); // Remove the #
+    const hashPath = globalThis.location.hash.substring(1); // Remove the #
     return hashPath.startsWith('/') ? hashPath.substring(1) : hashPath;
   }
   // Fallback to pathname if no hash
-  const pathname = window.location.pathname;
+  const pathname = globalThis.location.pathname;
   return pathname.startsWith('/') ? pathname.substring(1) : pathname;
 }
 
@@ -152,12 +152,12 @@ function syncUrlWithRouter() {
  */
 function setupRouterSync() {
   // Listen for hash changes (primary mechanism for HashLocationStrategy)
-  window.addEventListener('hashchange', () => {
+  globalThis.addEventListener('hashchange', () => {
     syncUrlWithRouter();
   });
 
   // Listen for browser navigation events (back/forward buttons)
-  window.addEventListener('popstate', () => {
+  globalThis.addEventListener('popstate', () => {
     syncUrlWithRouter();
   });
 }

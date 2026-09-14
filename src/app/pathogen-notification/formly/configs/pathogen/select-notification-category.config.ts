@@ -23,7 +23,12 @@ import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/commo
 import { NOTIFICATION_ID_REFERENCE_LIST, REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import { NotificationType } from '../../../common/routing-helper';
 import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
-import { isFollowUpNotification, isReferenceFieldEnabled, isUUIDValidationEnabled } from '../../../utils/pathogen-notification-mapper';
+import {
+  isFilterableSelectSubpathogenEnabled,
+  isFollowUpNotification,
+  isReferenceFieldEnabled,
+  isUUIDValidationEnabled,
+} from '../../../utils/pathogen-notification-mapper';
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
 
@@ -50,7 +55,7 @@ const showFederalStateSelection = (notificationType: NotificationType) => {
 const reportStatusField = (): FormlyFieldConfig => ({
   id: 'reportStatus',
   key: 'reportStatus',
-  className: FormlyConstants.COLMD10_INLINE,
+  className: FormlyConstants.COLMD12_INLINE,
   type: 'radio',
   props: {
     required: true,
@@ -66,7 +71,7 @@ const interpretationField = (): FormlyFieldConfig => ({
   id: 'interpretation',
   key: 'interpretation',
   type: 'textarea',
-  className: FormlyConstants.COLMD10,
+  className: FormlyConstants.COLMD12,
   props: {
     label: 'Interpretation des Befundes',
     maxLength: MORE_INFO_MAX_LENGTH,
@@ -84,7 +89,7 @@ const laboratoryOrderIdField = (): FormlyFieldConfig => ({
   id: 'laboratoryOrderId',
   key: 'laboratoryOrderId',
   type: 'input',
-  className: FormlyConstants.COLMD10,
+  className: FormlyConstants.COLMD12,
   props: {
     label: 'Laboreigene Auftragsnummer',
     maxLength: 50,
@@ -124,7 +129,7 @@ const referenceFieldBranch = (notificationType: NotificationType): FormlyFieldCo
     {
       id: 'notificationIdReference',
       key: 'notificationIdReference',
-      className: FormlyConstants.COLMD10_INLINE,
+      className: FormlyConstants.COLMD12_INLINE,
       type: 'radio',
       defaultValue: isFollowUpNotification(notificationType) ? NotificationIdReferenceEnum.RelatesToOtherFacility : undefined,
       props: {
@@ -217,7 +222,7 @@ export const selectNotificationCategoryFields = (
   return [
     formlyRow([
       {
-        className: 'col-sm-10',
+        className: 'col-sm-12',
         template: specificReportingObligations(notificationType),
         key: 'selectPathogenInfoWrapper',
       },
@@ -237,12 +242,13 @@ export const selectNotificationCategoryFields = (
       className: '',
       template: '<h2>Erregerauswahl</h2>',
     },
+
     formlyRow([
       {
         id: 'federalStateCodeDisplay',
         key: 'federalStateCodeDisplay',
         type: 'select',
-        className: FormlyConstants.COLMD10,
+        className: FormlyConstants.COLMD12,
         props: {
           label: 'Bundesland des Melders',
           options: federalStateCodeDisplays.map(value => {
@@ -260,7 +266,7 @@ export const selectNotificationCategoryFields = (
         id: 'pathogenDisplay',
         key: 'pathogenDisplay',
         type: 'autocomplete',
-        className: FormlyConstants.COLMD10,
+        className: FormlyConstants.COLMD12,
         props: {
           label: 'Meldepflichtiger Krankheitserreger',
           filter: (term: string) => of(term ? filterDisplayValues(term, pathogenDisplays) : pathogenDisplays.slice()),
@@ -276,25 +282,48 @@ export const selectNotificationCategoryFields = (
         },
       },
     ]),
-    formlyRow([
-      {
-        id: 'pathogen',
-        key: 'pathogen',
-        type: 'autocomplete',
-        className: FormlyConstants.COLMD10,
-        props: {
-          label: 'Nachgewiesene Erregerspezies',
-          filter: (term: string) => applyFilter(term, subPathogenDisplays),
-          required: true,
-        },
-        expressions: {
-          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
-        },
-        asyncValidators: {
-          validation: ['optionMatches'],
-        },
-      },
-    ]),
+    ...(isFilterableSelectSubpathogenEnabled()
+      ? [
+          formlyRow([
+            {
+              id: 'pathogen',
+              key: 'pathogen',
+              type: 'filterable-select',
+              className: FormlyConstants.COLMD12,
+              props: {
+                label: 'Nachgewiesene Erregerspezies',
+                required: true,
+                options: subPathogenDisplays,
+                optionValueKey: 'code',
+                optionLabelKey: 'display',
+              },
+              expressions: {
+                'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
+              },
+            },
+          ]),
+        ]
+      : [
+          formlyRow([
+            {
+              id: 'pathogen',
+              key: 'pathogen',
+              type: 'autocomplete',
+              className: FormlyConstants.COLMD12,
+              props: {
+                label: 'Nachgewiesene Erregerspezies',
+                filter: (term: string) => applyFilter(term, subPathogenDisplays),
+                required: true,
+              },
+              expressions: {
+                'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
+              },
+              asyncValidators: {
+                validation: ['optionMatches'],
+              },
+            },
+          ]),
+        ]),
     {
       className: FormlyConstants.LAYOUT_HEADER,
       template: '<h2>Befund</h2>',
@@ -313,7 +342,7 @@ const localModel = (ffc: FormlyFieldConfig) => ffc.parent?.model || {};
 
 const isGrayedOutSelection = (condition: boolean) => {
   const conditionalClass = condition ? 'grayed-out-element' : '';
-  return `${conditionalClass} ${FormlyConstants.COLMD10}`.trim();
+  return `${conditionalClass} ${FormlyConstants.COLMD12}`.trim();
 };
 
 const initialNotificationIdClassName = (ffc: FormlyFieldConfig, notificationType: NotificationType): string => {

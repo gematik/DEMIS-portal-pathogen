@@ -476,7 +476,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
           expectedValue: TEST_NOTIFICATION_CATEGORY.pathogenDisplay.value,
           selector: TEST_NOTIFICATION_CATEGORY.pathogenDisplay.selector,
         });
-        await verifyAutocompleteField(loader, {
+        await verifySelectField(loader, {
           expectedValue: TEST_NOTIFICATION_CATEGORY.pathogen.value,
           selector: TEST_NOTIFICATION_CATEGORY.pathogen.selector,
         });
@@ -583,8 +583,8 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       const pathogenDisplay = await getAutocomplete(loader, `#${FIELD_PATHOGEN_DISPLAY}`);
       expect(await pathogenDisplay.getValue()).toBe('Bornaviren');
 
-      const pathogen = await getAutocomplete(loader, `#${FIELD_PATHOGEN}`);
-      expect(await pathogen.getValue()).toBe('');
+      const pathogen = await getSelect(loader, `#${FIELD_PATHOGEN}`);
+      expect(await pathogen.getValueText()).toBe('');
     });
   });
 });
