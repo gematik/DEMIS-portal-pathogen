@@ -23,6 +23,7 @@ import { environment } from 'src/environments/environment';
 import { validateUUID } from '../../../legacy/notification-form-validation-module';
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
+import { mainConfig } from '../../../../../test/integration/base';
 
 describe('selectNotificationCategoryFields', () => {
   const federalStateCodeDisplays = [
@@ -37,7 +38,7 @@ describe('selectNotificationCategoryFields', () => {
       production: false,
       pathToGateway: '',
       gatewayPaths: {},
-      featureFlags: { FEATURE_FLAG_REFERENCE_FIELD: false },
+      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_REFERENCE_FIELD: false },
       ngxLoggerConfig: { level: 0, disableConsoleLogging: true, serverLogLevel: 0 },
       pathToFuts: '',
       futsPaths: {},
@@ -92,8 +93,18 @@ describe('selectNotificationCategoryFields', () => {
       const fields = getFields();
       const field = findFieldById(fields, 'pathogen');
       expect(field).toBeDefined();
+      expect(field!.type).toBe('filterable-select');
+      expect(field!.props!.label).toBe('Nachgewiesene Erregerspezies');
+    });
+
+    it('should contain old pathogen field', () => {
+      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: false };
+      const fields = getFields();
+      const field = findFieldById(fields, 'pathogen');
+      expect(field).toBeDefined();
       expect(field!.type).toBe('autocomplete');
       expect(field!.props!.label).toBe('Nachgewiesene Erregerspezies');
+      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: true };
     });
 
     it('should contain reportStatus field', () => {

@@ -16,7 +16,12 @@
  */
 
 import { ConfigOption } from '@ngx-formly/core';
-import { DATEPICKER_VALIDATION_MESSAGES, FormlyDatepickerComponent, FormlyRepeaterComponent } from '@gematik/demis-portal-core-library';
+import {
+  DATEPICKER_VALIDATION_MESSAGES,
+  FormlyDatepickerComponent,
+  FormlyFilterableSelectComponent,
+  FormlyRepeaterComponent,
+} from '@gematik/demis-portal-core-library';
 import { RepeatComponent } from '../../legacy/formly/types/repeat/repeat.component';
 import { AutocompleteTypeComponent } from '../../legacy/formly/types/autocomplete/autocomplete-type.component';
 import { FormWrapperComponent } from '../../components/form-wrapper/form-wrapper.component';
@@ -35,6 +40,10 @@ export const PathogenFormlyConfig: ConfigOption = {
       name: 'autocomplete',
       component: AutocompleteTypeComponent,
       wrappers: ['form-field'],
+    },
+    {
+      name: 'filterable-select',
+      component: FormlyFilterableSelectComponent,
     },
     {
       name: 'demis-formly-tab-navigation',

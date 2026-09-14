@@ -47,6 +47,7 @@ import {
   initializeDiagnosticFields,
   initializeSelectPathogenFields,
   isAnonymousPersonNotification,
+  isFilterableSelectSubpathogenEnabled,
   isFollowUpNotification,
   isNonNominalNotification,
   updatePathogenForm,
@@ -357,8 +358,8 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   subscribeToCurrentAddressTypeChanges() {
-    const currentAddressField = this.notifiedPersonFields[6].fieldGroup.find(field => field.key === 'currentAddress');
-    const currentAddressTypeField = this.notifiedPersonFields[6].fieldGroup.find(field => field.key === 'currentAddressType');
+    const currentAddressField = this.notifiedPersonFields[5].fieldGroup.find(field => field.key === 'currentAddress');
+    const currentAddressTypeField = this.notifiedPersonFields[5].fieldGroup.find(field => field.key === 'currentAddressType');
 
     currentAddressTypeField?.formControl?.valueChanges
       .pipe(takeUntil(this.unsubscriber), distinctUntilChanged())
@@ -497,7 +498,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           federalStateCodeDisplay: this.notificationStorageService.getFederalStateCode() || 'DE-BW',
           pathogenDisplay: getDesignationValueIfAvailable(selectedPathogenCodeDisplay),
         };
-        if (!fromHexHexButton) {
+        if (fromHexHexButton) {
+          this.updateFormForHexHex();
+        } else {
           this.model.pathogenForm.notificationCategory = {
             ...this.model.pathogenForm.notificationCategory,
             federalStateCodeDisplay: this.notificationStorageService.getFederalStateCode() || 'DE-BW',
@@ -506,8 +509,6 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             this.closePathogenSelectionAutocomplete();
           });
-        } else {
-          this.updateFormForHexHex();
         }
         if (!fromClipboard) {
           this.changeLoadingState(false);
@@ -577,7 +578,11 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
     const resistances = this.pathogenData.resistances.map(formatCodeDisplayToDisplay);
     const analytOptions = this.pathogenData.substances.map(formatCodeDisplayToDesignationOption);
 
-    this.getSubPathogenSelectionField().props.filter = (term: string) => applyFilter(term, subPathogens);
+    if (isFilterableSelectSubpathogenEnabled()) {
+      this.getSubPathogenSelectionField().props.options = this.pathogenData.answerSet.map(formatCodeDisplayToDesignationOption);
+    } else {
+      this.getSubPathogenSelectionField().props.filter = (term: string) => applyFilter(term, subPathogens);
+    }
 
     this.diagnosticFormFields = pathogenSpecimenFields(
       this.notificationType,
@@ -603,8 +608,8 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   private closePathogenSelectionAutocomplete() {
     //bug: autocomplete options dialog did not close
-    window.document.getElementById('pathogenDisplay')?.blur();
-    window.document.body.click();
+    globalThis.document.getElementById('pathogenDisplay')?.blur();
+    globalThis.document.body.click();
   }
 
   private setFocusOnFirstStepHeader() {

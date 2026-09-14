@@ -26,7 +26,7 @@ export const practitionerInfoFormConfigFields: () => FormlyFieldConfig[] = () =>
         id: 'salutation',
         type: 'select',
         key: 'salutation',
-        className: FormlyConstants.COLMD5,
+        className: FormlyConstants.COLMD6,
         props: {
           label: 'Anrede',
           options: [
@@ -39,14 +39,14 @@ export const practitionerInfoFormConfigFields: () => FormlyFieldConfig[] = () =>
       },
       formlyInputField({
         key: 'prefix',
-        className: FormlyConstants.COLMD5,
+        className: FormlyConstants.COLMD6,
         props: {
           label: 'Titel',
         },
       }),
       formlyInputField({
         key: 'firstname',
-        className: FormlyConstants.COLMD5,
+        className: FormlyConstants.COLMD6,
         props: {
           label: 'Vorname',
           required: true,
@@ -55,7 +55,7 @@ export const practitionerInfoFormConfigFields: () => FormlyFieldConfig[] = () =>
       }),
       formlyInputField({
         key: 'lastname',
-        className: FormlyConstants.COLMD5,
+        className: FormlyConstants.COLMD6,
         props: {
           label: 'Nachname',
           required: true,

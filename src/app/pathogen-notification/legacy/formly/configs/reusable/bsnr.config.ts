@@ -37,7 +37,7 @@ export const bsnrFormlyFieldConfig: FormlyFieldConfig = {
   id: 'bsnr',
   key: 'bsnr',
   type: 'input',
-  className: 'col-8',
+  className: 'col-9',
   expressions: {
     hide: (ffc: FormlyFieldConfig) => ffc.model.existsBsnr === false,
     'props.required': (ffc: FormlyFieldConfig) => ffc.model.existsBsnr,

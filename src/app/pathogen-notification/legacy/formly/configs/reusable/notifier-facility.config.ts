@@ -78,7 +78,7 @@ export const notifierFacilityFormConfigFields = (countryCodeDisplays: CodeDispla
       fieldGroup: [
         formlyInputField({
           key: 'institutionName',
-          className: FormlyConstants.COLMD11,
+          className: FormlyConstants.COLMD12,
           props: {
             label: 'Name der Einrichtung',
             required: true,

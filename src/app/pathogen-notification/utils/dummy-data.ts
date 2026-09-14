@@ -28,7 +28,7 @@ import {
 import { DATE_FORMAT, GERMANY_COUNTRY_CODE, newDate, ZIP_CODE_DEFAULT } from '../legacy/common-utils';
 import { transformPathogenTestToPathogenForm } from './data-transformation';
 import { NotificationType } from '../common/routing-helper';
-import { isNonNominalNotification } from './pathogen-notification-mapper';
+import { isFilterableSelectSubpathogenEnabled, isNonNominalNotification } from './pathogen-notification-mapper';
 import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
@@ -131,7 +131,13 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
       : {
           federalStateCodeDisplay: 'DE-BW',
           pathogenDisplay: 'Influenzavirus',
-          pathogen: 'Influenza A-Virus' as unknown as CodeDisplay,
+          pathogen: isFilterableSelectSubpathogenEnabled()
+            ? {
+                code: '407479009',
+                designations: [],
+                display: 'Influenza A-Virus',
+              }
+            : ('Influenza A-Virus' as unknown as CodeDisplay),
           reportStatus: ReportStatusEnum.Final,
           notificationIdReference: 'noReference',
         },
@@ -169,7 +175,13 @@ const pathogenDataNonNominal = (todayDate: string) => {
     pathogen: 'hivp',
     notificationCategory: {
       pathogenDisplay: 'Humanes Immundefizienz-Virus (HIV)',
-      pathogen: 'Humanes Immundefizienz-Virus, Typ 1' as unknown as CodeDisplay,
+      pathogen: isFilterableSelectSubpathogenEnabled()
+        ? {
+            code: '89293008',
+            designations: [],
+            display: 'Humanes Immundefizienz-Virus, Typ 1',
+          }
+        : ('Humanes Immundefizienz-Virus, Typ 1' as unknown as CodeDisplay),
       reportStatus: ReportStatusEnum.Final,
       notificationIdReference: 'noReference',
     },

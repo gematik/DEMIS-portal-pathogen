@@ -6,7 +6,8 @@
     "FEATURE_FLAG_FOLLOW_UP_7_3": true,
     "FEATURE_FLAG_REFERENCE_FIELD": true,
     "FEATURE_FLAG_PLACEHOLDER_REMOVAL": true,
-    "FEATURE_FLAG_UUID_VALIDATION": true
+    "FEATURE_FLAG_UUID_VALIDATION": true,
+    "FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN": true
   },
   "gatewayPaths": {
     "pathogen": "/notification/pathogen",

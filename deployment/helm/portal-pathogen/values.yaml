@@ -48,6 +48,7 @@ config:
     FEATURE_FLAG_REFERENCE_FIELD: false
     FEATURE_FLAG_PLACEHOLDER_REMOVAL: false
     FEATURE_FLAG_UUID_VALIDATION: false
+    FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: false
   ngxLoggerConfig:
     level: 1
     disableConsoleLogging: true

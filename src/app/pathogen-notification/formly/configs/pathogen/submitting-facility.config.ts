@@ -82,7 +82,7 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
         formlyRow([
           formlyInputField({
             key: 'institutionName',
-            className: FormlyConstants.COLMD11,
+            className: FormlyConstants.COLMD12,
             props: {
               label: 'Name der Einrichtung',
               maxLength: TEXT_MAX_LENGTH,
@@ -96,7 +96,7 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
         formlyRow([
           formlyInputField({
             key: 'departmentName',
-            className: FormlyConstants.COLMD11,
+            className: FormlyConstants.COLMD12,
             props: {
               label: 'Stationsname (bei Krankenhäusern)',
               maxLength: TEXT_MAX_LENGTH,

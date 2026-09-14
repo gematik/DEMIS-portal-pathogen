@@ -28,6 +28,7 @@ export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FE
 export const isFollowUpNonNominalEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_7_3 && isNonNominalNotificationEnabled();
 export const isReferenceFieldEnabled = () => environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD;
 export const isUUIDValidationEnabled = () => environment.featureFlags?.FEATURE_FLAG_UUID_VALIDATION;
+export const isFilterableSelectSubpathogenEnabled = () => environment.featureFlags?.FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN;
 
 export const isNonNominalNotification = (notificationType: NotificationType) => {
   return (

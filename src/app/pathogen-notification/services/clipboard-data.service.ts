@@ -27,7 +27,7 @@ import { environment } from '../../../environments/environment';
 import { addContact, ANONYMOUS_PERSON_RULES, ClipboardRules, FACILITY_RULES, initialModelForClipboard, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
 import { NotificationType } from '../common/routing-helper';
-import { isFollowUpNotification } from '../utils/pathogen-notification-mapper';
+import { isFilterableSelectSubpathogenEnabled, isFollowUpNotification } from '../utils/pathogen-notification-mapper';
 
 @Injectable({
   providedIn: 'root',
@@ -90,7 +90,13 @@ export class ClipboardDataService {
 
   DIAGNOSTIC_CLIPBOARD_RULES: ClipboardRules = {
     'T.pathogen': value => {
-      return { notificationCategory: { pathogen: this.augmentDisplay(value, 'answerSet') } };
+      return {
+        notificationCategory: {
+          pathogen: isFilterableSelectSubpathogenEnabled()
+            ? { display: this.augmentDisplay(value, 'answerSet'), code: value }
+            : this.augmentDisplay(value, 'answerSet'),
+        },
+      };
     },
     'T.interpretation': value => ({
       pathogenDTO: { specimenList: [{ specimenDTO: { methodPathogenList: [{ result: value }] } }] },
@@ -282,7 +288,6 @@ export class ClipboardDataService {
     if (this.checkDiagnosticRules(transformedClipboardData, notificationType)) {
       await this.fillModelFromClipBoard(model, diagnosticRules, transformedClipboardData);
     }
-
     return model;
   }
 

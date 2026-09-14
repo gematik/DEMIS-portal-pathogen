@@ -35,7 +35,7 @@ export const notifiedPersonFormConfigFields = (countryCodeDisplays: CodeDisplay[
         template: '<h2>Wohnsitz</h2>',
       },
       {
-        className: FormlyConstants.COLMD11,
+        className: FormlyConstants.COLMD12,
         template:
           '<p>Die Hauptwohnung bezeichnet den Ort, an dem die betroffene Person gemeldet ist. Der gewöhnliche Aufenthaltsort bezeichnet den Ort, ' +
           'an dem die betroffene Person sich dauerhaft aufhält und ist anzugeben, wenn es sich nicht um die Hauptwohnung handelt.</p>',
@@ -43,7 +43,7 @@ export const notifiedPersonFormConfigFields = (countryCodeDisplays: CodeDisplay[
       {
         id: 'residenceAddressType',
         key: 'residenceAddressType',
-        className: FormlyConstants.COLMD8,
+        className: FormlyConstants.COLMD12,
         type: 'radio',
         defaultValue: AddressType.Primary,
         props: {
@@ -64,7 +64,7 @@ export const notifiedPersonFormConfigFields = (countryCodeDisplays: CodeDisplay[
         template: '<h2>Derzeitiger Aufenthaltsort *</h2>',
       },
       {
-        className: FormlyConstants.COLMD11,
+        className: FormlyConstants.COLMD12,
         template:
           '<p>Der derzeitige Aufenthaltsort bezeichnet den Ort, an dem sich die betroffene Person zum Zeitpunkt der Meldung aktuell aufhält. ' +
           'Angaben zum derzeitigen Aufenthaltsort sind immer notwendig, wenn sich diese von Angaben zum gewöhnlichen Aufenthaltsort bzw. zur Hauptwohnung der betroffenen Person unterscheiden, ' +
@@ -74,7 +74,7 @@ export const notifiedPersonFormConfigFields = (countryCodeDisplays: CodeDisplay[
       {
         id: 'currentAddressType',
         key: 'currentAddressType',
-        className: FormlyConstants.COLMD11,
+        className: FormlyConstants.COLMD12,
         type: 'radio',
         props: {
           required: true,

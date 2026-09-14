@@ -68,7 +68,7 @@ function allPropsDefined<T extends object>(obj: T): obj is { [K in keyof T]: Exc
 }
 
 export function getCurrentAddress(fieldGroup: FormlyFieldConfig[]) {
-  return fieldGroup.find(field => field.key === 'notifiedPerson').fieldGroup[6].fieldGroup.find(field => field.key === 'currentAddress');
+  return fieldGroup.find(field => field.key === 'notifiedPerson').fieldGroup[5].fieldGroup.find(field => field.key === 'currentAddress');
 }
 
 export function copyAddress(sourceFacility: any, target: FormlyFieldConfig) {

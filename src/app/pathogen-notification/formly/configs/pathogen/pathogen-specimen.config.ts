@@ -172,7 +172,7 @@ export const pathogenSpecimenFields = (
                       id: 'method',
                       key: 'method',
                       type: 'autocomplete',
-                      className: FormlyConstants.COLMD11 + ' method',
+                      className: FormlyConstants.COLMD12 + ' method',
                       props: {
                         label: 'Methode',
                         filter: (term: string) => applyFilter(term, methodDisplays),
@@ -186,7 +186,7 @@ export const pathogenSpecimenFields = (
                       id: 'analyt',
                       key: 'analyt',
                       type: 'filterable-select',
-                      className: FormlyConstants.COLMD11 + ' analyt',
+                      className: FormlyConstants.COLMD12 + ' analyt',
                       props: {
                         label: 'Analyt',
                         placeholder: 'Bitte auswählen',
@@ -201,7 +201,7 @@ export const pathogenSpecimenFields = (
                     {
                       id: 'result',
                       key: 'result',
-                      className: `${FormlyConstants.COLMD11_INLINE} test-result`,
+                      className: `${FormlyConstants.COLMD12_INLINE} test-result`,
                       type: 'radio',
                       props: {
                         required: true,
@@ -229,7 +229,7 @@ export const pathogenSpecimenFields = (
                     {
                       key: 'resistance',
                       type: 'autocomplete',
-                      className: FormlyConstants.COLMD11 + ' resistance',
+                      className: FormlyConstants.COLMD12 + ' resistance',
                       props: {
                         label: 'Antibiotika-Resistenz',
                         filter: (term: string) => applyFilter(term, resistanceDisplays),
@@ -242,7 +242,7 @@ export const pathogenSpecimenFields = (
                     },
                     {
                       key: 'resistanceResult',
-                      className: FormlyConstants.COLMD11_INLINE + ' resistanceResult',
+                      className: FormlyConstants.COLMD12_INLINE + ' resistanceResult',
                       type: 'radio',
                       props: {
                         required: true,
@@ -270,7 +270,7 @@ export const pathogenSpecimenFields = (
                     {
                       key: 'resistanceGene',
                       type: 'autocomplete',
-                      className: FormlyConstants.COLMD11 + ' resistanceGene',
+                      className: FormlyConstants.COLMD12 + ' resistanceGene',
                       props: {
                         label: 'Resitenzdeterminate',
                         filter: (term: string) => applyFilter(term, resistanceGeneDisplays),
@@ -283,7 +283,7 @@ export const pathogenSpecimenFields = (
                     },
                     {
                       key: 'resistanceGeneResult',
-                      className: FormlyConstants.COLMD11_INLINE + ' resistanceGeneResult',
+                      className: FormlyConstants.COLMD12_INLINE + ' resistanceGeneResult',
                       type: 'radio',
                       props: {
                         required: true,

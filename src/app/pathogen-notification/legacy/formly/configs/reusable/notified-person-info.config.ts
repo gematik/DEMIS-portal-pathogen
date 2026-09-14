@@ -39,47 +39,17 @@ export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
         id: 'gender',
         key: 'gender',
         type: 'select',
-        className: FormlyConstants.COLMD5,
+        className: FormlyConstants.COLMD6,
         props: {
           label: 'Geschlecht',
           options: GENDER_OPTION_LIST,
           required: true,
         },
       },
-    ],
-    INFO_KEY
-  ),
-  formlyRow(
-    [
-      formlyInputField({
-        key: 'firstname',
-        className: FormlyConstants.COLMD5,
-        props: {
-          label: 'Vorname',
-          maxLength: TEXT_MAX_LENGTH,
-          required: true,
-        },
-        validators: ['nameValidator'],
-      }),
-      formlyInputField({
-        key: 'lastname',
-        className: FormlyConstants.COLMD5,
-        props: {
-          label: 'Nachname',
-          maxLength: TEXT_MAX_LENGTH,
-          required: true,
-        },
-        validators: ['nameValidator'],
-      }),
-    ],
-    INFO_KEY
-  ),
-  formlyRow(
-    [
       {
         id: 'birthDate',
         key: 'birthDate',
-        className: FormlyConstants.COLMD5,
+        className: FormlyConstants.COLMD6,
         type: 'datepicker',
         props: {
           label: 'Geburtsdatum',
@@ -90,6 +60,31 @@ export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
           multiYear: true,
         },
       },
+    ],
+    INFO_KEY
+  ),
+  formlyRow(
+    [
+      formlyInputField({
+        key: 'firstname',
+        className: FormlyConstants.COLMD6,
+        props: {
+          label: 'Vorname',
+          maxLength: TEXT_MAX_LENGTH,
+          required: true,
+        },
+        validators: ['nameValidator'],
+      }),
+      formlyInputField({
+        key: 'lastname',
+        className: FormlyConstants.COLMD6,
+        props: {
+          label: 'Nachname',
+          maxLength: TEXT_MAX_LENGTH,
+          required: true,
+        },
+        validators: ['nameValidator'],
+      }),
     ],
     INFO_KEY
   ),

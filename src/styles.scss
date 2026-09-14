@@ -15,6 +15,14 @@ mat-radio-group {
   flex-direction: row;
 }
 
+// prevent resistance-status radio buttons from overflowing
+.resistanceResult,
+.resistanceGeneResult {
+  mat-radio-group {
+    flex-wrap: wrap;
+  }
+}
+
 // Validation errors below the fields should be left aligned
 mat-error :not(.initial-notification-id-input-field-invalid) {
   transform: translateX(-1.2em)
