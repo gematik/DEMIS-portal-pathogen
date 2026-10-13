@@ -31,7 +31,8 @@ export async function checkDescribingError(fixture: ComponentFixture<any>, input
   fixture.detectChanges();
   const describedby = await (await input.host()).getAttribute('aria-describedby');
   expect(describedby).withContext('input should have a describedby attribute').toBeTruthy();
-  const errorElement = fixture.nativeElement.querySelector(`mat-error#${describedby}`);
+  const describedbyIds = (describedby ?? '').split(/\s+/).filter(Boolean);
+  const errorElement = describedbyIds.map(id => fixture.nativeElement.querySelector(`mat-error#${id}`)).find(el => !!el) ?? null;
   expect(errorElement).withContext('error element should be present').toBeTruthy();
   //error is generally displayed in the formly-validation-message component
   // but in some cases it is displayed directly in the mat-error element

@@ -104,7 +104,7 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
   beforeEach(() => {
     const result = setupIntegrationTests({
       ...mainConfig,
-      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_REFERENCE_FIELD: true },
+      featureFlags: { ...mainConfig.featureFlags },
     });
 
     fixture = result.fixture;

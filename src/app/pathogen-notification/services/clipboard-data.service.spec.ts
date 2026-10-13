@@ -223,36 +223,8 @@ describe('ClipboardDataService', () => {
       expect((model as any).notificationCategory.notificationIdReference).toBeUndefined();
     });
 
-    it('should exclude T.reference rule when FEATURE_FLAG_REFERENCE_FIELD is disabled', async () => {
-      environment.pathogenConfig = {
-        ...environment.pathogenConfig,
-        featureFlags: { FEATURE_FLAG_REFERENCE_FIELD: false },
-      };
-
+    it('should include T.reference rule', async () => {
       const diagnosticRules = { ...service.DIAGNOSTIC_CLIPBOARD_RULES };
-      if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
-        delete diagnosticRules['T.reference'];
-      }
-
-      const model = {};
-      const problems = await service.fillModel(diagnosticRules, [['T.reference', 'OWN']], model);
-
-      expect(problems.length).toBe(1);
-      expect(problems[0]).toContain('T.reference');
-      expect((model as any).notificationCategory).toBeUndefined();
-    });
-
-    it('should include T.reference rule when FEATURE_FLAG_REFERENCE_FIELD is enabled', async () => {
-      environment.pathogenConfig = {
-        ...environment.pathogenConfig,
-        featureFlags: { FEATURE_FLAG_REFERENCE_FIELD: true },
-      };
-
-      const diagnosticRules = { ...service.DIAGNOSTIC_CLIPBOARD_RULES };
-      if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
-        delete diagnosticRules['T.reference'];
-      }
-
       const model = {};
       const problems = await service.fillModel(diagnosticRules, [['T.reference', 'OWN']], model);
 

@@ -24,7 +24,7 @@ import ContactTypeEnum = ContactPointInfo.ContactTypeEnum;
 export const contactsFormConfigFields: (needsContact: boolean) => FormlyFieldConfig[] = needsContact => [
   {
     className: FormlyConstants.LAYOUT_HEADER,
-    template: `<p>Bitte geben Sie mindestens eine Kontaktmöglichkeit an.</p>`,
+    template: `<p id='kontakt-hinweis'>Bitte geben Sie mindestens eine Kontaktmöglichkeit an.</p>`,
     expressions: { hide: () => !needsContact },
   },
   {
