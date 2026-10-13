@@ -2,6 +2,12 @@
 
 # Release portal-pathogen
 
+## Release 1.9.7
+- Removed FEATURE_FLAG_PLACEHOLDER_REMOVAL
+- Updated @gematik/demis-portal-core-library to 4.4.6 incl. a11y improvements for pastebox, repeater and dialogs
+- Removed FEATURE_FLAG_REFERENCE_FIELD
+- Removed FEATURE_FLAG_UUID_VALIDATION
+
 ## Release 1.9.6
 - Allowed resistance-status radio button labels to wrap on narrower screens
 - Added filterable select for subpathogen selection (FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN)
@@ -10,13 +16,13 @@
 
 ## Release 1.9.5
 - Removed FEATURE_FLAG_REMOVABLE_ANALYT
-- Removed feature flag FEATURE_FLAG_PORTAL_HEADER_FOOTER: forms footer is now always rendered
+- Removed FEATURE_FLAG_PORTAL_HEADER_FOOTER: forms footer is now always rendered
 - Updated notificationIdReference handling to reset value when set to NoReference
 - Removed placeholder texts from non-select input fields
 
 ## Release 1.9.4
 - Fixed third party license collection
-- Removed feature flag FEATURE_FLAG_PORTAL_ACCESSIBILITY
+- Removed FEATURE_FLAG_PORTAL_ACCESSIBILITY
 - Added UUID validation for initialNotificationId field (FEATURE_FLAG_UUID_VALIDATION)
 - Changed notificationIdReference labels
 - Changed disclaimer text for non-nominal notified person
@@ -36,7 +42,7 @@
 - Updated @gematik/demis-portal-core-library to 4.2.2
 - Added correctly configurable logging
 - Updated NGINX-Base-Image to 1.31.0
-- Removed feature flag FEATURE_FLAG_PORTAL_PAGE_STRUCTURE
+- Removed FEATURE_FLAG_PORTAL_PAGE_STRUCTURE
 - Added reference field and logic (FEATURE_FLAG_REFERENCE_FIELD)
 
 ## Release 1.9.0

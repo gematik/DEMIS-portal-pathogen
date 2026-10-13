@@ -38,7 +38,7 @@ describe('selectNotificationCategoryFields', () => {
       production: false,
       pathToGateway: '',
       gatewayPaths: {},
-      featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_REFERENCE_FIELD: false },
+      featureFlags: { ...mainConfig.featureFlags },
       ngxLoggerConfig: { level: 0, disableConsoleLogging: true, serverLogLevel: 0 },
       pathToFuts: '',
       futsPaths: {},
@@ -222,11 +222,7 @@ describe('selectNotificationCategoryFields', () => {
     });
   });
 
-  describe('when isReferenceFieldEnabled is true', () => {
-    beforeEach(() => {
-      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_REFERENCE_FIELD: true };
-    });
-
+  describe('notificationIdReference', () => {
     it('should contain notificationIdReference field', () => {
       const fields = getFields();
       const field = findFieldById(fields, 'notificationIdReference');
@@ -504,82 +500,6 @@ describe('selectNotificationCategoryFields', () => {
       it('should return null for null value', () => {
         const result = validateUUID(null);
         expect(result).toBeNull();
-      });
-    });
-  });
-
-  describe('when isReferenceFieldEnabled is false', () => {
-    beforeEach(() => {
-      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_REFERENCE_FIELD: false };
-    });
-
-    it('should not contain notificationIdReference field', () => {
-      const fields = getFields();
-      const field = findFieldById(fields, 'notificationIdReference');
-      expect(field).toBeUndefined();
-    });
-
-    it('should contain initialNotificationId field', () => {
-      const fields = getFields();
-      const field = findFieldById(fields, 'initialNotificationId');
-      expect(field).toBeDefined();
-    });
-
-    it('should use static INITIAL_NOTIFICATION_ID_HINT template', () => {
-      const fields = getFields();
-      const templateField = findFieldWithStaticTemplate(fields, 'Bitte geben Sie die Meldungs-ID');
-      expect(templateField).toBeDefined();
-    });
-
-    describe('initialNotificationIdClassName (without reference field)', () => {
-      it('should gray out when reportStatus is not Amended', () => {
-        const fields = getFields();
-        const field = findFieldById(fields, 'initialNotificationId');
-        const mockField = { parent: { model: { reportStatus: ReportStatusEnum.Final } } } as unknown as FormlyFieldConfig;
-        const classNameFn = field!.expressions!['className'] as (f: FormlyFieldConfig) => string;
-        expect(classNameFn(mockField)).toContain('grayed-out-element');
-      });
-
-      it('should gray out for FollowUp notification even with Amended status', () => {
-        const fields = getFields(NotificationType.FollowUpNotification7_1);
-        const field = findFieldById(fields, 'initialNotificationId');
-        const mockField = { parent: { model: { reportStatus: ReportStatusEnum.Amended } } } as unknown as FormlyFieldConfig;
-        const classNameFn = field!.expressions!['className'] as (f: FormlyFieldConfig) => string;
-        expect(classNameFn(mockField)).toContain('grayed-out-element');
-      });
-
-      it('should not gray out when reportStatus is Amended and not FollowUp', () => {
-        const fields = getFields(NotificationType.NominalNotification7_1);
-        const field = findFieldById(fields, 'initialNotificationId');
-        const mockField = { parent: { model: { reportStatus: ReportStatusEnum.Amended } } } as unknown as FormlyFieldConfig;
-        const classNameFn = field!.expressions!['className'] as (f: FormlyFieldConfig) => string;
-        expect(classNameFn(mockField)).not.toContain('grayed-out-element');
-      });
-    });
-
-    describe('initialNotificationId disabled expression', () => {
-      it('should disable when FollowUp notification', () => {
-        const fields = getFields(NotificationType.FollowUpNotification7_1);
-        const field = findFieldById(fields, 'initialNotificationId');
-        const mockField = { parent: { model: { pathogen: 'test' } } } as unknown as FormlyFieldConfig;
-        const disabledFn = field!.expressions!['props.disabled'] as (f: FormlyFieldConfig) => boolean;
-        expect(disabledFn(mockField)).toBe(true);
-      });
-
-      it('should disable when pathogen is not set', () => {
-        const fields = getFields(NotificationType.NominalNotification7_1);
-        const field = findFieldById(fields, 'initialNotificationId');
-        const mockField = { parent: { model: {} } } as unknown as FormlyFieldConfig;
-        const disabledFn = field!.expressions!['props.disabled'] as (f: FormlyFieldConfig) => boolean;
-        expect(disabledFn(mockField)).toBe(true);
-      });
-
-      it('should enable when not FollowUp and pathogen is set', () => {
-        const fields = getFields(NotificationType.NominalNotification7_1);
-        const field = findFieldById(fields, 'initialNotificationId');
-        const mockField = { parent: { model: { pathogen: 'test' } } } as unknown as FormlyFieldConfig;
-        const disabledFn = field!.expressions!['props.disabled'] as (f: FormlyFieldConfig) => boolean;
-        expect(disabledFn(mockField)).toBe(false);
       });
     });
   });

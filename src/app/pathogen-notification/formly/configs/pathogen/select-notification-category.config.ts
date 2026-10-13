@@ -23,19 +23,8 @@ import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/commo
 import { NOTIFICATION_ID_REFERENCE_LIST, REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import { NotificationType } from '../../../common/routing-helper';
 import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
-import {
-  isFilterableSelectSubpathogenEnabled,
-  isFollowUpNotification,
-  isReferenceFieldEnabled,
-  isUUIDValidationEnabled,
-} from '../../../utils/pathogen-notification-mapper';
-import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
+import { isFilterableSelectSubpathogenEnabled, isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
-
-const INITIAL_NOTIFICATION_ID_HINT =
-  '<span>Bitte geben Sie die Meldungs-ID der Initialmeldung an, ' +
-  'die Sie korrigieren oder ergänzen möchten oder der vorläufigen Meldung, <br> wenn Sie nun den endgültigen Befund melden. ' +
-  'Die Meldungs-ID wird von DEMIS bei jeder Meldung erzeugt und auf der Meldungsquittung als UUID oder als QR-Code angezeigt.</span><br><br>';
 
 const INITIAL_NOTIFICATION_ID_TEXT_NO_REREFERENCE =
   '<span>Für diese Meldung wird eine neue Meldungs-ID erzeugt, die Sie für einen zukünftigen Meldungsverweis nutzen können. Sie finden diese auf der PDF-Meldungsquittung in der Zeile “Meldungs-ID” oder auf der letzten Seite beim QR-Code.</span><br><br>';
@@ -118,98 +107,6 @@ const initialNotificationIdField = (notificationType: NotificationType): FormlyF
     'props.disabled': (field: FormlyFieldConfig) => isFollowUpNotification(notificationType) || !localModel(field).pathogen,
   },
 });
-
-// --- Branch-specific field builders ---
-
-const referenceFieldBranch = (notificationType: NotificationType): FormlyFieldConfig[] => [
-  formlyRow([reportStatusField()]),
-  formlyRow([interpretationField()]),
-  formlyRow([laboratoryOrderIdField()]),
-  formlyRow([
-    {
-      id: 'notificationIdReference',
-      key: 'notificationIdReference',
-      className: FormlyConstants.COLMD12_INLINE,
-      type: 'radio',
-      defaultValue: isFollowUpNotification(notificationType) ? NotificationIdReferenceEnum.RelatesToOtherFacility : undefined,
-      props: {
-        required: true,
-        label: 'Verweis auf vorherige Meldung (Initiale Meldungs-ID)',
-        options: NOTIFICATION_ID_REFERENCE_LIST,
-      },
-      expressions: {
-        'props.disabled': (field: FormlyFieldConfig) => isFollowUpNotification(notificationType) || !localModel(field).pathogen,
-      },
-    },
-  ]),
-  formlyRow([
-    {
-      className: '',
-      template: '',
-      expressions: {
-        template: (field: FormlyFieldConfig) => {
-          const model = localModel(field);
-          switch (model.notificationIdReference) {
-            case NotificationIdReferenceEnum.RelatesToOwnFacility:
-              return INITIAL_NOTIFICATION_ID_TEXT_OWN_FACILITY_REFERENCE;
-            case NotificationIdReferenceEnum.RelatesToOtherFacility:
-              return INITIAL_NOTIFICATION_ID_TEXT_OTHER_FACILITY_REFERENCE;
-            default:
-              return INITIAL_NOTIFICATION_ID_TEXT_NO_REREFERENCE;
-          }
-        },
-        className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
-      },
-    },
-    {
-      ...initialNotificationIdField(notificationType),
-      hooks: {
-        onInit: (field: FormlyFieldConfig) => {
-          let prevRef = localModel(field).notificationIdReference;
-          field.options?.fieldChanges?.subscribe(() => {
-            const currentRef = localModel(field).notificationIdReference;
-            if (currentRef !== prevRef) {
-              prevRef = currentRef;
-              if (currentRef === NotificationIdReferenceEnum.NoReference) {
-                field.formControl?.setValue(undefined);
-              }
-              field.formControl?.markAsUntouched();
-              field.formControl?.markAsPristine();
-            }
-          });
-        },
-      },
-      expressions: {
-        'props.required': (field: FormlyFieldConfig) => {
-          const ref = localModel(field).notificationIdReference;
-          return ref === NotificationIdReferenceEnum.RelatesToOwnFacility || ref === NotificationIdReferenceEnum.RelatesToOtherFacility;
-        },
-        className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
-        'props.disabled': (field: FormlyFieldConfig) =>
-          isFollowUpNotification(notificationType) ||
-          !localModel(field).pathogen ||
-          localModel(field).notificationIdReference === NotificationIdReferenceEnum.NoReference ||
-          localModel(field).notificationIdReference === undefined,
-      },
-    },
-  ]),
-];
-
-const legacyBranch = (notificationType: NotificationType): FormlyFieldConfig[] => [
-  formlyRow([reportStatusField()]),
-  formlyRow([interpretationField()]),
-  formlyRow([
-    {
-      className: '',
-      template: INITIAL_NOTIFICATION_ID_HINT,
-      expressions: {
-        className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
-      },
-    },
-    initialNotificationIdField(notificationType),
-  ]),
-  formlyRow([laboratoryOrderIdField()]),
-];
 
 // --- Main export ---
 
@@ -331,7 +228,78 @@ export const selectNotificationCategoryFields = (
         className: reportClassName,
       },
     },
-    ...(isReferenceFieldEnabled() ? referenceFieldBranch(notificationType) : legacyBranch(notificationType)),
+
+    formlyRow([reportStatusField()]),
+    formlyRow([interpretationField()]),
+    formlyRow([laboratoryOrderIdField()]),
+    formlyRow([
+      {
+        id: 'notificationIdReference',
+        key: 'notificationIdReference',
+        className: FormlyConstants.COLMD10_INLINE,
+        type: 'radio',
+        defaultValue: isFollowUpNotification(notificationType) ? NotificationIdReferenceEnum.RelatesToOtherFacility : undefined,
+        props: {
+          required: true,
+          label: 'Verweis auf vorherige Meldung (Initiale Meldungs-ID)',
+          options: NOTIFICATION_ID_REFERENCE_LIST,
+        },
+        expressions: {
+          'props.disabled': (field: FormlyFieldConfig) => isFollowUpNotification(notificationType) || !localModel(field).pathogen,
+        },
+      },
+    ]),
+    formlyRow([
+      {
+        className: '',
+        template: '',
+        expressions: {
+          template: (field: FormlyFieldConfig) => {
+            const model = localModel(field);
+            switch (model.notificationIdReference) {
+              case NotificationIdReferenceEnum.RelatesToOwnFacility:
+                return INITIAL_NOTIFICATION_ID_TEXT_OWN_FACILITY_REFERENCE;
+              case NotificationIdReferenceEnum.RelatesToOtherFacility:
+                return INITIAL_NOTIFICATION_ID_TEXT_OTHER_FACILITY_REFERENCE;
+              default:
+                return INITIAL_NOTIFICATION_ID_TEXT_NO_REREFERENCE;
+            }
+          },
+          className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
+        },
+      },
+      {
+        ...initialNotificationIdField(notificationType),
+        hooks: {
+          onInit: (field: FormlyFieldConfig) => {
+            let prevRef = localModel(field).notificationIdReference;
+            field.options?.fieldChanges?.subscribe(() => {
+              const currentRef = localModel(field).notificationIdReference;
+              if (currentRef !== prevRef) {
+                prevRef = currentRef;
+                if (currentRef === NotificationIdReferenceEnum.NoReference) {
+                  field.formControl?.setValue(undefined);
+                }
+                field.formControl?.markAsUntouched();
+                field.formControl?.markAsPristine();
+              }
+            });
+          },
+        },
+        expressions: {
+          'props.required': (field: FormlyFieldConfig) => {
+            const ref = localModel(field).notificationIdReference;
+            return ref === NotificationIdReferenceEnum.RelatesToOwnFacility || ref === NotificationIdReferenceEnum.RelatesToOtherFacility;
+          },
+          className: (field: FormlyFieldConfig) => initialNotificationIdClassName(field, notificationType),
+          'props.disabled': (field: FormlyFieldConfig) =>
+            isFollowUpNotification(notificationType) ||
+            !localModel(field).pathogen ||
+            localModel(field).notificationIdReference === NotificationIdReferenceEnum.NoReference ||
+            localModel(field).notificationIdReference === undefined,
+        },
+      },
+    ]),
   ];
 };
 
@@ -347,15 +315,11 @@ const isGrayedOutSelection = (condition: boolean) => {
 
 const initialNotificationIdClassName = (ffc: FormlyFieldConfig, notificationType: NotificationType): string => {
   const model = localModel(ffc);
-  if (isReferenceFieldEnabled()) {
-    return isGrayedOutSelection(isFollowUpNotification(notificationType) || !model.pathogen);
-  } else {
-    return isGrayedOutSelection(model.reportStatus !== ReportStatusEnum.Amended || isFollowUpNotification(notificationType));
-  }
+  return isGrayedOutSelection(isFollowUpNotification(notificationType) || !model.pathogen);
 };
 
 const initialNotificationIdValidators = (): string[] => {
-  return isUUIDValidationEnabled ? ['textValidator', 'nonBlankValidator', 'uuidValidator'] : ['textValidator', 'nonBlankValidator'];
+  return ['textValidator', 'nonBlankValidator', 'uuidValidator'];
 };
 
 const reportClassName = (ffc: FormlyFieldConfig): string => {

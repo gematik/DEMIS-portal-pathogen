@@ -23,7 +23,6 @@ import { AddressType, CodeDisplay, NotificationLaboratoryCategory, PathogenData,
 import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, parseSalutation } from '../legacy/common-utils';
 import { transformPathogenFormToPathogenTest, transformPathogenTestToPathogenForm } from '../utils/data-transformation';
 import { PathogenNotificationStorageService } from './pathogen-notification-storage.service';
-import { environment } from '../../../environments/environment';
 import { addContact, ANONYMOUS_PERSON_RULES, ClipboardRules, FACILITY_RULES, initialModelForClipboard, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
 import { NotificationType } from '../common/routing-helper';
@@ -235,10 +234,6 @@ export class ClipboardDataService {
       'T.relatesTo',
     ];
 
-    if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
-      notificationRules = notificationRules.filter(rule => rule !== 'T.reference');
-    }
-
     if (notificationType === NotificationType.FollowUpNotification7_1) {
       notificationRules = notificationRules.filter(rule => rule !== 'T.relatesTo');
     }
@@ -255,7 +250,7 @@ export class ClipboardDataService {
   ): Promise<any> {
     const codeDisplay = this.getSelectedPathogenCodeDisplayFromStorage();
     const currentPathogenTest: PathogenTest = transformPathogenFormToPathogenTest(
-      JSON.parse(JSON.stringify(pathogenForm)),
+      structuredClone(pathogenForm),
       notificationType,
       codeDisplay,
       this.pathogenData
@@ -278,9 +273,7 @@ export class ClipboardDataService {
     this.setSignalToFetchPathogenData(false, transformedClipboardData);
 
     const diagnosticRules = { ...this.DIAGNOSTIC_CLIPBOARD_RULES };
-    if (!environment.featureFlags?.FEATURE_FLAG_REFERENCE_FIELD) {
-      delete diagnosticRules['T.reference'];
-    }
+
     if (notificationType === NotificationType.FollowUpNotification7_1) {
       delete diagnosticRules['T.relatesTo'];
     }
@@ -412,7 +405,7 @@ export class ClipboardDataService {
   augmentDisplay(code: string, valueSetName: 'materials' | 'methods' | 'answerSet' | 'substances' | 'resistances' | 'resistanceGenes'): string {
     if (this.pathogenData) {
       const codeDisplays = this.pathogenData[valueSetName];
-      if (!codeDisplays) throw Error(`PT_4711_no-valueset: ${valueSetName}`);
+      if (!codeDisplays) throw new Error(`PT_4711_no-valueset: ${valueSetName}`);
       const cd: CodeDisplay | undefined = codeDisplays.find(cd => cd.code === code);
       if (!cd) {
         this.logger.error(`PT_4712_invalid_code: "${code}" in valueSet "${valueSetName}"`);

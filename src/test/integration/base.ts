@@ -72,10 +72,7 @@ export const mainConfig = {
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: true,
     FEATURE_FLAG_FOOTER_LINKS_CORRECTION: true,
     FEATURE_FLAG_FOLLOW_UP_7_3: true,
-    FEATURE_FLAG_REFERENCE_FIELD: true,
-    FEATURE_FLAG_UUID_VALIDATION: true,
     FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: true,
-    FEATURE_FLAG_PLACEHOLDER_REMOVAL: true,
   },
   gatewayPaths: {
     pathogen: '/notification/pathogen',
