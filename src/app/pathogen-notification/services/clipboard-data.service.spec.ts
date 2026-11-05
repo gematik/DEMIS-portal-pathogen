@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { Gender, NotificationLaboratoryCategory, PathogenData, PractitionerInfo } from 'src/api/notification';
 import { ClipboardDataService } from './clipboard-data.service';
 import { ANONYMOUS_PERSON_RULES, FACILITY_RULES, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
@@ -28,7 +29,7 @@ import { environment } from '../../../environments/environment';
 
 describe('ClipboardDataService', () => {
   let service: ClipboardDataService;
-  let showErrorDialogInsertDataFromClipboardSpy: jasmine.Spy;
+  let showErrorDialogInsertDataFromClipboardSpy: Mock;
   beforeEach(async () => {
     environment.pathogenConfig = {
       ...environment.pathogenConfig,
@@ -41,7 +42,7 @@ describe('ClipboardDataService', () => {
       providers: [ClipboardDataService, MockProvider(ActivatedRoute, overrides.activatedRoute)],
     });
     service = TestBed.inject(ClipboardDataService);
-    showErrorDialogInsertDataFromClipboardSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialogInsertDataFromClipboard');
+    showErrorDialogInsertDataFromClipboardSpy = vi.spyOn(TestBed.inject(MessageDialogService), 'showErrorDialogInsertDataFromClipboard');
   });
 
   describe('PERSON_RULES', () => {

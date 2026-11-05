@@ -23,7 +23,7 @@ import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/commo
 import { NOTIFICATION_ID_REFERENCE_LIST, REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import { NotificationType } from '../../../common/routing-helper';
 import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
-import { isFilterableSelectSubpathogenEnabled, isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
+import { isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
 
 const INITIAL_NOTIFICATION_ID_TEXT_NO_REREFERENCE =
@@ -114,7 +114,8 @@ export const selectNotificationCategoryFields = (
   federalStateCodeDisplays: CodeDisplay[],
   pathogenDisplays: string[],
   subPathogenDisplays: string[],
-  notificationType: NotificationType
+  notificationType: NotificationType,
+  selectPathogen?: (pathogen: CodeDisplay) => void
 ): FormlyFieldConfig[] => {
   return [
     formlyRow([
@@ -131,6 +132,7 @@ export const selectNotificationCategoryFields = (
         {
           key: 'favoritePathogen',
           type: 'demis-favorites-list',
+          props: { notificationType, selectPathogen },
           expressions: { hide: () => isFollowUpNotification(notificationType) },
         },
       ],
@@ -179,48 +181,24 @@ export const selectNotificationCategoryFields = (
         },
       },
     ]),
-    ...(isFilterableSelectSubpathogenEnabled()
-      ? [
-          formlyRow([
-            {
-              id: 'pathogen',
-              key: 'pathogen',
-              type: 'filterable-select',
-              className: FormlyConstants.COLMD12,
-              props: {
-                label: 'Nachgewiesene Erregerspezies',
-                required: true,
-                options: subPathogenDisplays,
-                optionValueKey: 'code',
-                optionLabelKey: 'display',
-              },
-              expressions: {
-                'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
-              },
-            },
-          ]),
-        ]
-      : [
-          formlyRow([
-            {
-              id: 'pathogen',
-              key: 'pathogen',
-              type: 'autocomplete',
-              className: FormlyConstants.COLMD12,
-              props: {
-                label: 'Nachgewiesene Erregerspezies',
-                filter: (term: string) => applyFilter(term, subPathogenDisplays),
-                required: true,
-              },
-              expressions: {
-                'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
-              },
-              asyncValidators: {
-                validation: ['optionMatches'],
-              },
-            },
-          ]),
-        ]),
+    formlyRow([
+      {
+        id: 'pathogen',
+        key: 'pathogen',
+        type: 'filterable-select',
+        className: FormlyConstants.COLMD12,
+        props: {
+          label: 'Nachgewiesene Erregerspezies',
+          required: true,
+          options: subPathogenDisplays,
+          optionValueKey: 'code',
+          optionLabelKey: 'display',
+        },
+        expressions: {
+          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
+        },
+      },
+    ]),
     {
       className: FormlyConstants.LAYOUT_HEADER,
       template: '<h2>Befund</h2>',

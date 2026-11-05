@@ -15,16 +15,13 @@
     find details in the "Readme" file.
  */
 
-import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { FieldType } from '@ngx-formly/core';
+import { Component } from '@angular/core';
 import { CodeDisplay } from 'src/api/notification';
 import { getDesignationValueIfAvailable } from '../../legacy/common-utils';
-import { PathogenNotificationComponent } from '../../pathogen-notification.component';
-import { PathogenNotificationStorageService } from '../../services/pathogen-notification-storage.service';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { isNonNominalNotification } from '../../utils/pathogen-notification-mapper';
+import { FavoritesFieldBase } from '../favorites-field.base';
 
 @Component({
   selector: 'app-favorites-list',
@@ -32,48 +29,18 @@ import { isNonNominalNotification } from '../../utils/pathogen-notification-mapp
   styleUrls: ['./favorites-list.component.scss'],
   imports: [MatButton, MatIconButton, MatIcon, NgTemplateOutlet],
 })
-export class FavoritesListComponent extends FieldType implements OnInit, OnDestroy {
-  private readonly pathogenNotificationStorageService = inject(PathogenNotificationStorageService);
-  private readonly pathogenNotificationComponent = inject(PathogenNotificationComponent);
-
-  favorites: WritableSignal<CodeDisplay[]> = signal([]);
+export class FavoritesListComponent extends FavoritesFieldBase {
   protected readonly getDesignationValueIfAvailable = getDesignationValueIfAvailable;
-  private readonly isNonNominalNotification7_3: boolean = false;
-
-  constructor() {
-    super();
-    this.isNonNominalNotification7_3 = isNonNominalNotification(this.pathogenNotificationComponent.getNotificationType());
-    this.loadFavorites();
-  }
-
-  ngOnInit(): void {
-    window.addEventListener('storage', this.onStorageChange.bind(this));
-    this.pathogenNotificationStorageService?.favoritesChanged?.subscribe(() => {
-      this.loadFavorites();
-    });
-  }
-
-  loadFavorites(): void {
-    const favorites = this.pathogenNotificationStorageService.getFavorites(this.isNonNominalNotification7_3) || [];
-    this.favorites.update(() => favorites);
-  }
-
-  onStorageChange(event: StorageEvent): void {
-    if (event.key === this.pathogenNotificationStorageService.PATHOGEN_FAVORITES) {
-      this.loadFavorites();
-    }
-  }
 
   selectPathogenFromFavorites(pathogen: CodeDisplay): void {
-    this.pathogenNotificationComponent.populateWithFavoriteSelection(pathogen);
+    if (!this.props.selectPathogen) {
+      throw new Error('Favorites list requires a selectPathogen callback.');
+    }
+    this.props.selectPathogen(pathogen);
   }
 
   removePathogenFromFavorites(pathogen: CodeDisplay): void {
     const updatedFavorites = this.favorites().filter(fav => fav.code !== pathogen.code);
     this.pathogenNotificationStorageService.updateFavorites(updatedFavorites, this.isNonNominalNotification7_3);
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('storage', this.onStorageChange.bind(this));
   }
 }

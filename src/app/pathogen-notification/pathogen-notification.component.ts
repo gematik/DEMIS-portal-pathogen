@@ -28,7 +28,6 @@ import {
   formatCodeDisplayToDesignationOption,
   formatCodeDisplayToDisplay,
   getDesignationValueIfAvailable,
-  mapCodeDisplaysToOptionList,
 } from './legacy/common-utils';
 import { notifierFacilityFormConfigFieldsFull } from './legacy/formly/configs/reusable/notifier-facility.config';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
@@ -39,20 +38,18 @@ import { NGXLogger } from 'ngx-logger';
 import { submittingFacilityFields } from './formly/configs/pathogen/submitting-facility.config';
 import { catchError } from 'rxjs/operators';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { notifiedPersonFormConfigFields } from './legacy/formly/configs/reusable/notified-person.config';
 import { ErrorDialogService } from './services/error-dialog.service';
 import {
   clearDiagnosticForClipboard,
   getResetModel,
   initializeDiagnosticFields,
+  initializeNotifiedPersonFields,
   initializeSelectPathogenFields,
   isAnonymousPersonNotification,
-  isFilterableSelectSubpathogenEnabled,
   isFollowUpNotification,
   isNonNominalNotification,
   updatePathogenForm,
 } from './utils/pathogen-notification-mapper';
-import { applyFilter } from './formly/configs/pathogen/select-notification-category.config';
 import { dummyDataForPathogenForm, pathogenTestDummyData } from './utils/dummy-data';
 import { pathogenSpecimenFields } from './formly/configs/pathogen/pathogen-specimen.config';
 import { initialModelForClipboard } from './services/core/clipboard-constants';
@@ -63,13 +60,9 @@ import {
   FollowUpNotificationIdService,
   FormlyConstants,
   MaxHeightContentContainerComponent,
-  notifiedPersonAnonymousConfigFields,
-  notifiedPersonNotByNameConfigFields,
 } from '@gematik/demis-portal-core-library';
 import { allowedRoutes, getNotificationTypeByRouterUrl, NotificationType } from './common/routing-helper';
-import { GENDER_OPTION_LIST } from './legacy/formly-options-lists';
 import { environment } from '../../environments/environment';
-import { NotifiedPersonDisclaimer } from './utils/disclaimer-texts';
 
 @Component({
   selector: 'app-pathogen-notification',
@@ -162,8 +155,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.initializeSelectPathogenFields(selectedFederalStateCode, this.pathogenCodeDisplays);
         this.updatePathogenForm();
 
-        if (this.notificationStorageService.getNotifierFacility()) {
-          this.model.pathogenForm.notifierFacility = this.notificationStorageService.getNotifierFacility();
+        const notifierFacility = this.notificationStorageService.getNotifierFacility();
+        if (notifierFacility?.address) {
+          this.model.pathogenForm.notifierFacility = notifierFacility;
           // DEMIS-1598: Ensure the old country code '20422' is overwritten
           this.model.pathogenForm.notifierFacility.address.country = 'DE';
           setTimeout(() => this.markFormularAsTouched('notifierFacility'));
@@ -229,34 +223,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   getNotifiedPersonFields(notificationType: NotificationType): FormlyFieldConfig[] {
-    switch (notificationType) {
-      case NotificationType.FollowUpNotification7_1:
-        return notifiedPersonAnonymousConfigFields(
-          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
-          GENDER_OPTION_LIST,
-          NotifiedPersonDisclaimer.FOLLOW_UP_DISCLAIMER
-        );
-      case NotificationType.FollowUpNotification7_3:
-        return notifiedPersonAnonymousConfigFields(
-          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
-          GENDER_OPTION_LIST,
-          NotifiedPersonDisclaimer.FOLLOW_UP_NONNOMINAL_DISCLAIMER
-        );
-      case NotificationType.AnonymousNotification7_3:
-        return notifiedPersonAnonymousConfigFields(
-          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
-          GENDER_OPTION_LIST,
-          NotifiedPersonDisclaimer.ANONYMOUS_DISCLAIMER
-        );
-      case NotificationType.NonNominalNotification7_3:
-        return notifiedPersonNotByNameConfigFields(
-          mapCodeDisplaysToOptionList(this.countryCodeDisplays),
-          GENDER_OPTION_LIST,
-          NotifiedPersonDisclaimer.NON_NOMINAL_DISCLAIMER
-        );
-      default:
-        return notifiedPersonFormConfigFields(this.countryCodeDisplays);
-    }
+    return initializeNotifiedPersonFields(notificationType, this.countryCodeDisplays);
   }
 
   setValueForPathogenSelectionField(value: string) {
@@ -273,7 +240,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   initializeSelectPathogenFields(selectedFederalStateCode: string, pathogenCodeDisplays: CodeDisplay[]) {
-    this.selectPathogenFields = initializeSelectPathogenFields(this.federalStateCodeDisplays, pathogenCodeDisplays, this.notificationType);
+    this.selectPathogenFields = initializeSelectPathogenFields(this.federalStateCodeDisplays, pathogenCodeDisplays, this.notificationType, pathogen =>
+      this.populateWithFavoriteSelection(pathogen)
+    );
     this.model = initializeDiagnosticFields(selectedFederalStateCode, this.model);
   }
 
@@ -417,7 +386,12 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         this.setValueForSubPathogenSelectionField('');
       } else if (this.pathogenCodeDisplays.map(formatCodeDisplayToDisplay).includes(pathogen)) {
         if (!this.pathogenIsChangingFromClipboard) {
-          this.updateAfterPathogenSelection(findCodeDisplayByDisplayValue(this.pathogenCodeDisplays, pathogen));
+          const selectedPathogenCodeDisplay = findCodeDisplayByDisplayValue(this.pathogenCodeDisplays, pathogen);
+          // sub-pathogen belongs to the previously selected pathogen and is not valid anymore
+          if (this.getSelectedPathogenCodeDisplayFromStorage()?.code !== selectedPathogenCodeDisplay?.code) {
+            this.setValueForSubPathogenSelectionField('');
+          }
+          this.updateAfterPathogenSelection(selectedPathogenCodeDisplay);
         }
       }
     });
@@ -534,8 +508,8 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   async populatePathogenFormWithClipboardData(fromButtonClick: boolean) {
     const checkBoxValueBefore = this.model.pathogenForm.submittingFacility.copyAddressCheckBox;
-    this.model = await this.clipboardDataService.transformClipboardDataToModel(fromButtonClick, this.model, this.notificationType);
     try {
+      this.model = await this.clipboardDataService.transformClipboardDataToModel(fromButtonClick, this.model, this.notificationType);
       this.form.patchValue(this.model.pathogenForm);
       // trigger change for copyAddressCheckBox in case that data was overwritten
       if (checkBoxValueBefore && !this.model.pathogenForm.submittingFacility.copyAddressCheckBox) {
@@ -573,16 +547,11 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   private readonly setPathogenInformation = () => {
     const materials = this.pathogenData.materials.map(formatCodeDisplayToDisplay);
     const methods = this.pathogenData.methods.map(formatCodeDisplayToDisplay);
-    const subPathogens = this.pathogenData.answerSet.map(formatCodeDisplayToDisplay);
     const resistanceGenes = this.pathogenData.resistanceGenes.map(formatCodeDisplayToDisplay);
     const resistances = this.pathogenData.resistances.map(formatCodeDisplayToDisplay);
     const analytOptions = this.pathogenData.substances.map(formatCodeDisplayToDesignationOption);
 
-    if (isFilterableSelectSubpathogenEnabled()) {
-      this.getSubPathogenSelectionField().props.options = this.pathogenData.answerSet.map(formatCodeDisplayToDesignationOption);
-    } else {
-      this.getSubPathogenSelectionField().props.filter = (term: string) => applyFilter(term, subPathogens);
-    }
+    this.getSubPathogenSelectionField().props.options = this.pathogenData.answerSet.map(formatCodeDisplayToDesignationOption);
 
     this.diagnosticFormFields = pathogenSpecimenFields(
       this.notificationType,

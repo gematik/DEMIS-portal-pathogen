@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ValidationWrapperComponent } from './validation-wrapper.component';
@@ -25,12 +26,12 @@ describe('ValidationWrapperComponent', () => {
   let component: ValidationWrapperComponent;
   let fixture: ComponentFixture<ValidationWrapperComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [ValidationWrapperComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ValidationWrapperComponent);
@@ -48,6 +49,6 @@ describe('ValidationWrapperComponent', () => {
 
   it('should return true for showError', () => {
     const component = new ValidationWrapperComponent();
-    expect(component.showError).toBeTrue();
+    expect(component.showError).toBe(true);
   });
 });

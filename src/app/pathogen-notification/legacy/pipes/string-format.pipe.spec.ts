@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { describe, expect, it } from 'vitest';
 import { StringFormatPipe } from './string-format.pipe';
 
 describe('StringFormatPipe', () => {

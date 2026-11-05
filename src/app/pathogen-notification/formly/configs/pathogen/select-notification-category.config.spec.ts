@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { NotificationLaboratoryCategory } from 'src/api/notification';
 import { NotificationType } from '../../../common/routing-helper';
@@ -95,16 +96,6 @@ describe('selectNotificationCategoryFields', () => {
       expect(field).toBeDefined();
       expect(field!.type).toBe('filterable-select');
       expect(field!.props!.label).toBe('Nachgewiesene Erregerspezies');
-    });
-
-    it('should contain old pathogen field', () => {
-      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: false };
-      const fields = getFields();
-      const field = findFieldById(fields, 'pathogen');
-      expect(field).toBeDefined();
-      expect(field!.type).toBe('autocomplete');
-      expect(field!.props!.label).toBe('Nachgewiesene Erregerspezies');
-      environment.pathogenConfig.featureFlags = { ...environment.pathogenConfig.featureFlags, FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: true };
     });
 
     it('should contain reportStatus field', () => {
@@ -418,14 +409,16 @@ describe('selectNotificationCategoryFields', () => {
       it('should reset initialNotificationId value to undefined when notificationIdReference changes to NoReference', () => {
         const fields = getFields(NotificationType.NominalNotification7_1);
         const field = findFieldById(fields, 'initialNotificationId');
-        const model: { notificationIdReference: NotificationIdReferenceEnum | undefined } = {
+        const model: {
+          notificationIdReference: NotificationIdReferenceEnum | undefined;
+        } = {
           notificationIdReference: NotificationIdReferenceEnum.RelatesToOwnFacility,
         };
         const subscribers: (() => void)[] = [];
         const mockFormControl = {
-          setValue: jasmine.createSpy('setValue'),
-          markAsUntouched: jasmine.createSpy('markAsUntouched'),
-          markAsPristine: jasmine.createSpy('markAsPristine'),
+          setValue: vi.fn(),
+          markAsUntouched: vi.fn(),
+          markAsPristine: vi.fn(),
         };
         const mockField = {
           parent: { model },
@@ -445,14 +438,16 @@ describe('selectNotificationCategoryFields', () => {
       it('should not reset initialNotificationId value when notificationIdReference changes to RelatesToOwnFacility', () => {
         const fields = getFields(NotificationType.NominalNotification7_1);
         const field = findFieldById(fields, 'initialNotificationId');
-        const model: { notificationIdReference: NotificationIdReferenceEnum | undefined } = {
+        const model: {
+          notificationIdReference: NotificationIdReferenceEnum | undefined;
+        } = {
           notificationIdReference: NotificationIdReferenceEnum.NoReference,
         };
         const subscribers: (() => void)[] = [];
         const mockFormControl = {
-          setValue: jasmine.createSpy('setValue'),
-          markAsUntouched: jasmine.createSpy('markAsUntouched'),
-          markAsPristine: jasmine.createSpy('markAsPristine'),
+          setValue: vi.fn(),
+          markAsUntouched: vi.fn(),
+          markAsPristine: vi.fn(),
         };
         const mockField = {
           parent: { model },
@@ -545,27 +540,24 @@ describe('selectNotificationCategoryFields', () => {
 describe('applyFilter', () => {
   const testData = ['Alpha', 'Beta', 'Gamma', 'AlphaBeta'];
 
-  it('should return filtered data when term is provided', done => {
+  it('should return filtered data when term is provided', async () => {
     applyFilter('Alpha', testData).subscribe(result => {
       expect(result).toContain('Alpha');
       expect(result).toContain('AlphaBeta');
       expect(result).not.toContain('Gamma');
-      done();
     });
   });
 
-  it('should return all data when term is empty', done => {
+  it('should return all data when term is empty', async () => {
     applyFilter('', testData).subscribe(result => {
       expect(result.length).toBe(testData.length);
-      done();
     });
   });
 
-  it('should return a copy of data (not the same reference)', done => {
+  it('should return a copy of data (not the same reference)', async () => {
     applyFilter('', testData).subscribe(result => {
       expect(result).not.toBe(testData);
       expect(result).toEqual(testData);
-      done();
     });
   });
 });

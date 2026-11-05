@@ -1,0 +1,10 @@
+<app-notification-step-form
+  [title]="PathogenConstants.MELDENDE_PERSON"
+  [group]="notificationService.notifierFacilityGroup"
+  [model]="notificationService.notifierFacilityModel()"
+  [fields]="fieldConfig()"
+  (modelChanged)="notificationService.handleNotifierFacilityChange()" />
+
+<ng-template #actionsRight>
+  <app-notification-step-actions side="right" />
+</ng-template>

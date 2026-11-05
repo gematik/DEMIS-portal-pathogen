@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { environment } from '../../../environments/environment';
 import { ErrorDialogService } from './error-dialog.service';
 import { MessageDialogService } from '@gematik/demis-portal-core-library';
@@ -23,7 +24,7 @@ import { TestBed } from '@angular/core/testing';
 
 describe('ErrorDialogService', () => {
   let serviceUnderTest: ErrorDialogService;
-  let showErrorDialogSpy: jasmine.Spy;
+  let showErrorDialogSpy: Mock;
 
   beforeEach(() => MockBuilder(ErrorDialogService));
 
@@ -32,7 +33,7 @@ describe('ErrorDialogService', () => {
       ...environment.pathogenConfig,
     };
     serviceUnderTest = TestBed.inject(ErrorDialogService);
-    showErrorDialogSpy = spyOn(TestBed.inject(MessageDialogService), 'showErrorDialog');
+    showErrorDialogSpy = vi.spyOn(TestBed.inject(MessageDialogService), 'showErrorDialog');
   });
 
   describe('showBasicClosableErrorDialog', () => {
@@ -41,7 +42,8 @@ describe('ErrorDialogService', () => {
       const title = 'Error Title';
 
       serviceUnderTest.showBasicClosableErrorDialog(message, title);
-      expect(showErrorDialogSpy).toHaveBeenCalledOnceWith({
+      expect(showErrorDialogSpy).toHaveBeenCalledTimes(1);
+      expect(showErrorDialogSpy).toHaveBeenCalledWith({
         errorTitle: title,
         errors: [{ text: message }],
       });
@@ -51,7 +53,8 @@ describe('ErrorDialogService', () => {
       const message = 'Something went wrong';
 
       serviceUnderTest.showBasicClosableErrorDialog(message);
-      expect(showErrorDialogSpy).toHaveBeenCalledOnceWith({
+      expect(showErrorDialogSpy).toHaveBeenCalledTimes(1);
+      expect(showErrorDialogSpy).toHaveBeenCalledWith({
         errorTitle: null,
         errors: [{ text: message }],
       });
@@ -64,7 +67,8 @@ describe('ErrorDialogService', () => {
       const title = 'Error Title';
 
       serviceUnderTest.showBasicErrorDialogWithRedirect(message, title);
-      expect(showErrorDialogSpy).toHaveBeenCalledOnceWith({
+      expect(showErrorDialogSpy).toHaveBeenCalledTimes(1);
+      expect(showErrorDialogSpy).toHaveBeenCalledWith({
         redirectToHome: true,
         errorTitle: title,
         errors: [{ text: message }],
@@ -75,7 +79,8 @@ describe('ErrorDialogService', () => {
       const message = 'Something went wrong';
 
       serviceUnderTest.showBasicErrorDialogWithRedirect(message);
-      expect(showErrorDialogSpy).toHaveBeenCalledOnceWith({
+      expect(showErrorDialogSpy).toHaveBeenCalledTimes(1);
+      expect(showErrorDialogSpy).toHaveBeenCalledWith({
         redirectToHome: true,
         errorTitle: null,
         errors: [{ text: message }],
@@ -87,9 +92,10 @@ describe('ErrorDialogService', () => {
     it('should call showErrorDialog with correct params', () => {
       const error = new Error('Something went wrong');
       const title = 'Error Title';
-      spyOn(TestBed.inject(MessageDialogService), 'extractMessageFromError').and.returnValue('Something went wrong');
+      vi.spyOn(TestBed.inject(MessageDialogService), 'extractMessageFromError').mockReturnValue('Something went wrong');
       serviceUnderTest.showBasicErrorDialogWithRedirect(error.message, title);
-      expect(showErrorDialogSpy).toHaveBeenCalledOnceWith({
+      expect(showErrorDialogSpy).toHaveBeenCalledTimes(1);
+      expect(showErrorDialogSpy).toHaveBeenCalledWith({
         redirectToHome: true,
         errorTitle: title,
         errors: [{ text: 'Something went wrong' }],

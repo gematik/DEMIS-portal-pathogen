@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { buildMock, mainConfig, setupIntegrationTests } from './base';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -67,13 +68,13 @@ describe('Pathogen - Follow Up Integration Tests', () => {
       });
 
       it('should create', () => {
-        expect(component).withContext('PathogenNotificationComponent could not be created').toBeTruthy();
+        expect(component, 'PathogenNotificationComponent could not be created').toBeTruthy();
       });
 
       it('should show follow up header', async () => {
         await waitForStability(fixture);
         const textContent = fixture.nativeElement.textContent;
-        expect(textContent.includes(expectedHeaderText)).toBeTrue();
+        expect(textContent.includes(expectedHeaderText)).toBe(true);
       });
 
       it('should show follow up input dialog', async () => {
@@ -162,7 +163,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
             subheader: '',
           });
 
-          spyOn(followUpService, 'validateNotificationId').and.callFake((id: string, path: string) => {
+          vi.spyOn(followUpService, 'validateNotificationId').mockImplementation((id: string, path: string) => {
             followUpService.validatedNotificationId.set('123');
             followUpService.validationStatus.set(ValidationStatus.VALID);
             followUpService.hasValidNotificationId.set(true);
@@ -211,10 +212,10 @@ describe('Pathogen - Follow Up Integration Tests', () => {
             expect(await country.getValueText()).toBe('Deutschland');
 
             const p = lastValueFrom(of('URL P.gender=MALE&P.birthDate=01.01.2023&P.r.zip=12345&P.r.country=KP'));
-            spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
-            spyOn(window.navigator.clipboard, 'writeText');
+            vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
+            vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue(undefined);
             await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-            fixture.detectChanges();
+            await waitForStability(fixture);
 
             expect(await gender.getValueText()).toBe('Männlich');
             expect(await birthDate.getValue()).toBe('01.2023');
@@ -251,7 +252,7 @@ describe('Pathogen - Follow Up Integration Tests', () => {
             subheader: '',
           });
 
-          spyOn(followUpService, 'validateNotificationId').and.callFake(() => {
+          vi.spyOn(followUpService, 'validateNotificationId').mockImplementation(() => {
             followUpService.validatedNotificationId.set('123');
             followUpService.validationStatus.set(ValidationStatus.VALID);
             followUpService.hasValidNotificationId.set(true);
@@ -287,10 +288,10 @@ describe('Pathogen - Follow Up Integration Tests', () => {
           });
 
           const followUpCodes = TEST_DATA.pathogenCodeDisplays.slice(0, 2);
-          (fhirService.fetchFollowUpCode as jasmine.Spy).and.returnValue(of(followUpCodes));
-          spyOn(followUpMixedCodesService, 'openDialog').and.returnValue(of(followUpCodes[0].code));
-          spyOn(followUpService, 'closeDialog').and.callThrough();
-          spyOn(followUpService, 'validateNotificationId').and.callFake(() => {
+          (fhirService.fetchFollowUpCode as Mock).mockReturnValue(of(followUpCodes));
+          vi.spyOn(followUpMixedCodesService, 'openDialog').mockReturnValue(of(followUpCodes[0].code));
+          vi.spyOn(followUpService, 'closeDialog');
+          vi.spyOn(followUpService, 'validateNotificationId').mockImplementation(() => {
             followUpService.validatedNotificationId.set('123');
             followUpService.validationStatus.set(ValidationStatus.VALID);
             followUpService.hasValidNotificationId.set(true);
@@ -308,8 +309,8 @@ describe('Pathogen - Follow Up Integration Tests', () => {
           expect(fhirService.fetchFollowUpCode).toHaveBeenCalledWith('invp', notificationType);
           expect(followUpService.closeDialog).toHaveBeenCalled();
           expect(followUpMixedCodesService.openDialog).toHaveBeenCalledWith([
-            jasmine.objectContaining({ code: followUpCodes[0].code }),
-            jasmine.objectContaining({ code: followUpCodes[1].code }),
+            expect.objectContaining({ code: followUpCodes[0].code }),
+            expect.objectContaining({ code: followUpCodes[1].code }),
           ]);
         });
       });

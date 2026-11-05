@@ -70,11 +70,8 @@ export class AutocompleteTypeComponent extends FieldType<FieldTypeConfig> implem
 
   ngOnInit() {
     this.setupFilter();
-    // if user types something (non-empty), discard stored previous value.
-    this.formControl.valueChanges.subscribe(v => {
-      if (v !== '') {
-        this.previousValue = undefined;
-      }
+    this.formControl.valueChanges.subscribe(() => {
+      this.previousValue = undefined;
     });
   }
 
@@ -96,7 +93,7 @@ export class AutocompleteTypeComponent extends FieldType<FieldTypeConfig> implem
 
   private setupFilter() {
     this.filter = this.formControl.valueChanges.pipe(
-      startWith((this.formControl.value as string) || ''),
+      startWith(''),
       switchMap(term => this.props.filter(term))
     );
   }
@@ -107,8 +104,9 @@ export class AutocompleteTypeComponent extends FieldType<FieldTypeConfig> implem
       this.previousValue = current;
       // valueChange should only trigger when user makes a change
       this.formControl.setValue('', { emitEvent: false });
-      this.setupFilter();
     }
+    // Silent form resets must also refresh the options when the empty input is reopened.
+    this.setupFilter();
   }
 
   onBlur() {

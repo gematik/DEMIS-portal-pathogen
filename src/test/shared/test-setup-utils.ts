@@ -15,22 +15,30 @@
     find details in the "Readme" file.
  */
 
+import { vi } from 'vitest';
+import { EventEmitter } from '@angular/core';
 import { of } from 'rxjs';
 import { TEST_DATA } from './test-data';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 
-export let selectedPathogenCodeDisplay: { code: string; display: string; designations: any[] } | undefined;
+export let selectedPathogenCodeDisplay:
+  | {
+      code: string;
+      display: string;
+      designations: any[];
+    }
+  | undefined;
 
 export let diagnosticBasedOnPathogenSelection: any;
 
 export const overrides = {
   get pathogenNotificationStorageService() {
     return {
-      getNotifierFacility: jasmine.createSpy('getNotifierFacility').and.returnValue(TEST_DATA.notifierFacility),
-      getSelectedPathogenCodeDisplay: jasmine.createSpy('getSelectedPathogenCodeDisplay').and.callFake(() => selectedPathogenCodeDisplay),
-      favoritesChanged: jasmine.createSpyObj('favoritesChanged', ['subscribe']),
+      getNotifierFacility: vi.fn().mockReturnValue(TEST_DATA.notifierFacility),
+      getSelectedPathogenCodeDisplay: vi.fn().mockImplementation(() => selectedPathogenCodeDisplay),
+      favoritesChanged: new EventEmitter<void>(),
     } as Partial<PathogenNotificationStorageService>;
   },
   get activatedRoute() {
@@ -44,24 +52,18 @@ export function getRouter(url = '/pathogen-notification') {
   return {
     url,
     events: of(new NavigationStart(0, url)),
-    navigate: jasmine.createSpy('navigate').and.callFake(() => Promise.resolve(true)),
+    navigate: vi.fn().mockImplementation(() => Promise.resolve(true)),
   } as Partial<Router>;
 }
 
 export function getFhirPathogenNotificationService(needsNoFederalStates = false) {
   return {
-    fetchCountryCodeDisplays: jasmine.createSpy('fetchCountryCodeDisplays').and.returnValue(of(TEST_DATA.countryCodeDisplays)),
-    fetchFederalStateCodeDisplays: jasmine
-      .createSpy('fetchFederalStateCodeDisplays')
-      .and.returnValue(needsNoFederalStates ? of([]) : of(TEST_DATA.federalStateCodeDisplays)),
-    fetchPathogenCodeDisplaysByTypeAndState: jasmine
-      .createSpy('fetchPathogenCodeDisplaysByTypeAndStateForFederalState')
-      .and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
-    fetchDiagnosticsBasedOnPathogenSelection: jasmine
-      .createSpy('fetchDiagnosticsBasedOnPathogenSelection')
-      .and.callFake(() => of(diagnosticBasedOnPathogenSelection)),
-    fetchAllPathogenCodeDisplays: jasmine.createSpy('fetchAllPathogenCodeDisplays').and.returnValue(of(TEST_DATA.pathogenCodeDisplays)),
-    fetchFollowUpCode: jasmine.createSpy('fetchFollowUpCode').and.returnValue(of(TEST_DATA.pathogenCodeDisplays.slice(0, 1))),
+    fetchCountryCodeDisplays: vi.fn().mockReturnValue(of(TEST_DATA.countryCodeDisplays)),
+    fetchFederalStateCodeDisplays: vi.fn().mockReturnValue(needsNoFederalStates ? of([]) : of(TEST_DATA.federalStateCodeDisplays)),
+    fetchPathogenCodeDisplaysByTypeAndState: vi.fn().mockReturnValue(of(TEST_DATA.pathogenCodeDisplays)),
+    fetchDiagnosticsBasedOnPathogenSelection: vi.fn().mockImplementation(() => of(diagnosticBasedOnPathogenSelection)),
+    fetchAllPathogenCodeDisplays: vi.fn().mockReturnValue(of(TEST_DATA.pathogenCodeDisplays)),
+    fetchFollowUpCode: vi.fn().mockReturnValue(of(TEST_DATA.pathogenCodeDisplays.slice(0, 1))),
   } as Partial<FhirPathogenNotificationService>;
 }
 

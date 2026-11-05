@@ -1,0 +1,9 @@
+:host ::ng-deep {
+  // Ensure step content fills available space and components are flush
+  gem-demis-process-stepper-step-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+}

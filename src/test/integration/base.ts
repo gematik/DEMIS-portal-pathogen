@@ -38,7 +38,13 @@ import { SideNavigationWrapperComponent } from '../../app/pathogen-notification/
 import { SideNavigationStepperComponent } from '../../app/pathogen-notification/components/side-navigation-stepper/side-navigation-stepper.component';
 import { FormlyMaterialModule } from '@ngx-formly/material';
 import { MatStepperModule } from '@angular/material/stepper';
-import { MaxHeightContentContainerComponent, PasteBoxComponent } from '@gematik/demis-portal-core-library';
+import {
+  FollowUpMixedCodesService,
+  FollowUpNotificationIdService,
+  MaxHeightContentContainerComponent,
+  MessageDialogService,
+  PasteBoxComponent,
+} from '@gematik/demis-portal-core-library';
 import { allowedRoutes, NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -65,14 +71,14 @@ import { StringFormatPipe } from '../../app/pathogen-notification/legacy/pipes/s
 import { PathogenFormlyConfig } from '../../app/pathogen-notification/formly/configs/formly-app-config';
 import { NotificationFormValidationConfig } from '../../app/pathogen-notification/legacy/notification-form-validation-module';
 import { PathogenFormValidationConfig } from '../../app/pathogen-notification/common/pathogen-formly-validation-module';
+import { ErrorDialogService } from '../../app/pathogen-notification/services/error-dialog.service';
 
 export const mainConfig = {
   featureFlags: {
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true,
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: true,
-    FEATURE_FLAG_FOOTER_LINKS_CORRECTION: true,
     FEATURE_FLAG_FOLLOW_UP_7_3: true,
-    FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: true,
+    FEATURE_FLAG_CORE_SIDENAV: false,
   },
   gatewayPaths: {
     pathogen: '/notification/pathogen',
@@ -140,6 +146,10 @@ export function buildMock(activatedRoute = false, notificationType: Notification
     .keep(SideNavigationWrapperComponent)
     .keep(SideNavigationStepperComponent)
     .keep(MaxHeightContentContainerComponent)
+    .keep(MessageDialogService)
+    .keep(ErrorDialogService)
+    .keep(FollowUpNotificationIdService)
+    .keep(FollowUpMixedCodesService)
     .keep(FormlyMaterialModule)
     .provide(MockProvider(ChangeDetectorRef))
     .provide(MockProvider(FhirPathogenNotificationService, getFhirPathogenNotificationService(needsNoFederalStates)))

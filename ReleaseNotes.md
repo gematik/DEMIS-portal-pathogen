@@ -2,6 +2,17 @@
 
 # Release portal-pathogen
 
+## Release 1.9.8
+- Migrated from Karma/Jasmine to Vitest/Playwright for testing
+- Removed FEATURE_FLAG_FOOTER_LINKS_CORRECTION
+- Updated @gematik/demis-portal-core-library to 4.4.8
+- Adapted renovate.json
+- Added min-release-age to .npmrc
+- Added FEATURE_FLAG_CORE_SIDENAV incl. new side navigation component from portal-core
+- Updated minor/patch versions of dependencies
+- Removed FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN 
+- Improved accessibility attributes
+
 ## Release 1.9.7
 - Removed FEATURE_FLAG_PLACEHOLDER_REMOVAL
 - Updated @gematik/demis-portal-core-library to 4.4.6 incl. a11y improvements for pastebox, repeater and dialogs
@@ -78,7 +89,7 @@
 - Added handling of mixed follow-up notifications with both §6.1 and §7.1 codes (FEATURE_FLAG_FOLLOW_UP_MIXED_CODES)
 - Removed istio helm chart
 - Fixed change detection bug in spinner-dialog
-- Changed imprint link and add ids in footer (FEATURE_FLAG_FOOTER_LINKS_CORRECTION)
+- Changed imprint link and added ids in footer (FEATURE_FLAG_FOOTER_LINKS_CORRECTION)
 
 ## Release 1.6.5
 - Removed data-cy attributes from elements

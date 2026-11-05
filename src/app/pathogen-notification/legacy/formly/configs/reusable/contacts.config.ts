@@ -25,6 +25,7 @@ export const contactsFormConfigFields: (needsContact: boolean) => FormlyFieldCon
   {
     className: FormlyConstants.LAYOUT_HEADER,
     template: `<p id='kontakt-hinweis'>Bitte geben Sie mindestens eine Kontaktmöglichkeit an.</p>`,
+    props: { safeHtml: true },
     expressions: { hide: () => !needsContact },
   },
   {

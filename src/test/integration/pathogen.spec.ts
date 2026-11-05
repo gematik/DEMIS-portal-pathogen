@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { MockedComponentFixture } from 'ng-mocks';
 import { getHtmlButtonElement } from '../shared/html-element-utils';
@@ -71,12 +72,12 @@ describe('Pathogen - Integration Tests', () => {
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
 
-  let fetchCountryCodeDisplaysSpy: jasmine.Spy;
-  let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
-  let getNotifierFacilitySpy: jasmine.Spy;
-  let fetchDiagnosticsBasedOnPathogenSelectionSpy: jasmine.Spy;
-  let getSelectedPathogenCodeDisplaySpy: jasmine.Spy;
+  let fetchCountryCodeDisplaysSpy: Mock;
+  let fetchFederalStateCodeDisplaysSpy: Mock;
+  let fetchPathogenCodeDisplaysByTypeAndStateSpy: Mock;
+  let getNotifierFacilitySpy: Mock;
+  let fetchDiagnosticsBasedOnPathogenSelectionSpy: Mock;
+  let getSelectedPathogenCodeDisplaySpy: Mock;
 
   const testValidationFor = parameters => {
     parameters.forEach(({ field, value, expectedResult }) => {
@@ -113,18 +114,18 @@ describe('Pathogen - Integration Tests', () => {
 
   it('should show 7.1 header', async () => {
     const textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('Erregernachweis (§ 7.1)')).toBeTrue();
+    expect(textContent.includes('Erregernachweis (§ 7.1)')).toBe(true);
   });
 
   it('should not send, when nothing is inserted', async () => {
     const submitButton = getHtmlButtonElement(fixture.nativeElement, '#btn-send-notification');
     expect(submitButton).toBeTruthy();
-    expect(submitButton.disabled).toBeTrue();
+    expect(submitButton.disabled).toBe(true);
   });
 
   it('should switch to next formular when clicking nextButton', async () => {
     let textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('Ansprechperson (Einsender)')).toBeFalse();
+    expect(textContent.includes('Ansprechperson (Einsender)')).toBe(false);
     expect(textContent).toContain('Ansprechperson (Melder)');
 
     await clickNextButton(fixture);
@@ -224,9 +225,9 @@ describe('Pathogen - Integration Tests', () => {
         await fixture.whenStable();
         await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
         const departmentNameInput = await getInput(loader, `#${FIELD_DEPARTMENTNAME}`);
-        expect(await departmentNameInput.isDisabled()).toBeFalse();
+        expect(await departmentNameInput.isDisabled()).toBe(false);
         await departmentNameInput.setValue(SUBMITTING_VALUE_DEPARTMENT_NAME);
-        expect(await departmentNameInput.isDisabled()).toBeFalse();
+        expect(await departmentNameInput.isDisabled()).toBe(false);
         expect(await departmentNameInput.getValue()).toBe(SUBMITTING_VALUE_DEPARTMENT_NAME);
       });
 
@@ -294,8 +295,8 @@ describe('Pathogen - Integration Tests', () => {
         const facilitynameInput = await getInput(loader, `#${FIELD_INSTITUTIONAME}`);
 
         const p = lastValueFrom(of('URL S.name=Ein Name'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
-        spyOn(window.navigator.clipboard, 'writeText');
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue(undefined);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
         expect(await facilitynameInput.getValue()).toBe('Ein Name');

@@ -26,7 +26,7 @@ import { PathogenNotificationStorageService } from './pathogen-notification-stor
 import { addContact, ANONYMOUS_PERSON_RULES, ClipboardRules, FACILITY_RULES, initialModelForClipboard, NOMINAL_PERSON_RULES } from './core/clipboard-constants';
 import { BehaviorSubject } from 'rxjs';
 import { NotificationType } from '../common/routing-helper';
-import { isFilterableSelectSubpathogenEnabled, isFollowUpNotification } from '../utils/pathogen-notification-mapper';
+import { isFollowUpNotification } from '../utils/pathogen-notification-mapper';
 
 @Injectable({
   providedIn: 'root',
@@ -91,9 +91,7 @@ export class ClipboardDataService {
     'T.pathogen': value => {
       return {
         notificationCategory: {
-          pathogen: isFilterableSelectSubpathogenEnabled()
-            ? { display: this.augmentDisplay(value, 'answerSet'), code: value }
-            : this.augmentDisplay(value, 'answerSet'),
+          pathogen: { display: this.augmentDisplay(value, 'answerSet'), code: value },
         },
       };
     },

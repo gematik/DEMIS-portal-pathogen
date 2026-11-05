@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, type Mock } from 'vitest';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
@@ -56,12 +57,12 @@ describe('Pathogen - Notified Person Integration Tests', () => {
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
 
-  let fetchCountryCodeDisplaysSpy: jasmine.Spy;
-  let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
-  let getNotifierFacilitySpy: jasmine.Spy;
-  let fetchDiagnosticsBasedOnPathogenSelectionSpy: jasmine.Spy;
-  let getSelectedPathogenCodeDisplaySpy: jasmine.Spy;
+  let fetchCountryCodeDisplaysSpy: Mock;
+  let fetchFederalStateCodeDisplaysSpy: Mock;
+  let fetchPathogenCodeDisplaysByTypeAndStateSpy: Mock;
+  let getNotifierFacilitySpy: Mock;
+  let fetchDiagnosticsBasedOnPathogenSelectionSpy: Mock;
+  let getSelectedPathogenCodeDisplaySpy: Mock;
 
   const testValidationFor = parameters => {
     parameters.forEach(({ field, value, expectedResult }) => {
@@ -95,12 +96,12 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     component = result.component;
     loader = result.loader;
 
-    fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
-    fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as jasmine.Spy;
-    getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
-    getSelectedPathogenCodeDisplaySpy = TestBed.inject(PathogenNotificationStorageService).getSelectedPathogenCodeDisplay as jasmine.Spy;
-    fetchDiagnosticsBasedOnPathogenSelectionSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as jasmine.Spy;
+    fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as Mock;
+    fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as Mock;
+    fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as Mock;
+    getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as Mock;
+    getSelectedPathogenCodeDisplaySpy = TestBed.inject(PathogenNotificationStorageService).getSelectedPathogenCodeDisplay as Mock;
+    fetchDiagnosticsBasedOnPathogenSelectionSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as Mock;
     setSelectedPathogenCodeDisplay(null);
     setDiagnosticBasedOnPathogenSelection(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP);
 
@@ -188,7 +189,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     });
 
     // flaky
-    xit('When submitting facility copy checkbox is checked and data in notifier facility is changed, this address should also change', async () => {
+    it.skip('When submitting facility copy checkbox is checked and data in notifier facility is changed, this address should also change', async () => {
       // preparation: enable checkbox in submittingFacility and go to notifiedPerson to select submittingFacility as currentAddressType
       await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
 
@@ -212,7 +213,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     });
 
     //flaky test
-    xit('When submitting facility copy checkbox is checked and unchecked again, then the radio button type should be null', async () => {
+    it.skip('When submitting facility copy checkbox is checked and unchecked again, then the radio button type should be null', async () => {
       // preparation: enable checkbox in submittingFacility and go to notifiedPerson to select submittingFacility as currentAddressType
       await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
       await verifyInputFieldValues(loader, [

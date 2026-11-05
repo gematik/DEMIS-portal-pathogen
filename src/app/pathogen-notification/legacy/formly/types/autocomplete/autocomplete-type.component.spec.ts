@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MockBuilder, MockRender } from 'ng-mocks';
 import { AutocompleteTypeComponent } from './autocomplete-type.component';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -39,7 +40,7 @@ describe('AutocompleteTypeComponent', () => {
   );
 
   const setup = (initialValue: any) => {
-    const filterSpy = jasmine.createSpy('filter').and.returnValue(of([]));
+    const filterSpy = vi.fn().mockReturnValue(of([]));
     const field: any = {
       id: 'testId',
       key: 'testKey',
@@ -51,7 +52,7 @@ describe('AutocompleteTypeComponent', () => {
     const fixture = MockRender(AutocompleteTypeComponent, { field });
     const component = fixture.point.componentInstance;
     fixture.detectChanges();
-    filterSpy.calls.reset();
+    filterSpy.mockClear();
     return { component, field, filterSpy, fixture };
   };
 
@@ -85,6 +86,20 @@ describe('AutocompleteTypeComponent', () => {
     expect(field.formControl.value).toBe('SecondValue');
   });
 
+  it('onBlur should not restore a value that was explicitly cleared', () => {
+    const { component, field } = setup('FirstValue');
+    component.onClick();
+    field.formControl.setValue('');
+    component.onBlur();
+    expect(field.formControl.value).toBe('');
+  });
+
+  it('initially shows the complete list even when a value is selected', () => {
+    const { component, filterSpy } = setup('FirstValue');
+    subscribeFilter(component);
+    expect(filterSpy).toHaveBeenCalledWith('');
+  });
+
   it('onClick should do nothing when control is already empty', () => {
     const { component, field, filterSpy } = setup('');
     component.onClick();
@@ -115,12 +130,12 @@ describe('AutocompleteTypeComponent', () => {
     fixture.detectChanges();
     subscribeFilter(component); // force subscription
     expect(field.formControl.value).toBe('');
-    expect(filterSpy.calls.count()).toBe(1);
+    expect(vi.mocked(filterSpy).mock.calls.length).toBe(1);
 
     component.onAutocompleteOpened();
     fixture.detectChanges();
     // no new subscription -> count should stay 1
-    expect(filterSpy.calls.count()).toBe(1);
+    expect(vi.mocked(filterSpy).mock.calls.length).toBe(1);
     expect(field.formControl.value).toBe('');
   });
 
@@ -134,17 +149,17 @@ describe('AutocompleteTypeComponent', () => {
     // subscribe AFTER reset so startWith('') emits and invokes filterSpy('')
     const sub = component.filter.subscribe();
 
-    expect(filterSpy.calls.count()).toBe(1);
-    expect(filterSpy.calls.argsFor(0)).toEqual(['']);
+    expect(vi.mocked(filterSpy).mock.calls.length).toBe(1);
+    expect(vi.mocked(filterSpy).mock.calls[0]).toEqual(['']);
 
     // simulate user typing
     component.formControl.setValue('A'); // emits
-    expect(filterSpy.calls.count()).toBe(2);
-    expect(filterSpy.calls.argsFor(1)).toEqual(['A']);
+    expect(vi.mocked(filterSpy).mock.calls.length).toBe(2);
+    expect(vi.mocked(filterSpy).mock.calls[1]).toEqual(['A']);
 
     component.formControl.setValue('AB');
-    expect(filterSpy.calls.count()).toBe(3);
-    expect(filterSpy.calls.argsFor(2)).toEqual(['AB']);
+    expect(vi.mocked(filterSpy).mock.calls.length).toBe(3);
+    expect(vi.mocked(filterSpy).mock.calls[2]).toEqual(['AB']);
 
     sub.unsubscribe();
   });

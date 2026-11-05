@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it } from 'vitest';
 import { transformDiagnostic, transformPathogenFormToPathogenTest, transformPathogenTestToPathogenForm } from './data-transformation';
 import { environment } from '../../../environments/environment';
 import { TEST_DATA } from '../../../test/shared/test-data';
@@ -45,8 +46,21 @@ describe('DataTransformation', () => {
       const pathogenForm = {
         notificationCategory: {
           federalStateCodeDisplay: 'DE-BW',
-          pathogen: 'Influenza A-Virus',
           pathogenDisplay: 'Influenzavirus',
+          pathogen: {
+            code: '407479009',
+            display: 'Influenza A virus (organism)',
+            designations: [
+              {
+                language: 'en-US',
+                value: 'Influenza A virus (organism)',
+              },
+              {
+                language: 'de-DE',
+                value: 'Influenza A-Virus',
+              },
+            ],
+          },
           reportStatus: 'preliminary',
           interpretation: 'an interpretation',
           initialNotificationId: 'an id',
@@ -98,8 +112,21 @@ describe('DataTransformation', () => {
       const pathogenForm = {
         notificationCategory: {
           federalStateCodeDisplay: 'DE-BW',
-          pathogen: 'Influenza A-Virus',
           pathogenDisplay: 'Influenzavirus',
+          pathogen: {
+            code: '407479009',
+            display: 'Influenza A virus (organism)',
+            designations: [
+              {
+                language: 'en-US',
+                value: 'Influenza A virus (organism)',
+              },
+              {
+                language: 'de-DE',
+                value: 'Influenza A-Virus',
+              },
+            ],
+          },
           reportStatus: 'preliminary',
           interpretation: '',
           initialNotificationId: '',
@@ -439,53 +466,25 @@ describe('DataTransformation', () => {
       },
     });
 
-    it('should use the pathogen CodeDisplay object directly when FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN is enabled', () => {
-      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: true };
+    it('should use the pathogen CodeDisplay object directly', () => {
       const pathogenAsCodeDisplay = pathogenData.answerSet[0];
 
       const result = transformDiagnostic(buildPathogenForm(pathogenAsCodeDisplay), {}, pathogenData, selectedPathogen);
 
       expect(result.notificationCategory.pathogen).toEqual(pathogenAsCodeDisplay);
     });
-
-    it('should resolve the pathogen display string to a CodeDisplay when FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN is disabled', () => {
-      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: false };
-
-      const result = transformDiagnostic(buildPathogenForm('Influenza A-Virus'), {}, pathogenData, selectedPathogen);
-
-      expect(result.notificationCategory.pathogen).toEqual(pathogenData.answerSet[0]);
-    });
   });
 
   describe('transformPathogenTestToPathogenForm - notificationCategory.pathogen handling', () => {
     const pathogenData = TEST_DATA.diagnosticBasedOnPathogenSelectionINVP;
 
-    it('should keep the pathogen CodeDisplay object when FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN is enabled', () => {
-      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: true };
+    it('should keep the pathogen CodeDisplay object', () => {
       const pathogenCodeDisplay = pathogenData.answerSet[0];
       const pathogenTest = { notificationCategory: { reportStatus: 'preliminary', pathogen: pathogenCodeDisplay } };
 
       const result = transformPathogenTestToPathogenForm(pathogenTest);
 
       expect(result.notificationCategory.pathogen).toEqual(pathogenCodeDisplay);
-    });
-
-    it('should map the pathogen CodeDisplay object to its designation value when FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN is disabled', () => {
-      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: false };
-      const pathogenTest = { notificationCategory: { reportStatus: 'preliminary', pathogen: pathogenData.answerSet[0] } };
-
-      const result = transformPathogenTestToPathogenForm(pathogenTest);
-
-      expect(result.notificationCategory.pathogen).toBe('Influenza A-Virus');
-    });
-
-    it('should keep a string pathogen value unchanged', () => {
-      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN: false };
-      const pathogenTest = { notificationCategory: { pathogen: 'Influenza A-Virus' } };
-
-      const result = transformPathogenTestToPathogenForm(pathogenTest);
-
-      expect(result.notificationCategory.pathogen).toBe('Influenza A-Virus');
     });
 
     it('should keep an undefined pathogen value unchanged', () => {

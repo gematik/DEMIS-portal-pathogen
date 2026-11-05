@@ -21,6 +21,9 @@ const path = require('path');
 module.exports = (angularWebpackConfig, options) => {
   const singleSpaWebpackConfig = singleSpaAngularWebpack(angularWebpackConfig, options);
 
+  // Angular already generates source maps; disable Webpack's additional generator to avoid duplicate assets.
+  singleSpaWebpackConfig.devtool = false;
+
   // Suppress CommonJS warnings specifically for style-loader runtime modules
   singleSpaWebpackConfig.ignoreWarnings = [
     /node_modules\/style-loader\/dist\/runtime.*CommonJS or AMD dependencies/,

@@ -1,0 +1,10 @@
+<app-notification-step-form
+  [title]="PathogenConstants.EINSENDENDE_PERSON"
+  [group]="notificationService.submittingFacilityGroup"
+  [model]="notificationService.submittingFacilityModel()"
+  [fields]="fieldConfig()"
+  (modelChanged)="notificationService.updateCurrentAddressFromSubmittingFacility()" />
+
+<ng-template #actionsRight>
+  <app-notification-step-actions side="right" />
+</ng-template>

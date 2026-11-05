@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, type Mock, type MockedObject, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { PathogenNotificationComponent } from './pathogen-notification.component';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
@@ -27,17 +28,19 @@ import { NotificationType } from './common/routing-helper';
 import { buildMock, setupIntegrationTests } from '../../test/integration/base';
 import { FollowUpNotificationIdService } from '@gematik/demis-portal-core-library';
 import { NGXLogger } from 'ngx-logger';
+import { ClipboardDataService } from './services/clipboard-data.service';
+import { LocalStorageService } from './legacy/services/local-storage.service';
 
 describe('PathogenNotificationComponent', () => {
   let component: PathogenNotificationComponent;
   let loader: HarnessLoader;
   let fixture: MockedComponentFixture<PathogenNotificationComponent>;
 
-  let fetchCountryCodeDisplaysSpy: jasmine.Spy;
-  let fetchFederalStateCodeDisplaysSpy: jasmine.Spy;
-  let fetchPathogenCodeDisplaysByTypeAndStateSpy: jasmine.Spy;
-  let getNotifierFacilitySpy: jasmine.Spy;
-  let loggerSpy: jasmine.SpyObj<NGXLogger>;
+  let fetchCountryCodeDisplaysSpy: Mock;
+  let fetchFederalStateCodeDisplaysSpy: Mock;
+  let fetchPathogenCodeDisplaysByTypeAndStateSpy: Mock;
+  let getNotifierFacilitySpy: Mock;
+  let loggerSpy: MockedObject<NGXLogger>;
 
   beforeEach(async () => await buildMock());
 
@@ -47,14 +50,12 @@ describe('PathogenNotificationComponent', () => {
     component = result.component;
     loader = result.loader;
 
-    fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as jasmine.Spy;
-    fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as jasmine.Spy;
-    fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as jasmine.Spy;
-    getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as jasmine.Spy;
-    loggerSpy = TestBed.inject(NGXLogger) as jasmine.SpyObj<NGXLogger>;
-    if (!loggerSpy.error.and) {
-      spyOn(loggerSpy, 'error');
-    }
+    fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as Mock;
+    fetchFederalStateCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchFederalStateCodeDisplays as Mock;
+    fetchPathogenCodeDisplaysByTypeAndStateSpy = TestBed.inject(FhirPathogenNotificationService).fetchPathogenCodeDisplaysByTypeAndState as Mock;
+    getNotifierFacilitySpy = TestBed.inject(PathogenNotificationStorageService).getNotifierFacility as Mock;
+    loggerSpy = TestBed.inject(NGXLogger) as MockedObject<NGXLogger>;
+    vi.spyOn(loggerSpy, 'error');
 
     fixture.detectChanges();
   });
@@ -64,50 +65,73 @@ describe('PathogenNotificationComponent', () => {
   });
 
   it('should fetch and set countryCodeDisplays on init', () => {
-    fetchCountryCodeDisplaysSpy.and.returnValue(of(TEST_DATA.countryCodeDisplays));
+    fetchCountryCodeDisplaysSpy.mockReturnValue(of(TEST_DATA.countryCodeDisplays));
     component.ngOnInit();
     expect(fetchCountryCodeDisplaysSpy).toHaveBeenCalled();
     expect(component.countryCodeDisplays).toEqual(TEST_DATA.countryCodeDisplays);
   });
 
   it('should fetch and set federalStateCodeDisplays on init', () => {
-    fetchFederalStateCodeDisplaysSpy.and.returnValue(of(TEST_DATA.federalStateCodeDisplays));
+    fetchFederalStateCodeDisplaysSpy.mockReturnValue(of(TEST_DATA.federalStateCodeDisplays));
     component.ngOnInit();
     expect(fetchFederalStateCodeDisplaysSpy).toHaveBeenCalled();
     expect(component.federalStateCodeDisplays).toEqual(TEST_DATA.federalStateCodeDisplays);
   });
 
   it('should fetch and set pathogenCodeDisplays on init', () => {
-    fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
+    fetchPathogenCodeDisplaysByTypeAndStateSpy.mockReturnValue(of(TEST_DATA.pathogenCodeDisplays));
     component.ngOnInit();
     expect(fetchPathogenCodeDisplaysByTypeAndStateSpy).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BW');
     expect(component.pathogenCodeDisplays).toEqual(TEST_DATA.pathogenCodeDisplays);
   });
 
   it('should fetch and set notifierFacility on init', () => {
-    getNotifierFacilitySpy.and.returnValue(TEST_DATA.notifierFacility);
+    getNotifierFacilitySpy.mockReturnValue(TEST_DATA.notifierFacility);
     component.ngOnInit();
     expect(getNotifierFacilitySpy).toHaveBeenCalled();
     expect(component.model.pathogenForm.notifierFacility).toEqual(TEST_DATA.notifierFacility);
   });
   it('should fetch and not set notifierFacility on init if empty', () => {
-    getNotifierFacilitySpy.and.returnValue(null);
+    getNotifierFacilitySpy.mockReturnValue(null);
     component.ngOnInit();
     expect(getNotifierFacilitySpy).toHaveBeenCalled();
     expect(component.model.pathogenForm.notifierFacility).toEqual(undefined);
   });
 
+  it('finishes loading when stored notifier facility data is not usable by the legacy form', () => {
+    const storage = TestBed.runInInjectionContext(() => new PathogenNotificationStorageService());
+    vi.spyOn(TestBed.inject(LocalStorageService), 'getItem').mockReturnValue({ facilityInfo: { institutionName: 'Test laboratory' } });
+    getNotifierFacilitySpy.mockImplementation(() => storage.getNotifierFacility());
+
+    component.ngOnInit();
+
+    expect(component.model.pathogenForm.notifierFacility).toBeUndefined();
+    expect(component.isLoading()).toBe(false);
+    expect(fixture.nativeElement.querySelector('mat-spinner')).toBeNull();
+  });
+
   it('should handle error when fetching initial data and log error', () => {
     const error = new Error('Test Error');
-    fetchCountryCodeDisplaysSpy.and.returnValue(throwError(() => error));
+    fetchCountryCodeDisplaysSpy.mockReturnValue(throwError(() => error));
     // Provide other observables as they are in forkJoin
-    fetchFederalStateCodeDisplaysSpy.and.returnValue(of([]));
-    fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of([]));
-    getNotifierFacilitySpy.and.returnValue(null);
+    fetchFederalStateCodeDisplaysSpy.mockReturnValue(of([]));
+    fetchPathogenCodeDisplaysByTypeAndStateSpy.mockReturnValue(of([]));
+    getNotifierFacilitySpy.mockReturnValue(null);
 
     component.ngOnInit();
 
     expect(loggerSpy.error).toHaveBeenCalledWith(error);
+  });
+
+  it('should log a clipboard transformation error and preserve the model', async () => {
+    const error = new Error("Unknown value 'W'");
+    const model = component.model;
+    vi.spyOn(TestBed.inject(ClipboardDataService), 'transformClipboardDataToModel').mockRejectedValue(error);
+
+    await component.populatePathogenFormWithClipboardData(true);
+
+    expect(loggerSpy.error).toHaveBeenCalledWith('Error while reading clipboard data: ', error);
+    expect(component.model).toBe(model);
   });
 
   describe('updateAfterFederalStateSelection', () => {
@@ -117,16 +141,16 @@ describe('PathogenNotificationComponent', () => {
       const pathogenDisplays = [TEST_DATA.pathogenCodeDisplays[0]];
 
       // Initialize fields using ngOnInit with empty/dummy data
-      fetchCountryCodeDisplaysSpy.and.returnValue(of(TEST_DATA.countryCodeDisplays));
-      fetchFederalStateCodeDisplaysSpy.and.returnValue(of(TEST_DATA.federalStateCodeDisplays));
-      fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
-      getNotifierFacilitySpy.and.returnValue(null);
+      fetchCountryCodeDisplaysSpy.mockReturnValue(of(TEST_DATA.countryCodeDisplays));
+      fetchFederalStateCodeDisplaysSpy.mockReturnValue(of(TEST_DATA.federalStateCodeDisplays));
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.mockReturnValue(of(TEST_DATA.pathogenCodeDisplays));
+      getNotifierFacilitySpy.mockReturnValue(null);
       component.ngOnInit();
 
       // Reset spy and setup return value for the actual test
-      fetchPathogenCodeDisplaysByTypeAndStateSpy.calls.reset();
-      fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(pathogenDisplays));
-      spyOn(component, 'setValueForPathogenSelectionField');
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.mockClear();
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.mockReturnValue(of(pathogenDisplays));
+      vi.spyOn(component, 'setValueForPathogenSelectionField').mockReturnValue(undefined);
 
       component.updateAfterFederalStateSelection(federalState);
 
@@ -139,25 +163,25 @@ describe('PathogenNotificationComponent', () => {
   describe('updateAfterPathogenSelection', () => {
     it('should handle error during pathogen selection update and log error', () => {
       // Initialize fields
-      fetchCountryCodeDisplaysSpy.and.returnValue(of(TEST_DATA.countryCodeDisplays));
-      fetchFederalStateCodeDisplaysSpy.and.returnValue(of(TEST_DATA.federalStateCodeDisplays));
-      fetchPathogenCodeDisplaysByTypeAndStateSpy.and.returnValue(of(TEST_DATA.pathogenCodeDisplays));
-      getNotifierFacilitySpy.and.returnValue(null);
+      fetchCountryCodeDisplaysSpy.mockReturnValue(of(TEST_DATA.countryCodeDisplays));
+      fetchFederalStateCodeDisplaysSpy.mockReturnValue(of(TEST_DATA.federalStateCodeDisplays));
+      fetchPathogenCodeDisplaysByTypeAndStateSpy.mockReturnValue(of(TEST_DATA.pathogenCodeDisplays));
+      getNotifierFacilitySpy.mockReturnValue(null);
       component.ngOnInit();
 
-      const fetchDiagnosticsSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as jasmine.Spy;
+      const fetchDiagnosticsSpy = TestBed.inject(FhirPathogenNotificationService).fetchDiagnosticsBasedOnPathogenSelection as Mock;
       const error = new Error('Diagnostics Error');
-      fetchDiagnosticsSpy.and.returnValue(throwError(() => error));
+      fetchDiagnosticsSpy.mockReturnValue(throwError(() => error));
 
-      spyOn(component, 'setValueForPathogenSelectionField');
-      spyOn(component, 'setValueForSubPathogenSelectionField');
+      vi.spyOn(component, 'setValueForPathogenSelectionField').mockReturnValue(undefined);
+      vi.spyOn(component, 'setValueForSubPathogenSelectionField').mockReturnValue(undefined);
 
       const pathogen = TEST_DATA.pathogenCodeDisplays[0];
 
       component.populateWithFavoriteSelection(pathogen);
 
       expect(loggerSpy.error).toHaveBeenCalledWith(error);
-      expect(component.isLoading()).toBeFalse();
+      expect(component.isLoading()).toBe(false);
       expect(component.setValueForPathogenSelectionField).toHaveBeenCalledWith('');
       expect(component.setValueForSubPathogenSelectionField).toHaveBeenCalledWith('');
     });
@@ -177,7 +201,7 @@ describe('PathogenNotificationComponent', () => {
 
       component.model = { pathogenForm: { notificationCategory: {} } };
 
-      spyOn(component.form, 'markAllAsTouched');
+      vi.spyOn(component.form, 'markAllAsTouched');
 
       component['updateFormForHexHex']();
 
@@ -192,7 +216,7 @@ describe('PathogenNotificationComponent', () => {
 
       component.model = { pathogenForm: { notificationCategory: {} } };
 
-      spyOn(component.form, 'markAllAsTouched');
+      vi.spyOn(component.form, 'markAllAsTouched');
 
       component['updateFormForHexHex']();
 
@@ -207,7 +231,7 @@ describe('PathogenNotificationComponent', () => {
 
       component.model = { pathogenForm: { notificationCategory: {} } };
 
-      spyOn(component.form, 'markAllAsTouched');
+      vi.spyOn(component.form, 'markAllAsTouched');
 
       component['updateFormForHexHex']();
 
@@ -221,7 +245,7 @@ describe('PathogenNotificationComponent', () => {
 
       component.model = { pathogenForm: { notificationCategory: {} } };
 
-      spyOn(component.form, 'markAllAsTouched');
+      vi.spyOn(component.form, 'markAllAsTouched');
 
       component['updateFormForHexHex']();
 

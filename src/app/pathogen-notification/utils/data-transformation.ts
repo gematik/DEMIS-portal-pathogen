@@ -27,9 +27,8 @@ import {
   SpecimenDTO,
 } from '../../../api/notification';
 import { ExtendedSalutationEnum, findCodeDisplayByDisplayValue, getDesignationValueIfAvailable } from '../legacy/common-utils';
-import { isString, merge } from 'lodash-es';
+import { merge } from 'lodash-es';
 import { NotificationType } from '../common/routing-helper';
-import { isFilterableSelectSubpathogenEnabled } from './pathogen-notification-mapper';
 
 export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
   const result: any = {};
@@ -65,7 +64,7 @@ export function transformPathogenTestToPathogenForm(pathogenTest: any): any {
   if (pathogenTest.notificationCategory) {
     result.notificationCategory = {
       ...pathogenTest.notificationCategory,
-      pathogen: transformPathogenValueForForm(pathogenTest.notificationCategory?.pathogen),
+      pathogen: pathogenTest.notificationCategory?.pathogen,
     };
   }
 
@@ -172,9 +171,7 @@ function fillSpecimenList(specimenDTOS: SpecimenDTOForm[], pathogenData: Pathoge
 }
 
 export function transformDiagnostic(pathogenForm: any, result: any, pathogenData: PathogenData, selectedPathogen?: CodeDisplay) {
-  const pathogen = isFilterableSelectSubpathogenEnabled()
-    ? (pathogenForm.notificationCategory?.pathogen as CodeDisplay)
-    : findCodeDisplayByDisplayValue(pathogenData.answerSet, pathogenForm.notificationCategory?.pathogen);
+  const pathogen = pathogenForm.notificationCategory?.pathogen as CodeDisplay;
   result.pathogen = selectedPathogen.code;
   result.notificationCategory = {
     ...pathogenForm.notificationCategory,
@@ -306,13 +303,6 @@ function transformDiagnosticIfNotEmpty(diagnosticList: any[], dataList: CodeDisp
         [key]: findCodeDisplayByDisplayValue(dataList, item[key]),
       }))
     : undefined;
-}
-
-function transformPathogenValueForForm(pathogen: unknown): unknown {
-  if (!pathogen || isString(pathogen)) {
-    return pathogen;
-  }
-  return isFilterableSelectSubpathogenEnabled() ? pathogen : getDesignationValueIfAvailable(pathogen as CodeDisplay);
 }
 
 //TODO create PathogenForm Type here

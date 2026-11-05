@@ -15,7 +15,8 @@
     find details in the "Readme" file.
  */
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SideNavigationWrapperComponent } from './side-navigation-wrapper.component';
@@ -29,13 +30,13 @@ describe('SideNavigationWrapperComponent', () => {
   let component: SideNavigationWrapperComponent;
   let fixture: ComponentFixture<SideNavigationWrapperComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [SideNavigationWrapperComponent, NoopAnimationsModule, RouterModule.forRoot([])],
       providers: [{ provide: PathogenNotificationComponent, useValue: {} }, MockProvider(NGXLogger)],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(SideNavigationWrapperComponent);

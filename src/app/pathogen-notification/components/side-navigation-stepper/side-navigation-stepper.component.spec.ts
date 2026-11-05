@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MockBuilder, MockRender } from 'ng-mocks';
 import { SideNavigationStepperComponent } from './side-navigation-stepper.component';
 import { FormlyFieldConfig } from '@ngx-formly/core';
@@ -50,7 +51,7 @@ describe('SideNavigationStepperComponent', () => {
       key: 'test',
       formControl: { valid: true, touched: true } as any,
     };
-    expect(component.isTouchedAndValid(field)).toBeTrue();
+    expect(component.isTouchedAndValid(field)).toBe(true);
   });
 
   it('should return false for isTouchedAndValid when field is not valid or not touched', () => {
@@ -60,7 +61,7 @@ describe('SideNavigationStepperComponent', () => {
       key: 'test',
       formControl: { valid: false, touched: true } as any,
     };
-    expect(component.isTouchedAndValid(field)).toBeFalse();
+    expect(component.isTouchedAndValid(field)).toBe(false);
   });
 
   it('should return true for isTouchedAndValid when field.key is null and fieldGroup is valid and touched', () => {
@@ -78,7 +79,7 @@ describe('SideNavigationStepperComponent', () => {
         },
       ],
     };
-    expect(component.isTouchedAndValid(field)).toBeTrue();
+    expect(component.isTouchedAndValid(field)).toBe(true);
   });
 
   it('should return true for isTouchedAndValid when field.key is null and fieldGroup is empty', () => {
@@ -88,7 +89,7 @@ describe('SideNavigationStepperComponent', () => {
       key: null,
       fieldGroup: [],
     };
-    expect(component.isTouchedAndValid(field)).toBeTrue();
+    expect(component.isTouchedAndValid(field)).toBe(true);
   });
 
   it('should navigate on step change', () => {
@@ -96,7 +97,7 @@ describe('SideNavigationStepperComponent', () => {
       steps: [{ props: { anchor: 'step0' } } as FormlyFieldConfig, { props: { anchor: 'step1' } } as FormlyFieldConfig],
     });
     const component = fixture.point.componentInstance;
-    const routerSpy = spyOn(component['router'], 'navigate');
+    const routerSpy = vi.spyOn(component['router'], 'navigate');
     const event: StepperSelectionEvent = { selectedIndex: 1, previouslySelectedIndex: 0 } as any;
     component.onStepChange(event);
     expect(routerSpy).toHaveBeenCalledWith(['./'], { relativeTo: component['route'], fragment: 'step1' });

@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExpansionPanelWrapperComponent } from './expansion-panel.wrapper';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -52,8 +53,8 @@ describe('ExpansionPanelWrapperComponent', () => {
 
   it('should close open panels and open clicked panel on handlePanelClosingOnOpen click', () => {
     component.handlePanelClosingOnOpen(field);
-    expect(field.parent.parent.fieldGroup[0].fieldGroup[0].props.isClosed).toBeTrue();
-    expect(field.parent.parent.fieldGroup[1].fieldGroup[0].props.isClosed).toBeTrue();
-    expect(field.props.isClosed).toBeFalse();
+    expect(field.parent.parent.fieldGroup[0].fieldGroup[0].props.isClosed).toBe(true);
+    expect(field.parent.parent.fieldGroup[1].fieldGroup[0].props.isClosed).toBe(true);
+    expect(field.props.isClosed).toBe(false);
   });
 });

@@ -29,8 +29,13 @@ import { TEXT_MAX_LENGTH } from '../../../legacy/common-utils';
 import { practitionerInfoFormConfigFields } from '../../../legacy/formly/configs/reusable/practitioner-info.config';
 import { contactsFormConfigFields } from '../../../legacy/formly/configs/reusable/contacts.config';
 import { ErrorDialogService } from '../../../services/error-dialog.service';
+import { isCoreSidenavEnabled } from '../../../utils/pathogen-notification-mapper';
 
-export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dialogService: ErrorDialogService): FormlyFieldConfig[] => {
+export const submittingFacilityFields = (
+  countryCodeDisplays: CodeDisplay[],
+  dialogService: ErrorDialogService,
+  onCopyAddressChange?: (field: FormlyFieldConfig) => void
+): FormlyFieldConfig[] => {
   let isResettingCheckbox = false;
 
   return [
@@ -48,6 +53,12 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
         label: 'Einrichtung und Ansprechperson aus Formularbereich "Meldende Person" übernehmen',
         required: false,
         change: field => {
+          if (isCoreSidenavEnabled()) {
+            // necessary for starting copy and data removal functions in pathogen-notification.service
+            onCopyAddressChange?.(field);
+            return;
+          }
+
           // guard against programmatic reset when validation fails
           if (isResettingCheckbox) {
             isResettingCheckbox = false;
@@ -88,7 +99,9 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
               maxLength: TEXT_MAX_LENGTH,
               required: true,
               change: field => {
-                updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled(field);
+                if (!isCoreSidenavEnabled()) {
+                  updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled(field);
+                }
               },
             },
           }),
@@ -117,7 +130,7 @@ export const submittingFacilityFields = (countryCodeDisplays: CodeDisplay[], dia
       // recognizes any change in submitting Facility address  to make sure that the address is copied correctly
       hooks: {
         onInit: field => {
-          return updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled(field, false);
+          return !isCoreSidenavEnabled() ? updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled(field, false) : null;
         },
       },
     },

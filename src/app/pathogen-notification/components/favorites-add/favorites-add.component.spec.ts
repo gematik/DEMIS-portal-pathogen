@@ -15,29 +15,68 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FavoritesAddComponent } from './favorites-add.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { PathogenNotificationComponent } from '../../pathogen-notification.component';
-import { MockProvider } from 'ng-mocks';
+import { PathogenNotificationStorageService } from '../../services/pathogen-notification-storage.service';
+import { NotificationType } from '../../common/routing-helper';
+import { Subject } from 'rxjs';
+import { CodeDisplay } from '../../../../api/notification';
 
 describe('FavoritesAddComponent', () => {
   let component: FavoritesAddComponent;
   let fixture: ComponentFixture<FavoritesAddComponent>;
+  const pathogen: CodeDisplay = { code: 'test', display: 'Test pathogen', designations: [] };
+  const storage = {
+    favoritesChanged: new Subject<void>(),
+    getSelectedPathogenCodeDisplay: vi.fn(),
+    getFavorites: vi.fn(),
+    addFavoriteToList: vi.fn(),
+    removeFavoriteFromList: vi.fn(),
+  };
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    storage.getSelectedPathogenCodeDisplay.mockReturnValue(pathogen);
+    storage.getFavorites.mockReturnValue([]);
     TestBed.configureTestingModule({
       imports: [FavoritesAddComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [MockProvider(PathogenNotificationComponent)],
+      providers: [{ provide: PathogenNotificationStorageService, useValue: storage }],
     });
     fixture = TestBed.createComponent(FavoritesAddComponent);
     component = fixture.componentInstance;
+    component.field = { props: { notificationType: NotificationType.NominalNotification7_1 } };
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('adds and removes the selected pathogen without a legacy component provider', () => {
+    component.addPathogenToFavorites();
+    expect(storage.addFavoriteToList).toHaveBeenCalledWith(pathogen, false);
+    component.removePathogenFromFavorites();
+    expect(storage.removeFavoriteFromList).toHaveBeenCalledWith(pathogen, false);
+  });
+
+  it('uses the non-nominal favorites for paragraph 7.3', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(FavoritesAddComponent);
+    component = fixture.componentInstance;
+    component.field = { props: { notificationType: NotificationType.NonNominalNotification7_3 } };
+    fixture.detectChanges();
+    component.addPathogenToFavorites();
+    expect(storage.addFavoriteToList).toHaveBeenCalledWith(pathogen, true);
+  });
+
+  it('unsubscribes when destroyed', () => {
+    fixture.destroy();
+    storage.getFavorites.mockClear();
+    storage.favoritesChanged.next();
+    expect(storage.getFavorites).not.toHaveBeenCalled();
   });
 });
