@@ -29,7 +29,7 @@ import { FavoritesListComponent } from '../../components/favorites-list/favorite
 import { FavoritesAddComponent } from '../../components/favorites-add/favorites-add.component';
 import { ValidationWrapperComponent } from '../../legacy/formly/wrappers/validation-wrapper/validation-wrapper.component';
 import { ExpansionPanelWrapperComponent } from '../../legacy/formly/wrappers/expansion-panel-wrapper/expansion-panel.wrapper';
-import { defaultAppearanceExtension, defaultPlaceholderExtension } from '../../utils/formly-extensions';
+import { defaultAppearanceExtension, defaultPlaceholderExtension, headlessFieldArrayExtension } from '../../utils/formly-extensions';
 
 export const PathogenFormlyConfig: ConfigOption = {
   types: [
@@ -64,6 +64,10 @@ export const PathogenFormlyConfig: ConfigOption = {
   ],
   validationMessages: [...DATEPICKER_VALIDATION_MESSAGES, { name: 'required', message: 'Diese Angabe wird benötigt' }],
   extensions: [
+    {
+      name: 'headless-field-array',
+      extension: headlessFieldArrayExtension,
+    },
     {
       name: 'default-placeholder',
       extension: defaultPlaceholderExtension,

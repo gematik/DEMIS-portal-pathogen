@@ -19,7 +19,6 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatDrawer, MatDrawerContainer, MatDrawerContent } from '@angular/material/sidenav';
 import { FormsFooterComponent, PasteBoxComponent, SectionHeaderComponent } from '@gematik/demis-portal-core-library';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { environment } from 'src/environments/environment';
 import { HexhexbuttonComponent } from '../../legacy/components/hexhexbutton/hexhexbutton.component';
 import { PathogenNotificationComponent } from '../../pathogen-notification.component';
 import { SideNavigationStepperComponent } from '../side-navigation-stepper/side-navigation-stepper.component';
@@ -57,10 +56,6 @@ export class SideNavigationWrapperComponent {
 
   constructor() {
     this.notificationType.set(getNotificationTypeByRouterUrl(this.router.url));
-  }
-
-  public get FEATURE_FLAG_FOOTER_LINKS_CORRECTION(): boolean {
-    return environment.featureFlags?.FEATURE_FLAG_FOOTER_LINKS_CORRECTION ?? false;
   }
 
   async handlePasteBoxClick(clipboardData?: Map<string, string>): Promise<void> {

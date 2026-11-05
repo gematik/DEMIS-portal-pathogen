@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { describe, expect, it } from 'vitest';
 import { DateFormatPipe } from './date-format.pipe';
 
 describe('DateFormatPipe', () => {

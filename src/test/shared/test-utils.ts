@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { expect } from 'vitest';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { getHtmlButtonElement } from './html-element-utils';
@@ -28,21 +29,21 @@ import { PathogenNotificationComponent } from '../../app/pathogen-notification/p
 import { ADDRESS_TYPE_PRIMARYASCURRENT, ADDRESS_TYPE_SUBMITTING_FACILITY } from './test-constants';
 
 export async function checkDescribingError(fixture: ComponentFixture<any>, input: MatInputHarness | MatAutocompleteHarness, expectedResult: string) {
-  fixture.detectChanges();
+  await waitForStability(fixture);
   const describedby = await (await input.host()).getAttribute('aria-describedby');
-  expect(describedby).withContext('input should have a describedby attribute').toBeTruthy();
+  expect(describedby, 'input should have a describedby attribute').toBeTruthy();
   const describedbyIds = (describedby ?? '').split(/\s+/).filter(Boolean);
   const errorElement = describedbyIds.map(id => fixture.nativeElement.querySelector(`mat-error#${id}`)).find(el => !!el) ?? null;
-  expect(errorElement).withContext('error element should be present').toBeTruthy();
+  expect(errorElement, 'error element should be present').toBeTruthy();
   //error is generally displayed in the formly-validation-message component
   // but in some cases it is displayed directly in the mat-error element
   if (errorElement.textContent) {
-    expect(errorElement.textContent).withContext('expected message found directly inside mat-error').toContain(expectedResult);
+    expect(errorElement.textContent, 'expected message found directly inside mat-error').toContain(expectedResult);
     return;
   }
   const formlyError = errorElement.querySelector('formly-validation-message');
-  expect(formlyError).withContext('formly-validation-message should be present').toBeTruthy();
-  expect(formlyError.textContent).withContext('expected message inside formly-validation-message').toContain(expectedResult);
+  expect(formlyError, 'formly-validation-message should be present').toBeTruthy();
+  expect(formlyError.textContent, 'expected message inside formly-validation-message').toContain(expectedResult);
 }
 
 export async function clickAddSpecimenButton(fixture: ComponentFixture<any>) {
@@ -130,7 +131,13 @@ export async function verifyRadioButton(
   expect(await radioButton.getCheckedValue()).toBe(field.expectedValue);
 }
 
-export async function setTextFieldValuesFor(parameters: { field: string; value: string }[], loader) {
+export async function setTextFieldValuesFor(
+  parameters: {
+    field: string;
+    value: string;
+  }[],
+  loader
+) {
   for (const { field, value } of parameters) {
     const input = await getInput(loader, `#${field}`);
     await input.setValue(value);
@@ -168,7 +175,7 @@ export async function selectPageByNumber(loader: HarnessLoader, fixture: Compone
   const stepper = await getStepper(loader);
   const steps = await stepper.getSteps();
   await steps[number].select();
-  await expectAsync(steps[number].isSelected()).toBeResolvedTo(true);
+  await expect(steps[number].isSelected()).resolves.toEqual(true);
 }
 
 export async function switchToPage(pageNumber: number, fixture: ComponentFixture<any>) {
@@ -187,6 +194,7 @@ export function createClipboardStringFromObject(
   return (
     start +
     Object.values(myObject)
+      .filter(property => property?.clipboardDataKey)
       .map(property => `${property.clipboardDataKey}=${property.clipboardValue}`)
       .join('&')
   );

@@ -1,0 +1,15 @@
+<app-notification-step-form
+  [title]="PathogenConstants.DIAGNOSTIK"
+  [group]="notificationService.pathogenDTOGroup"
+  [model]="notificationService.pathogenModel()"
+  [fields]="fieldConfig()"
+  sectionId="pathogen-diagnostic-section-header"
+  headlineId="pathogen-diagnostic-headline" />
+
+<ng-template #actionsLeft>
+  <app-notification-step-actions side="left" />
+</ng-template>
+
+<ng-template #actionsRight>
+  <app-notification-step-actions side="right" [showNext]="false" />
+</ng-template>

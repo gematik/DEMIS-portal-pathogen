@@ -107,7 +107,7 @@ npm run build
 
 ### Tests
 
-From the IDE, if you are using JetBrains ones, you can run the tests by downloading the [Karma Plugin](https://plugins.jetbrains.com/plugin/7287-karma).
+In JetBrains IDEs, navigate to Settings > Languages & Frameworks > JavaScript > Vitest and disable Vite configuration detection. Then, under Run/Debug Configurations, add a new Vitest configuration with the vitest package path set to node_modules/vitest.
 
 You can run all unit tests once with the following command:
 
@@ -115,10 +115,13 @@ You can run all unit tests once with the following command:
 npm test
 ```
 
-Tests can be run in headless mode as well. They can even be run in the Docker Development environment. All you need is to run the tests as follows:
-
+For local testing, you can use the following commands to run tests in a headless or browser mode:
 ```sh
-ng test --browsers ChromeHeadless
+npm run test-local
+```
+or
+```sh
+npm run test-local-browser
 ```
 
 ### Creating Docker Image

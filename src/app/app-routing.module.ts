@@ -18,29 +18,29 @@
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { PathogenNotificationComponent } from './pathogen-notification/pathogen-notification.component';
 import { allowedRoutes } from './pathogen-notification/common/routing-helper';
+import { WrapperComponent } from './wrapper/wrapper.component';
 
 const routes: Routes = [
   {
     path: allowedRoutes.nominal,
-    component: PathogenNotificationComponent,
+    component: WrapperComponent,
   },
   {
     path: allowedRoutes.followUp,
-    component: PathogenNotificationComponent,
+    component: WrapperComponent,
   },
   {
     path: allowedRoutes.nonNominal,
-    component: PathogenNotificationComponent,
+    component: WrapperComponent,
   },
   {
     path: allowedRoutes.anonymous,
-    component: PathogenNotificationComponent,
+    component: WrapperComponent,
   },
   {
     path: '**',
-    component: PathogenNotificationComponent,
+    component: WrapperComponent,
   },
 ];
 

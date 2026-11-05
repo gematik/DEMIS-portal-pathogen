@@ -31,6 +31,7 @@ import { practitionerInfoFormConfigFields } from './practitioner-info.config';
 import { oneTimeCodeConfigField } from './oneTimeCode.config';
 import { tap } from 'rxjs/operators';
 import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
+import { isCoreSidenavEnabled } from '../../../../utils/pathogen-notification-mapper';
 
 export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDisplay[], needsContact = true): FormlyFieldConfig[] => {
   return [
@@ -61,6 +62,10 @@ export const notifierFacilityFormConfigFieldsFull = (countryCodeDisplays: CodeDi
   ];
 };
 
+export const notifierFacilityFormConfigFieldsFullNew = (countryCodeDisplays: CodeDisplay[], needsContact = true): FormlyFieldConfig[] => {
+  return notifierFacilityFormConfigFields(countryCodeDisplays).concat(contactsFormConfigFields(needsContact));
+};
+
 export const notifierFacilityFormConfigFields = (countryCodeDisplays: CodeDisplay[]): FormlyFieldConfig[] => {
   return [
     {
@@ -83,7 +88,9 @@ export const notifierFacilityFormConfigFields = (countryCodeDisplays: CodeDispla
             label: 'Name der Einrichtung',
             required: true,
             change: field => {
-              updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled(field);
+              if (!isCoreSidenavEnabled()) {
+                updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled(field);
+              }
             },
           },
           validators: ['nonBlankValidator', 'textValidator'],
@@ -102,7 +109,9 @@ export const notifierFacilityFormConfigFields = (countryCodeDisplays: CodeDispla
       fieldGroup: addressFormConfigFields(countryCodeDisplays, true, false, '', true),
       hooks: {
         onInit: field => {
-          return updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled(field, true);
+          if (!isCoreSidenavEnabled()) {
+            updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled(field, true);
+          }
         },
       },
     },

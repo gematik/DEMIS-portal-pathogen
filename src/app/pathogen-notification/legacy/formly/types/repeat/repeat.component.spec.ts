@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { RepeatComponent } from './repeat.component';
@@ -40,12 +41,12 @@ describe('RepeatComponent', () => {
     },
   };
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule, RepeatComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(RepeatComponent);
@@ -84,6 +85,6 @@ describe('RepeatComponent', () => {
 
   it('should identify lonely fields correctly', () => {
     const formlyField = { parent: { model: [1] } } as any;
-    expect(component.isLonely(formlyField)).toBeTrue();
+    expect(component.isLonely(formlyField)).toBe(true);
   });
 });

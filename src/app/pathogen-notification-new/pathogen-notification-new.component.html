@@ -1,0 +1,11 @@
+<gem-demis-max-height-content-container [elementSelectorsToSubtract]="['app-navbar']">
+  <gem-demis-side-navigation #sideNav [sideNavTitle]="headingTitle()" [stepsMap]="stepsMap()">
+    <ng-template #sideNavSubtitle>
+      <p>{{ headingDescription() }}</p>
+    </ng-template>
+    <ng-template #additionalSideNavActions>
+      <!--      <app-hexhexbutton (pasteClicked)="handleHexHexChange()" />-->
+      <!--      <gem-demis-paste-box (dataPasted)="onClipboardDataPasted($event)" />-->
+    </ng-template>
+  </gem-demis-side-navigation>
+</gem-demis-max-height-content-container>

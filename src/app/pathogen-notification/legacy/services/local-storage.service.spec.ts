@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { MockBuilder } from 'ng-mocks';
 import { LocalStorageService } from './local-storage.service';
@@ -33,10 +34,10 @@ describe('LocalStorageService', () => {
     localStorage.clear();
 
     // Spies for localStorage methods
-    spyOn(localStorage, 'getItem').and.callThrough();
-    spyOn(localStorage, 'setItem').and.callThrough();
-    spyOn(localStorage, 'removeItem').and.callThrough();
-    spyOn(localStorage, 'clear').and.callThrough();
+    vi.spyOn(localStorage, 'getItem');
+    vi.spyOn(localStorage, 'setItem');
+    vi.spyOn(localStorage, 'removeItem');
+    vi.spyOn(localStorage, 'clear');
   });
 
   afterEach(() => {
@@ -68,7 +69,9 @@ describe('LocalStorageService', () => {
       const value = { data: 'testValue' };
       localStorage.setItem(key, JSON.stringify(value));
 
-      const result = service.getItem<{ data: string }>(key);
+      const result = service.getItem<{
+        data: string;
+      }>(key);
       expect(result).toEqual(value);
       expect(localStorage.getItem).toHaveBeenCalledWith(key);
     });
@@ -147,13 +150,13 @@ describe('LocalStorageService', () => {
     it('should return true for equal objects', () => {
       const obj1 = { a: 1, b: { c: 2 } };
       const obj2 = { a: 1, b: { c: 2 } };
-      expect(service.deepEqual(obj1, obj2)).toBeTrue();
+      expect(service.deepEqual(obj1, obj2)).toBe(true);
     });
 
     it('should return false for different objects', () => {
       const obj1 = { a: 1 };
       const obj2 = { a: 2 };
-      expect(service.deepEqual(obj1, obj2)).toBeFalse();
+      expect(service.deepEqual(obj1, obj2)).toBe(false);
     });
   });
 

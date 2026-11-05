@@ -17,16 +17,51 @@
 
 import { CodeDisplay, NotificationLaboratoryCategory, SpecimenDTO } from '../../../api/notification';
 import { selectNotificationCategoryFields } from '../formly/configs/pathogen/select-notification-category.config';
-import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable } from '../legacy/common-utils';
+import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, mapCodeDisplaysToOptionList } from '../legacy/common-utils';
 import { environment } from '../../../environments/environment';
 import { FormGroup } from '@angular/forms';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { NotificationType } from '../common/routing-helper';
+import { notifiedPersonAnonymousConfigFields, notifiedPersonNotByNameConfigFields } from '@gematik/demis-portal-core-library';
+import { GENDER_OPTION_LIST } from '../legacy/formly-options-lists';
+import { NotifiedPersonDisclaimer } from './disclaimer-texts';
+import { notifiedPersonFormConfigFields } from '../legacy/formly/configs/reusable/notified-person.config';
+
+export function initializeNotifiedPersonFields(notificationType: NotificationType, countryCodeDisplays: CodeDisplay[]): FormlyFieldConfig[] {
+  switch (notificationType) {
+    case NotificationType.FollowUpNotification7_1:
+      return notifiedPersonAnonymousConfigFields(
+        mapCodeDisplaysToOptionList(countryCodeDisplays),
+        GENDER_OPTION_LIST,
+        NotifiedPersonDisclaimer.FOLLOW_UP_DISCLAIMER
+      );
+    case NotificationType.FollowUpNotification7_3:
+      return notifiedPersonAnonymousConfigFields(
+        mapCodeDisplaysToOptionList(countryCodeDisplays),
+        GENDER_OPTION_LIST,
+        NotifiedPersonDisclaimer.FOLLOW_UP_NONNOMINAL_DISCLAIMER
+      );
+    case NotificationType.AnonymousNotification7_3:
+      return notifiedPersonAnonymousConfigFields(
+        mapCodeDisplaysToOptionList(countryCodeDisplays),
+        GENDER_OPTION_LIST,
+        NotifiedPersonDisclaimer.ANONYMOUS_DISCLAIMER
+      );
+    case NotificationType.NonNominalNotification7_3:
+      return notifiedPersonNotByNameConfigFields(
+        mapCodeDisplaysToOptionList(countryCodeDisplays),
+        GENDER_OPTION_LIST,
+        NotifiedPersonDisclaimer.NON_NOMINAL_DISCLAIMER
+      );
+    default:
+      return notifiedPersonFormConfigFields(countryCodeDisplays);
+  }
+}
 
 export const isNonNominalNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_NON_NOMINAL_NOTIFICATION;
 export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_ANONYMOUS_NOTIFICATION;
 export const isFollowUpNonNominalEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_7_3 && isNonNominalNotificationEnabled();
-export const isFilterableSelectSubpathogenEnabled = () => environment.featureFlags?.FEATURE_FLAG_FILTERABLE_SELECT_SUBPATHOGEN;
+export const isCoreSidenavEnabled = () => environment.featureFlags?.FEATURE_FLAG_CORE_SIDENAV;
 
 export const isNonNominalNotification = (notificationType: NotificationType) => {
   return (
@@ -47,9 +82,10 @@ export const isFollowUpNotification = (notificationType: NotificationType) =>
 export const initializeSelectPathogenFields = (
   federalStateCodeDisplays: CodeDisplay[],
   pathogenCodeDisplays: CodeDisplay[],
-  notificationType: NotificationType
+  notificationType: NotificationType,
+  selectPathogen?: (pathogen: CodeDisplay) => void
 ) => {
-  return selectNotificationCategoryFields(federalStateCodeDisplays, pathogenCodeDisplays.map(formatCodeDisplayToDisplay), [], notificationType);
+  return selectNotificationCategoryFields(federalStateCodeDisplays, pathogenCodeDisplays.map(formatCodeDisplayToDisplay), [], notificationType, selectPathogen);
 };
 
 export const initializeDiagnosticFields = (selectedFederalStateCode: string, model: any) => {

@@ -15,9 +15,10 @@
     find details in the "Readme" file.
  */
 
-import { EventEmitter, Injectable, inject } from '@angular/core';
+import { EventEmitter, inject, Injectable } from '@angular/core';
 import { CodeDisplay, NotifierFacility } from '../../../api/notification';
 import { LocalStorageService } from '../legacy/services/local-storage.service';
+import { NotifierFacilityFormModel } from '../legacy/models/pathogen-form-model';
 
 @Injectable({
   providedIn: 'root',
@@ -58,7 +59,16 @@ export class PathogenNotificationStorageService {
     this.localStorageService.setItem(this.NOTIFIER_FACILITY, notifierFacility);
   }
 
+  setNotifierFacilityModel(notifierFacility: NotifierFacilityFormModel): void {
+    this.localStorageService.setItem(this.NOTIFIER_FACILITY, notifierFacility);
+  }
+
   getNotifierFacility(): NotifierFacility {
+    return this.localStorageService.getItem(this.NOTIFIER_FACILITY);
+  }
+
+  // TODO can be replaced with getNotifierFacility with removal of FEATURE_FLAG_CORE_SIDENAV
+  getNotifierFacilityModel(): NotifierFacilityFormModel {
     return this.localStorageService.getItem(this.NOTIFIER_FACILITY);
   }
 
@@ -69,7 +79,7 @@ export class PathogenNotificationStorageService {
       typeof favorites === 'string' ||
       favorites === undefined ||
       !Array.isArray(favorites) ||
-      favorites.some(fav => typeof fav !== 'object' || !fav.code || !fav.display)
+      favorites.some(fav => fav === null || typeof fav !== 'object' || !fav.code || !fav.display)
     ) {
       this.updateFavorites([], isNonNominalNotification7_3);
       return [];

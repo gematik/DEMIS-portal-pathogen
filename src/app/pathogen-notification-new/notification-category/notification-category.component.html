@@ -1,0 +1,21 @@
+<div class="form-container" [attr.aria-busy]="isLoading()">
+  <app-notification-step-form
+    [title]="PathogenConstants.MELDETATBESTAND"
+    [group]="notificationService.notificationCategoryGroup"
+    [model]="notificationService.notificationCategoryModel()"
+    [fields]="fieldConfig()" />
+
+  @if (isLoading()) {
+    <div class="loading-overlay-category">
+      <mat-spinner class="loading-indicator" />
+    </div>
+  }
+</div>
+
+<ng-template #actionsLeft>
+  <app-notification-step-actions side="left" />
+</ng-template>
+
+<ng-template #actionsRight>
+  <app-notification-step-actions side="right" />
+</ng-template>

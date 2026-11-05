@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it } from 'vitest';
 import { buildMock, mainConfig, setupIntegrationTests } from './base';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -42,19 +43,19 @@ describe('Pathogen - Nonnominal Integration Tests', () => {
   });
 
   it('should create', () => {
-    expect(component).withContext('PathogenNotificationComponent could not be created').toBeTruthy();
+    expect(component, 'PathogenNotificationComponent could not be created').toBeTruthy();
   });
 
   it('should show 7.3 header', () => {
     const textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('§ 7 Abs. 3 IfSG')).toBeTrue();
-    expect(textContent.includes('Erregernachweis (§ 7 Abs. 1 IfSG)')).toBeFalse();
+    expect(textContent.includes('§ 7 Abs. 3 IfSG')).toBe(true);
+    expect(textContent.includes('Erregernachweis (§ 7 Abs. 1 IfSG)')).toBe(false);
   });
 
   it('should show favorites', async () => {
     await switchToPage(4, fixture);
     const textContent = fixture.nativeElement.textContent;
-    expect(textContent.includes('Favoriten')).toBeTrue();
+    expect(textContent.includes('Favoriten')).toBe(true);
   });
 
   it('should not show federalState select', async () => {
@@ -62,8 +63,8 @@ describe('Pathogen - Nonnominal Integration Tests', () => {
     const federalStateSelect = fixture.nativeElement.querySelector('[id="federalStateCodeDisplay"]');
     const pathogenDisplaySelect = fixture.nativeElement.querySelector('[id="pathogenDisplay"]');
 
-    expect(federalStateSelect).withContext('federalStateSelect should not be present but was found').toBeNull();
-    expect(pathogenDisplaySelect).withContext('pathogenDisplaySelect could not be found').toBeTruthy();
+    expect(federalStateSelect, 'federalStateSelect should not be present but was found').toBeNull();
+    expect(pathogenDisplaySelect, 'pathogenDisplaySelect could not be found').toBeTruthy();
   });
 
   it('should show the default disclaimer text on notified person page', async () => {

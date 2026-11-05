@@ -1,0 +1,6 @@
+<div [id]="sectionId()">
+  <gem-demis-section-header [id]="headlineId()" [level]="1" [titleText]="title()" />
+</div>
+<form [formGroup]="group()">
+  <formly-form [form]="group()" [model]="model()" [fields]="fields()" (modelChange)="modelChanged.emit()" />
+</form>

@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatSelectHarness } from '@angular/material/select/testing';
@@ -76,6 +77,7 @@ import {
   verifyRadioButton,
   verifySelectField,
   verifyStateOfDiagnosticPage,
+  waitForStability,
 } from '../shared/test-utils';
 import { buildMock, mainConfig, setupIntegrationTests } from './base';
 
@@ -91,7 +93,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(await radioGroup.getCheckedValue()).toBe(isCurrent ? null : ADDRESS_TYPE_PRIMARY);
 
         const p = lastValueFrom(of(`URL ${isCurrent ? CLIPBOARD_KEY_CURRENT_TYPE : CLIPBOARD_KEY_RESIDENCE_TYPE}=${addressType}&${key}=${value}`));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
 
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
 
@@ -112,7 +114,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         ...mainConfig.featureFlags,
       },
     });
-    spyOn(window.navigator.clipboard, 'writeText');
+    vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue(undefined);
 
     fixture = result.fixture;
     setSelectedPathogenCodeDisplay(null);
@@ -126,7 +128,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       const notifierTestFacility = TEST_FACILITY('notifier');
       const clipboardString = createClipboardStringFromObject(notifierTestFacility, 'URL ');
       const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
       fixture.detectChanges();
       await verifyInputFieldValues(loader, [
@@ -143,7 +145,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       const submittingTestFacility = TEST_FACILITY('submitter');
       const clipboardString = createClipboardStringFromObject(submittingTestFacility, 'URL ');
       const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
       fixture.detectChanges();
       await clickNextButton(fixture);
@@ -166,7 +168,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
       it('should cause error for invalid salutation', async () => {
         const p = lastValueFrom(of('URL S.salutation=W'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
 
@@ -175,18 +177,18 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
       it('should set valid female value from clipboard', async () => {
         const p = lastValueFrom(of('URL S.salutation=Mrs'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-        fixture.detectChanges();
+        await waitForStability(fixture);
 
         expect(await salutationSelect.getValueText()).toBe('Frau');
       });
 
       it('should set valid none value from clipboard', async () => {
         const p = lastValueFrom(of('URL S.salutation=None'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-        fixture.detectChanges();
+        await waitForStability(fixture);
 
         expect(await salutationSelect.getValueText()).toBe('Keine Anrede');
       });
@@ -195,7 +197,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
     describe('test checkbox behavior', () => {
       const mockClipboard = async (clipboardData: string) => {
         const p = lastValueFrom(of(clipboardData));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       };
 
       const checkCheckboxAndAssertDisabled = async (checkboxSelector: string, inputSelector: string) => {
@@ -251,7 +253,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
     it('should fill all values of notified person', async () => {
       const clipboardString = createClipboardStringFromObject(TEST_NOTIFIED_PERSON, 'URL ');
       const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
       fixture.detectChanges();
       await verifyInputFieldValues(loader, [
@@ -269,7 +271,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(selectedGender).toBe('Bitte auswählen');
 
         const p = lastValueFrom(of('URL P.gender=W'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
 
@@ -282,9 +284,9 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(selectedGender).toBe('Bitte auswählen');
 
         const p = lastValueFrom(of('URL P.gender=FEMALE'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-        fixture.detectChanges();
+        await waitForStability(fixture);
 
         expect(await genderSelect.getValueText()).toBe('Weiblich');
       });
@@ -307,7 +309,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(await streetInput.getValue()).toBe(CLIPBOARD_VALUE_STREET);
 
         const p = lastValueFrom(of('URL P.r.type=ordinary'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
         fixture.detectChanges();
 
@@ -317,7 +319,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       it('should insert all fields for ordinary', async () => {
         const clipboardString = buildClipboardString(TEST_PARAMETER_CLIPBOARD_RESIDENCE_ADDRESS_FULL);
         const p = lastValueFrom(of(clipboardString));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
 
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
 
@@ -358,7 +360,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         const radioGroup = await getRadioGroup(loader, '#currentAddressType');
         expect(await radioGroup.getCheckedValue()).toBe(null);
         const p = lastValueFrom(of(`URL P.c.type=${ADDRESS_TYPE_PRIMARYASCURRENT}`));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
 
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
 
@@ -370,6 +372,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         const radioGroup = await getRadioGroup(loader, '#currentAddressType');
         await selectRadioOption(radioGroup, 'andere Einrichtung / Unterkunft');
         expect(await radioGroup.getCheckedValue()).toBe(ADDRESS_TYPE_OTHER_FACILITY);
+        await waitForStability(fixture, 100);
 
         const streetInput = await getInput(loader, `#${FIELD_CURRENT_ADDRESS_STREET}`);
         await streetInput.setValue(CLIPBOARD_VALUE_STREET);
@@ -377,11 +380,12 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(await streetInput.getValue()).toBe(CLIPBOARD_VALUE_STREET);
 
         const p = lastValueFrom(of('URL P.c.type=current'));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-        fixture.detectChanges();
+        await waitForStability(fixture, 100);
 
-        expect(await streetInput.getValue()).toBe(VALUE_EMPTY);
+        const resetStreetInput = await getInput(loader, `#${FIELD_CURRENT_ADDRESS_STREET}`);
+        expect(await resetStreetInput.getValue()).toBe(VALUE_EMPTY);
       });
 
       it('should not select type submittingFacility when submittingFacility is empty', async () => {
@@ -389,10 +393,10 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(await radioGroup.getCheckedValue()).toBe(null);
 
         const p = lastValueFrom(of(`URL P.c.type=${ADDRESS_TYPE_SUBMITTING_FACILITY}`));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
 
-        fixture.detectChanges();
+        await waitForStability(fixture);
 
         const documentRootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
         const dialog = await getDialog(documentRootLoader, '.mat-mdc-dialog-container');
@@ -403,6 +407,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(title).toMatch(/Fehler bei der Auswahl der Adresse/);
 
         await (await getButton(documentRootLoader, '#close-btn')).click();
+        await waitForStability(fixture);
         expect(await radioGroup.getCheckedValue()).toBe(null);
       });
 
@@ -411,7 +416,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         expect(await radioGroup.getCheckedValue()).toBe(null);
         const clipboardString = buildClipboardString(TEST_PARAMETER_CLIPBOARD_CURRENT_ADDRESS_FULL);
         const p = lastValueFrom(of(clipboardString));
-        spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
 
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
 
@@ -458,15 +463,16 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         const clipboardStringNotificationCategory = createClipboardStringFromObject(TEST_NOTIFICATION_CATEGORY, 'URL ');
         const clipboardStringSpecimen = createClipboardStringFromObject(specimenDTO, '&');
         const clipboardData = clipboardStringNotificationCategory.concat(clipboardStringSpecimen).replace('undefined=undefined&', '');
-        spyOn(window.navigator.clipboard, 'readText').and.resolveTo(clipboardData);
+        vi.spyOn(window.navigator.clipboard, 'readText').mockResolvedValue(clipboardData);
         await verifyStateOfDiagnosticPage(loader, 'disabled_step');
         // set code for influenzavirus due to local storage issue
         setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);
 
         // click Datenübernahme button and switch to page Meldetatbestand
         await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
+        await waitForStability(fixture);
         await switchToPage(4, fixture);
-        fixture.detectChanges();
+        await waitForStability(fixture);
         // assert that page 4 (notificationCategory) has the correct values from clipboard
         await verifySelectField(loader, {
           expectedValue: TEST_NOTIFICATION_CATEGORY.federalStateCodeDisplay.value,
@@ -535,7 +541,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
       // overwrite material with clipboard data
       const p = lastValueFrom(of('URL T.material=123038009'));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
       fixture.detectChanges();
       // assert that material was overwritten with clipboard data
@@ -555,7 +561,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
       // insert empty material via clipboard
       const p = lastValueFrom(of('URL T.material='));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
       fixture.detectChanges();
 
@@ -569,16 +575,19 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       const clipboardStringNotificationCategory = createClipboardStringFromObject(TEST_NOTIFICATION_CATEGORY, 'URL ');
       const clipboardStringSpecimen = createClipboardStringFromObject(specimenDTO, '&');
       const p = lastValueFrom(of(clipboardStringNotificationCategory.concat(clipboardStringSpecimen)));
-      spyOn(window.navigator.clipboard, 'readText').and.returnValue(p);
+      vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
 
       // set code for influenzavirus due to local storage issue
       setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
+      await waitForStability(fixture);
       await switchToPage(4, fixture);
-      fixture.detectChanges();
+      await waitForStability(fixture);
       await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, 'Bornaviren', fixture);
+      await waitForStability(fixture);
       // bug: switches back to page 1 without given reason
       await switchToPage(4, fixture);
+      await waitForStability(fixture);
 
       const pathogenDisplay = await getAutocomplete(loader, `#${FIELD_PATHOGEN_DISPLAY}`);
       expect(await pathogenDisplay.getValue()).toBe('Bornaviren');

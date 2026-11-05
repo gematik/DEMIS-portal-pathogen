@@ -49,6 +49,7 @@ export const pathogenSpecimenFields = (
         {
           key: 'favoritePathogen',
           type: 'demis-favorites-add-list',
+          props: { notificationType },
           expressions: { hide: () => isFollowUpNotification(notificationType) },
         },
       ],

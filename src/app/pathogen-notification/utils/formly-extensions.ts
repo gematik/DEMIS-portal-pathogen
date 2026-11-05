@@ -15,8 +15,28 @@
     find details in the "Readme" file.
  */
 
-import { FormlyExtension } from '@ngx-formly/core';
+import { FieldArrayType, FieldArrayTypeConfig, FormlyExtension } from '@ngx-formly/core';
 import { VALUE_DEFUALT_SELECT_PLACEHOLDER } from '../legacy/common-utils';
+
+class HeadlessFieldArrayType extends FieldArrayType {}
+
+/**
+ * Formly cannot resolve array component hooks without a view container.
+ * Reuse its array population logic so prebuilt forms validate repeat entries.
+ * Necessary for validation of telephone + email address repeaters in contacts form section
+ * before first initialization of form page.
+ */
+export const headlessFieldArrayExtension: FormlyExtension = {
+  onPopulate(field): void {
+    if (field.fieldArray && !field.formControl) {
+      new HeadlessFieldArrayType().onPopulate(field as FieldArrayTypeConfig);
+      field.fieldGroup.forEach((child, index) => {
+        Object.defineProperty(child, 'parent', { get: () => field, configurable: true });
+        Object.defineProperty(child, 'index', { get: () => index, configurable: true });
+      });
+    }
+  },
+};
 
 export const defaultPlaceholderExtension: FormlyExtension = {
   prePopulate(field): void {

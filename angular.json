@@ -99,18 +99,9 @@
           }
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": ["zone.js", "zone.js/testing"],
-            "tsConfig": "tsconfig.spec.json",
-            "preserveSymlinks": true,
-            "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
-            "scripts": [],
-            "codeCoverage": true,
-            "codeCoverageExclude": ["src/test/**/*"],
-            "watch": false
+            "browsers": ["chromium"]
           }
         },
         "lint": {

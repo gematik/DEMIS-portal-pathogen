@@ -15,6 +15,7 @@
     find details in the "Readme" file.
  */
 
+import { expect, type MockedObject, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -34,8 +35,10 @@ describe('FhirPathogenNotificationService', () => {
   let httpMock: HttpTestingController;
   let logger: NGXLogger;
   let errorDialogService: ErrorDialogService;
-  let messageDialogService: jasmine.SpyObj<MessageDialogService>;
-  let fileService: jasmine.SpyObj<FileService>;
+  let messageDialogService: MockedObject<
+    Pick<MessageDialogService, 'showSpinnerDialog' | 'closeSpinnerDialog' | 'showSubmitDialog' | 'showErrorDialog' | 'extractMessageFromError'>
+  >;
+  let fileService: MockedObject<Pick<FileService, 'getFileNameByNotificationType'>>;
 
   beforeEach(async () => {
     environment.pathogenConfig = {
@@ -67,14 +70,16 @@ describe('FhirPathogenNotificationService', () => {
   });
 
   beforeEach(() => {
-    messageDialogService = jasmine.createSpyObj<MessageDialogService>('MessageDialogService', [
-      'showSpinnerDialog',
-      'closeSpinnerDialog',
-      'showSubmitDialog',
-      'showErrorDialog',
-      'extractMessageFromError',
-    ]);
-    fileService = jasmine.createSpyObj<FileService>('FileService', ['getFileNameByNotificationType']);
+    messageDialogService = {
+      showSpinnerDialog: vi.fn().mockName('MessageDialogService.showSpinnerDialog'),
+      closeSpinnerDialog: vi.fn().mockName('MessageDialogService.closeSpinnerDialog'),
+      showSubmitDialog: vi.fn().mockName('MessageDialogService.showSubmitDialog'),
+      showErrorDialog: vi.fn().mockName('MessageDialogService.showErrorDialog'),
+      extractMessageFromError: vi.fn().mockName('MessageDialogService.extractMessageFromError'),
+    };
+    fileService = {
+      getFileNameByNotificationType: vi.fn().mockName('FileService.getFileNameByNotificationType'),
+    };
 
     TestBed.configureTestingModule({
       imports: [MatDialogModule],
@@ -101,8 +106,8 @@ describe('FhirPathogenNotificationService', () => {
 
   it('should handle error when fetching diagnostics based on pathogen selection', () => {
     const pathogenCode = '12345';
-    spyOn(logger, 'error');
-    spyOn(errorDialogService, 'showBasicClosableErrorDialog');
+    vi.spyOn(logger, 'error');
+    vi.spyOn(errorDialogService, 'showBasicClosableErrorDialog');
 
     service.fetchDiagnosticsBasedOnPathogenSelection(pathogenCode, NotificationType.NominalNotification7_1).subscribe({
       error: err => {
@@ -120,8 +125,8 @@ describe('FhirPathogenNotificationService', () => {
   describe('fetchPathogenCodeDisplaysByTypeAndState', () => {
     it('should handle error when fetching pathogen code displays for federal state', () => {
       const federalStateCode = 'AB-CD';
-      spyOn(logger, 'error');
-      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+      vi.spyOn(logger, 'error');
+      vi.spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchPathogenCodeDisplaysByTypeAndState(NotificationType.NominalNotification7_1, federalStateCode).subscribe({
         error: err => {
@@ -137,8 +142,8 @@ describe('FhirPathogenNotificationService', () => {
     });
 
     it('should handle error when fetching pathogen code displays for federal state', () => {
-      spyOn(logger, 'error');
-      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+      vi.spyOn(logger, 'error');
+      vi.spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchFederalStateCodeDisplays(NotificationType.NominalNotification7_1).subscribe({
         error: err => {
@@ -155,8 +160,8 @@ describe('FhirPathogenNotificationService', () => {
   });
 
   it('should handle error when fetching country code displays', () => {
-    spyOn(logger, 'error');
-    spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+    vi.spyOn(logger, 'error');
+    vi.spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
     service.fetchCountryCodeDisplays().subscribe({
       error: err => {
@@ -204,13 +209,13 @@ describe('FhirPathogenNotificationService', () => {
       submittingFacility: {},
     } as any;
 
-    spyOn<any>(service, 'removeUnusedFormlyFields').and.callThrough();
-    fileService.getFileNameByNotificationType.and.returnValue('notification.pdf');
+    fileService.getFileNameByNotificationType.mockReturnValue('notification.pdf');
 
     service.submitNotification(mockNotification, NotificationType.NominalNotification7_1);
 
     const req = httpMock.expectOne(`${environment.pathToGateway}${environment.pathToPathogen_7_1}`);
     expect(req.request.method).toBe('POST');
+    expect(JSON.parse(req.request.body)).toEqual(notificationWithRemovedFields);
     req.flush({
       authorEmail: 'test@example.com',
       content: 'YmFzZTY0Y29udGVudA==',
@@ -218,7 +223,6 @@ describe('FhirPathogenNotificationService', () => {
       timestamp: '2025-03-03T12:00:00Z',
     });
 
-    expect(service['removeUnusedFormlyFields'] as any).toHaveBeenCalledWith(notificationWithRemovedFields);
     expect(messageDialogService.showSubmitDialog).toHaveBeenCalled();
   });
   describe('submitNotification', () => {
@@ -239,8 +243,8 @@ describe('FhirPathogenNotificationService', () => {
           timestamp: '2025-03-03T12:00:00Z',
         };
 
-        spyOn<any>(service, 'getNotificationUrl').and.returnValue(mockUrl);
-        fileService.getFileNameByNotificationType.and.returnValue('notification.pdf');
+        vi.spyOn(service, 'getNotificationUrl').mockReturnValue(mockUrl);
+        fileService.getFileNameByNotificationType.mockReturnValue('notification.pdf');
 
         service.submitNotification(mockNotification, type);
 
@@ -251,10 +255,10 @@ describe('FhirPathogenNotificationService', () => {
         expect(messageDialogService.showSpinnerDialog).toHaveBeenCalled();
         expect(messageDialogService.closeSpinnerDialog).toHaveBeenCalled();
 
-        expect(fileService.getFileNameByNotificationType).toHaveBeenCalledWith(jasmine.any(Object), type, responseBody.notificationId);
+        expect(fileService.getFileNameByNotificationType).toHaveBeenCalledWith(expect.any(Object), type, responseBody.notificationId);
 
         expect(messageDialogService.showSubmitDialog).toHaveBeenCalled();
-        const submitArg = messageDialogService.showSubmitDialog.calls.mostRecent().args[0];
+        const submitArg = vi.mocked(messageDialogService.showSubmitDialog).mock.lastCall[0];
         expect(submitArg.authorEmail).toBe(responseBody.authorEmail);
         expect(submitArg.notificationId).toBe(responseBody.notificationId);
         expect(submitArg.timestamp).toBe(responseBody.timestamp);
@@ -262,7 +266,7 @@ describe('FhirPathogenNotificationService', () => {
 
         const expectedHrefPrefix = 'data:application/octet-stream;base64,';
         const expectedEncodedContent = encodeURIComponent(responseBody.content);
-        expect(submitArg.href.startsWith(expectedHrefPrefix)).toBeTrue();
+        expect(submitArg.href.startsWith(expectedHrefPrefix)).toBe(true);
         expect(submitArg.href).toContain(expectedEncodedContent);
       });
     });
@@ -270,8 +274,8 @@ describe('FhirPathogenNotificationService', () => {
     it('should handle backend validation errors properly', () => {
       const mockNotification = { notificationCategory: {}, submittingFacility: {} } as unknown as PathogenTest;
       const mockUrl = '/mock/submit/url';
-      spyOn<any>(service, 'getNotificationUrl').and.returnValue(mockUrl);
-      messageDialogService.extractMessageFromError.and.returnValue('should-not-be-used');
+      vi.spyOn(service, 'getNotificationUrl').mockReturnValue(mockUrl);
+      messageDialogService.extractMessageFromError.mockReturnValue('should-not-be-used');
 
       const validationErrors = [{ message: 'Error A' }, { message: 'Error B', severity: SeverityEnum.ERROR }];
 
@@ -285,7 +289,7 @@ describe('FhirPathogenNotificationService', () => {
       expect(messageDialogService.closeSpinnerDialog).toHaveBeenCalled();
 
       expect(messageDialogService.showErrorDialog).toHaveBeenCalled();
-      const errorArg = messageDialogService.showErrorDialog.calls.mostRecent().args[0];
+      const errorArg = vi.mocked(messageDialogService.showErrorDialog).mock.lastCall[0];
       expect(errorArg.errorTitle).toBe('Meldung konnte nicht zugestellt werden!');
       expect(errorArg.errors).toEqual([
         { text: 'Error A', queryString: 'Error A', severity: undefined },
@@ -296,8 +300,8 @@ describe('FhirPathogenNotificationService', () => {
     it('should handle generic error (no validationErrors) properly', () => {
       const mockNotification = { notificationCategory: {}, submittingFacility: {} } as unknown as PathogenTest;
       const mockUrl = '/mock/submit/url';
-      spyOn<any>(service, 'getNotificationUrl').and.returnValue(mockUrl);
-      messageDialogService.extractMessageFromError.and.returnValue('Generic failure');
+      vi.spyOn(service, 'getNotificationUrl').mockReturnValue(mockUrl);
+      messageDialogService.extractMessageFromError.mockReturnValue('Generic failure');
 
       service.submitNotification(mockNotification, NotificationType.NominalNotification7_1);
 
@@ -309,7 +313,7 @@ describe('FhirPathogenNotificationService', () => {
       expect(messageDialogService.closeSpinnerDialog).toHaveBeenCalled();
 
       expect(messageDialogService.showErrorDialog).toHaveBeenCalled();
-      const errorArg = messageDialogService.showErrorDialog.calls.mostRecent().args[0];
+      const errorArg = vi.mocked(messageDialogService.showErrorDialog).mock.lastCall[0];
       expect(errorArg.errorTitle).toBe('Meldung konnte nicht zugestellt werden!');
       expect(errorArg.errors).toEqual([{ text: 'Generic failure', queryString: 'Generic failure' }]);
     });
@@ -330,7 +334,7 @@ describe('FhirPathogenNotificationService', () => {
     });
 
     it('extractErrorDetails should fall back to extracted message when no validation errors', () => {
-      messageDialogService.extractMessageFromError.and.returnValue('Fallback message');
+      messageDialogService.extractMessageFromError.mockReturnValue('Fallback message');
       const err = { error: { any: 'thing' } };
       const result = (service as any).extractErrorDetails(err);
       expect(messageDialogService.extractMessageFromError).toHaveBeenCalled();
@@ -356,8 +360,8 @@ describe('FhirPathogenNotificationService', () => {
     });
 
     it('should handle error when fetching all pathogen code displays for §7.1', () => {
-      spyOn(logger, 'error');
-      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+      vi.spyOn(logger, 'error');
+      vi.spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchAllPathogenCodeDisplays('7.1').subscribe({
         error: err => {
@@ -368,9 +372,9 @@ describe('FhirPathogenNotificationService', () => {
       const req = httpMock.expectOne(`${environment.notificationCategories_7_1}`);
       req.flush('Error fetching §7.1 pathogen code displays', { status: 500, statusText: 'Server Error' });
 
-      expect(logger.error).toHaveBeenCalledWith('Error fetching §7.1 pathogen code displays', jasmine.any(Object));
+      expect(logger.error).toHaveBeenCalledWith('Error fetching §7.1 pathogen code displays', expect.any(Object));
       expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalledWith(
-        jasmine.any(Object),
+        expect.any(Object),
         '§7.1 Meldetatbestände konnten nicht abgerufen werden.'
       );
     });
@@ -395,8 +399,8 @@ describe('FhirPathogenNotificationService', () => {
 
     it('should handle error when fetching follow-up codes', () => {
       const notificationCategory = 'invp';
-      spyOn(logger, 'error');
-      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+      vi.spyOn(logger, 'error');
+      vi.spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchFollowUpCode(notificationCategory, NotificationType.FollowUpNotification7_1).subscribe({
         error: err => {
@@ -407,7 +411,7 @@ describe('FhirPathogenNotificationService', () => {
       const req = httpMock.expectOne(`${environment.pathToFuts}/laboratory/7.1/followup/${notificationCategory}`);
       req.flush('Error fetching follow-up codes', { status: 500, statusText: 'Server Error' });
 
-      expect(logger.error).toHaveBeenCalledWith('Error fetching follow up code', jasmine.any(Object));
+      expect(logger.error).toHaveBeenCalledWith('Error fetching follow up code', expect.any(Object));
       expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalledWith(
         'Diese Meldekategorie wird für diese Meldungsart nicht unterstützt. Bitte stellen Sie sicher, dass Sie auf eine Meldung nach § 7 Abs. 1 IfSG referenzieren.',
         'Fehler'
@@ -416,8 +420,8 @@ describe('FhirPathogenNotificationService', () => {
 
     it('should handle 404 error when follow-up codes are not available', () => {
       const notificationCategory = 'unknown-cat';
-      spyOn(logger, 'error');
-      spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
+      vi.spyOn(logger, 'error');
+      vi.spyOn(errorDialogService, 'showBasicErrorDialogWithRedirect');
 
       service.fetchFollowUpCode(notificationCategory, NotificationType.FollowUpNotification7_1).subscribe({
         error: err => {
@@ -428,7 +432,7 @@ describe('FhirPathogenNotificationService', () => {
       const req = httpMock.expectOne(`${environment.notificationCategory_FollowUp_7_1}${notificationCategory}`);
       req.flush('Not found', { status: 404, statusText: 'Not Found' });
 
-      expect(logger.error).toHaveBeenCalledWith('Error fetching follow up code', jasmine.any(Object));
+      expect(logger.error).toHaveBeenCalledWith('Error fetching follow up code', expect.any(Object));
       expect(errorDialogService.showBasicErrorDialogWithRedirect).toHaveBeenCalled();
     });
 

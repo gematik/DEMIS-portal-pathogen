@@ -17,7 +17,7 @@
 
 import { enableProdMode, importProvidersFrom, NgZone, provideZoneChangeDetection } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
-import { getSingleSpaExtraProviders, singleSpaAngular } from 'single-spa-angular';
+import { provideSingleSpaPlatform, singleSpaAngular } from 'single-spa-angular';
 import { singleSpaPropsSubject } from './single-spa/single-spa-props';
 import { AppProps } from 'single-spa';
 import { setPublicPath } from 'systemjs-webpack-interop';
@@ -56,7 +56,7 @@ const lifecycles = singleSpaAngular({
           useClass: AuthInterceptor,
           multi: true,
         },
-        getSingleSpaExtraProviders(),
+        provideSingleSpaPlatform(),
         provideHttpClient(withInterceptorsFromDi()),
         provideAnimations(),
         ClipboardDataService,
