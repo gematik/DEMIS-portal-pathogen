@@ -15,7 +15,7 @@
     find details in the "Readme" file.
  */
 
-import { getFhirPathogenNotificationService, getRouter, overrides } from '../shared/test-setup-utils';
+import { getFhirPathogenNotificationService, getRouter, overrides, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { MockBuilder, MockedComponentFixture, MockProvider, MockRender } from 'ng-mocks';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
@@ -26,9 +26,8 @@ import { environment } from '../../environments/environment';
 import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, enableProdMode } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
 import { FormWrapperComponent } from '../../app/pathogen-notification/components/form-wrapper/form-wrapper.component';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -41,14 +40,18 @@ import { MatStepperModule } from '@angular/material/stepper';
 import {
   FollowUpMixedCodesService,
   FollowUpNotificationIdService,
+  DeepMergeService,
+  LOGGER_CONFIG_FOR_DEV,
   MaxHeightContentContainerComponent,
   MessageDialogService,
   PasteBoxComponent,
+  SideNavigationComponent,
+  StepNavigation,
 } from '@gematik/demis-portal-core-library';
 import { allowedRoutes, NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MatOptionModule } from '@angular/material/core';
+import { MATERIAL_ANIMATIONS, MatOptionModule } from '@angular/material/core';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -72,8 +75,38 @@ import { PathogenFormlyConfig } from '../../app/pathogen-notification/formly/con
 import { NotificationFormValidationConfig } from '../../app/pathogen-notification/legacy/notification-form-validation-module';
 import { PathogenFormValidationConfig } from '../../app/pathogen-notification/common/pathogen-formly-validation-module';
 import { ErrorDialogService } from '../../app/pathogen-notification/services/error-dialog.service';
+import { WrapperComponent } from '../../app/wrapper/wrapper.component';
+import { PathogenNotificationNewComponent } from '../../app/pathogen-notification-new/pathogen-notification-new.component';
+import { PathogenNotificationService } from '../../app/pathogen-notification-new/pathogen-notification.service';
+import { PathogenNotificationPrefillService } from '../../app/pathogen-notification-new/pathogen-notification-prefill.service';
+import { NotifierFacilityComponent } from '../../app/pathogen-notification-new/notifier-facility/notifier-facility.component';
+import { SubmittingFacilityComponent } from '../../app/pathogen-notification-new/submitting-facility/submitting-facility.component';
+import { NotifiedPersonComponent } from '../../app/pathogen-notification-new/notified-person/notified-person.component';
+import { NotificationCategoryComponent } from '../../app/pathogen-notification-new/notification-category/notification-category.component';
+import { PathogenDiagnosticComponent } from '../../app/pathogen-notification-new/pathogen-diagnostic/pathogen-diagnostic.component';
+import { NotificationStepFormComponent } from '../../app/pathogen-notification-new/notification-step-form/notification-step-form.component';
+import { TEST_DATA } from '../shared/test-data';
+import { AddressType, ContactPointInfo, PractitionerInfo } from '../../api/notification';
+import { NotifierFacilityFormModel } from '../../app/pathogen-notification/legacy/models/pathogen-form-model';
+import { By } from '@angular/platform-browser';
+import { clickBackButton, clickNextButton, waitForStability } from '../shared/test-utils';
+import { getStepper } from '../shared/material-harness-utils';
+import { afterEach, beforeEach, expect, vi } from 'vitest';
 
-export const mainConfig = {
+// TODO remove once the core stepper's NG0100 errors are fixed.
+// Register after fixture setup: ng-mocks requires configurable JIT metadata in dev mode.
+export function useTemporaryProductionMode() {
+  let devMode: unknown;
+  beforeEach(() => {
+    devMode = Reflect.get(globalThis, 'ngDevMode');
+    enableProdMode();
+  });
+  afterEach(() => {
+    Reflect.set(globalThis, 'ngDevMode', devMode);
+  });
+}
+
+export const mainConfig: typeof environment.pathogenConfig = {
   featureFlags: {
     FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true,
     FEATURE_FLAG_ANONYMOUS_NOTIFICATION: true,
@@ -88,13 +121,15 @@ export const mainConfig = {
   },
   pathToGateway: '../gateway/pathogen',
   pathToFuts: '/translation/ui-data-model/v6/fhir',
+  futsPaths: {},
+  ngxLoggerConfig: LOGGER_CONFIG_FOR_DEV,
   pathToDestinationLookup: '/destination-lookup/v1',
   production: false,
 };
 
-export function buildMock(activatedRoute = false, notificationType: NotificationType = NotificationType.NominalNotification7_1) {
+export function buildMock(activatedRoute = false, notificationType: NotificationType = NotificationType.NominalNotification7_1, coreSidenav = false) {
   const needsNoFederalStates = notificationType !== NotificationType.NominalNotification7_1;
-  const builder = MockBuilder(PathogenNotificationComponent)
+  const builder = MockBuilder(coreSidenav ? WrapperComponent : PathogenNotificationComponent)
     .keep(
       RouterModule.forRoot([
         {
@@ -126,7 +161,7 @@ export function buildMock(activatedRoute = false, notificationType: Notification
     .keep(FavoritesListComponent)
     .keep(FavoritesAddComponent)
     .keep(PasteBoxComponent)
-    .keep(NoopAnimationsModule)
+    .provide({ provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } })
     .keep(MatIconTestingModule)
     .mock(NGXLogger)
     .keep(FormWrapperComponent)
@@ -153,9 +188,49 @@ export function buildMock(activatedRoute = false, notificationType: Notification
     .keep(FormlyMaterialModule)
     .provide(MockProvider(ChangeDetectorRef))
     .provide(MockProvider(FhirPathogenNotificationService, getFhirPathogenNotificationService(needsNoFederalStates)))
-    .provide(MockProvider(PathogenNotificationStorageService, overrides.pathogenNotificationStorageService))
+    .provide(
+      MockProvider(PathogenNotificationStorageService, {
+        ...overrides.pathogenNotificationStorageService,
+        getNotifierFacility: vi.fn().mockImplementation(() => structuredClone(TEST_DATA.notifierFacility)),
+      })
+    )
     .provide(provideHttpClient(withInterceptorsFromDi()))
     .provide(ClipboardDataService);
+
+  if (coreSidenav) {
+    builder
+      .keep(PathogenNotificationNewComponent)
+      .keep(SideNavigationComponent)
+      .keep(NotifierFacilityComponent)
+      .keep(SubmittingFacilityComponent)
+      .keep(NotifiedPersonComponent)
+      .keep(NotificationCategoryComponent)
+      .keep(PathogenDiagnosticComponent)
+      .keep(NotificationStepFormComponent)
+      .keep(PathogenNotificationService)
+      .keep(PathogenNotificationPrefillService)
+      .keep(DeepMergeService)
+      .provide(
+        MockProvider(PathogenNotificationStorageService, {
+          ...overrides.pathogenNotificationStorageService,
+          getNotifierFacilityModel: (): NotifierFacilityFormModel => {
+            const notifier = structuredClone(TEST_DATA.notifierFacility);
+            return {
+              ...notifier,
+              address: { ...notifier.address, addressType: AddressType.Current },
+              contact: { ...notifier.contact, salutation: PractitionerInfo.SalutationEnum.Mr },
+              contacts: {
+                phoneNumbers: notifier.contacts.phoneNumbers.map(contact => ({ ...contact, contactType: ContactPointInfo.ContactTypeEnum.Phone })),
+                emailAddresses: notifier.contacts.emailAddresses.map(contact => ({ ...contact, contactType: ContactPointInfo.ContactTypeEnum.Email })),
+              },
+            };
+          },
+          getFavorites: () => [],
+          setSelectedPathogenCodeDisplay,
+          removeSelectedPathogenCodeDisplay: () => setSelectedPathogenCodeDisplay(undefined),
+        })
+      );
+  }
 
   if (notificationType === NotificationType.FollowUpNotification7_1) {
     builder.provide(MockProvider(Router, getRouter(allowedRoutes.followUp)));
@@ -189,4 +264,34 @@ export function setupIntegrationTests(customPathogenConfig?: any) {
     component: component,
     loader: loader,
   };
+}
+
+export function setupCoreSidenavIntegrationTests(config = mainConfig) {
+  environment.pathogenConfig = {
+    ...config,
+    featureFlags: { ...config.featureFlags, FEATURE_FLAG_CORE_SIDENAV: true },
+  };
+  const fixture = MockRender(WrapperComponent);
+  const loader = TestbedHarnessEnvironment.loader(fixture);
+  fixture.detectChanges();
+  expect(fixture.debugElement.query(By.directive(PathogenNotificationNewComponent))).not.toBeNull();
+  return { fixture, loader };
+}
+
+export type IntegrationFixture = MockedComponentFixture<PathogenNotificationComponent | WrapperComponent>;
+
+export async function switchToIntegrationPage(pageNumber: number, fixture: IntegrationFixture) {
+  const coreComponent = fixture.debugElement.query(By.directive(PathogenNotificationNewComponent));
+  if (coreComponent) {
+    const navigation = coreComponent.injector.get(StepNavigation);
+    navigation.goToStep(pageNumber - 1);
+    await waitForStability(fixture);
+    expect(navigation.currentStepIndex()).toBe(pageNumber - 1);
+  } else {
+    const steps = await (await getStepper(TestbedHarnessEnvironment.loader(fixture))).getSteps();
+    const selected = await Promise.all(steps.map(step => step.isSelected()));
+    const currentPage = selected.indexOf(true) + 1;
+    for (let page = currentPage; page < pageNumber; page++) await clickNextButton(fixture);
+    for (let page = currentPage; page > pageNumber; page--) await clickBackButton(fixture);
+  }
 }

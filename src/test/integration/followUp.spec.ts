@@ -16,10 +16,8 @@
  */
 
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
-import { buildMock, mainConfig, setupIntegrationTests } from './base';
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
+import { buildMock, IntegrationFixture, setupCoreSidenavIntegrationTests, setupIntegrationTests } from './base';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MockedComponentFixture } from 'ng-mocks';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { getButton, getDialog, getIcon, getInput, getSelect } from '../shared/material-harness-utils';
@@ -33,12 +31,11 @@ import { lastValueFrom, of } from 'rxjs';
 import { ADD_BUTTON_CLIPBOARD } from '../shared/test-constants';
 import { NotifiedPersonDisclaimer } from '../../app/pathogen-notification/utils/disclaimer-texts';
 
-describe('Pathogen - Follow Up Integration Tests', () => {
+describe.each([false, true])('Pathogen - Follow Up Integration Tests (FEATURE_FLAG_CORE_SIDENAV: %s)', featureFlagCoreSidenav => {
   [NotificationType.FollowUpNotification7_1, NotificationType.FollowUpNotification7_3].forEach(notificationType => {
     describe(`${notificationType}`, () => {
-      let component: PathogenNotificationComponent;
       let loader: HarnessLoader;
-      let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+      let fixture: IntegrationFixture;
       let fhirService: FhirPathogenNotificationService;
       let followUpService: FollowUpNotificationIdService;
       let followUpMixedCodesService: FollowUpMixedCodesService;
@@ -50,25 +47,23 @@ describe('Pathogen - Follow Up Integration Tests', () => {
           : 'Meldung eines Nachweises von Krankheitserregern gemäß § 7 Abs. 3 IfSG ohne Angaben von Personendaten';
       const is7_1 = notificationType === NotificationType.FollowUpNotification7_1;
 
-      beforeEach(() => buildMock(true, notificationType));
+      beforeEach(() => buildMock(true, notificationType, featureFlagCoreSidenav));
 
-      beforeEach(() => {
-        const result = setupIntegrationTests({
-          ...mainConfig,
-          featureFlags: { ...mainConfig.featureFlags },
-        });
+      beforeEach(async () => {
+        const result = featureFlagCoreSidenav ? setupCoreSidenavIntegrationTests() : setupIntegrationTests();
 
         fixture = result.fixture;
-        component = result.component;
         loader = result.loader;
         fixture.detectChanges();
         fhirService = TestBed.inject(FhirPathogenNotificationService);
         followUpService = TestBed.inject(FollowUpNotificationIdService);
         followUpMixedCodesService = TestBed.inject(FollowUpMixedCodesService);
+        await fixture.whenStable();
       });
 
       it('should create', () => {
-        expect(component, 'PathogenNotificationComponent could not be created').toBeTruthy();
+        expect(fixture.componentInstance).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('app-pathogen-notification-new') !== null).toBe(featureFlagCoreSidenav);
       });
 
       it('should show follow up header', async () => {
@@ -226,20 +221,6 @@ describe('Pathogen - Follow Up Integration Tests', () => {
       });
 
       describe('Mixed Follow-Up', () => {
-        beforeEach(() => {
-          const result = setupIntegrationTests({
-            mainConfig,
-          });
-
-          fixture = result.fixture;
-          component = result.component;
-          loader = result.loader;
-          fixture.detectChanges();
-          fhirService = TestBed.inject(FhirPathogenNotificationService);
-          followUpService = TestBed.inject(FollowUpNotificationIdService);
-          followUpMixedCodesService = TestBed.inject(FollowUpMixedCodesService);
-        });
-
         it('should call fetchFollowUpCode when ID is validated and hasValidNotificationId$ emits true', async () => {
           setDiagnosticBasedOnPathogenSelection({
             materials: [],

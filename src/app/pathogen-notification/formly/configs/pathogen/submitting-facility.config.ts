@@ -20,6 +20,8 @@ import { addressFormConfigFields } from '../../../legacy/formly/configs/reusable
 import { AddressType, CodeDisplay } from '../../../../../api/notification';
 import {
   copyAddress,
+  findFieldByKey,
+  formlyRequiredFieldsHint,
   notifierFacilitySourceIsInvalid,
   updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled,
   updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled,
@@ -39,6 +41,7 @@ export const submittingFacilityFields = (
   let isResettingCheckbox = false;
 
   return [
+    formlyRequiredFieldsHint(),
     {
       className: '',
       template: '<h2>Einrichtung</h2>',
@@ -144,10 +147,6 @@ export const submittingFacilityFields = (
   ];
 };
 
-function getCurrentAddressType(fieldGroup: FormlyFieldConfig[]) {
-  return fieldGroup.find(field => field.key === 'notifiedPerson').fieldGroup[6].fieldGroup.find(field => field.key === 'currentAddressType');
-}
-
 function resetAndAddRepeatFields(submittingFacilityFieldGroups: FormlyFieldConfig[]) {
   const phoneNumberFields = submittingFacilityFieldGroups.find(field => field.key === 'contacts').fieldGroup.find(field => field.key === 'phoneNumbers');
   const emailAddressesFields = submittingFacilityFieldGroups.find(field => field.key === 'contacts').fieldGroup.find(field => field.key === 'emailAddresses');
@@ -161,7 +160,7 @@ function resetAllFields(field: FormlyFieldConfig, root: FormlyFieldConfig) {
   const submittingFacility = field.parent;
   const submittingFacilityFieldGroups = submittingFacility.fieldGroup;
   // DEMIS-2674: Manual field reset because standard reset() fails after clipboard/hexhex input
-  submittingFacilityFieldGroups.find(field => field.key === 'facilityInfo').fieldGroup[0].fieldGroup[0].formControl.reset(null);
+  findFieldByKey(submittingFacilityFieldGroups, 'institutionName').formControl.reset(null);
   const submittingFacilityAddressField = submittingFacilityFieldGroups.find(field => field.key === 'address');
   submittingFacilityAddressField.formControl.reset(null);
   submittingFacilityAddressField.fieldGroup.find(field => field.key === 'country').formControl.setValue('DE');
@@ -172,6 +171,6 @@ function resetAllFields(field: FormlyFieldConfig, root: FormlyFieldConfig) {
 
   field.parent.formControl.enable();
   if (root.model.notifiedPerson.currentAddressType === AddressType.SubmittingFacility) {
-    getCurrentAddressType(root.fieldGroup).formControl.reset();
+    root.formControl.get('notifiedPerson.currentAddressType').reset();
   }
 }

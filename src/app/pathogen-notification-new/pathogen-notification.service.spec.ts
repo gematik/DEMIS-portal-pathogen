@@ -16,7 +16,7 @@
  */
 
 import { TestBed } from '@angular/core/testing';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { FollowUpMixedCodesService, FollowUpNotificationIdService } from '@gematik/demis-portal-core-library';
 import { NGXLogger } from 'ngx-logger';
@@ -30,9 +30,12 @@ import { PathogenNotificationStorageService } from '../pathogen-notification/ser
 import { ErrorDialogService } from '../pathogen-notification/services/error-dialog.service';
 import { transformPathogenFormToPathogenTest } from '../pathogen-notification/utils/data-transformation';
 import { NotifiedPersonDisclaimer } from '../pathogen-notification/utils/disclaimer-texts';
+import { dummyDataForPathogenForm } from '../pathogen-notification/utils/dummy-data';
 import { PathogenNotificationService } from './pathogen-notification.service';
+import { PathogenNotificationPrefillService } from './pathogen-notification-prefill.service';
 
-vi.mock('../pathogen-notification/utils/data-transformation', () => ({
+vi.mock('../pathogen-notification/utils/data-transformation', async importOriginal => ({
+  ...(await importOriginal<typeof import('../pathogen-notification/utils/data-transformation')>()),
   transformPathogenFormToPathogenTest: vi.fn(() => ({ pathogen: 'transformed' })),
 }));
 
@@ -46,6 +49,7 @@ function flattenFields(fields: FormlyFieldConfig[]): FormlyFieldConfig[] {
 
 describe('PathogenNotificationService', () => {
   let service: PathogenNotificationService;
+  let prefillService: PathogenNotificationPrefillService;
   const countries: CodeDisplay[] = [{ code: 'DE', display: 'Deutschland', designations: [] }];
   const states: CodeDisplay[] = [{ code: 'DE-BW', display: 'Baden-Wuerttemberg', designations: [] }];
   const pathogens: CodeDisplay[] = [{ code: 'test', display: 'Test pathogen', designations: [] }];
@@ -66,11 +70,14 @@ describe('PathogenNotificationService', () => {
     getSelectedPathogenCodeDisplay: vi.fn(),
     setSelectedPathogenCodeDisplay: vi.fn(),
     setFederalStateCode: vi.fn(),
+    getFederalState: vi.fn(),
+    setFederalState: vi.fn(),
   };
   const builder = { buildForm: vi.fn() };
   const logger = { error: vi.fn() };
   const dialog = { showBasicClosableErrorDialog: vi.fn() };
   const followUpDialog = {
+    resetState: vi.fn(),
     openDialog: vi.fn(),
     closeDialog: vi.fn(),
     hasValidNotificationId$: new Subject<boolean>(),
@@ -95,6 +102,7 @@ describe('PathogenNotificationService', () => {
     fhir.fetchFollowUpCode.mockReturnValue(of([pathogens[0]]));
     fhir.fetchDiagnosticsBasedOnPathogenSelection.mockReturnValue(of(pathogenData()));
     storage.getFederalStateCode.mockReturnValue(undefined);
+    storage.getFederalState.mockReturnValue(undefined);
     storage.getSelectedPathogenCodeDisplay.mockReturnValue(pathogens[0]);
     mixedCodeDialog.openDialog.mockReturnValue(of(pathogens[0].code));
     vi.spyOn(environment, 'featureFlags', 'get').mockReturnValue({ FEATURE_FLAG_CORE_SIDENAV: true });
@@ -111,6 +119,361 @@ describe('PathogenNotificationService', () => {
       ],
     });
     service = TestBed.inject(PathogenNotificationService);
+    prefillService = TestBed.inject(PathogenNotificationPrefillService);
+  });
+
+  describe('prefill service integration', () => {
+    it.each([
+      [NotificationType.NominalNotification7_1, 'invp'],
+      [NotificationType.NonNominalNotification7_3, 'hivp'],
+      [NotificationType.AnonymousNotification7_3, 'hivp'],
+      [NotificationType.FollowUpNotification7_1, 'invp'],
+      [NotificationType.FollowUpNotification7_3, 'hivp'],
+    ] as const)('loads reference data and patches all steps for %s', (notificationType, code) => {
+      service.initialize(notificationType);
+      const pathogen: CodeDisplay = { code, display: 'Backend pathogen', designations: [] };
+      fhir.fetchPathogenCodeDisplaysByTypeAndState.mockReturnValue(of([pathogen]));
+      fhir.fetchAllPathogenCodeDisplays.mockReturnValue(of([pathogen]));
+      const followUp = notificationType === NotificationType.FollowUpNotification7_1 || notificationType === NotificationType.FollowUpNotification7_3;
+      if (followUp) {
+        // The real service deliberately returns no state-specific pathogens for follow-ups.
+        fhir.fetchPathogenCodeDisplaysByTypeAndState.mockReturnValue(of([]));
+      }
+      fhir.fetchPathogenCodeDisplaysByTypeAndState.mockClear();
+      fhir.fetchAllPathogenCodeDisplays.mockClear();
+      const patch = vi.spyOn(service, 'patchFormData');
+      const configure = vi.spyOn(service, 'setPathogenData');
+      const originalFields = service.notificationCategoryFields();
+
+      prefillService.populateWithDummyData();
+
+      if (followUp) {
+        expect(fhir.fetchAllPathogenCodeDisplays).toHaveBeenCalledExactlyOnceWith(
+          notificationType === NotificationType.FollowUpNotification7_1 ? '7.1' : '7.3'
+        );
+        expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).not.toHaveBeenCalled();
+      } else {
+        expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledExactlyOnceWith(notificationType, 'DE-BW');
+        expect(fhir.fetchAllPathogenCodeDisplays).not.toHaveBeenCalled();
+      }
+      expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).toHaveBeenCalledExactlyOnceWith(code, notificationType);
+      expect(configure).toHaveBeenCalledExactlyOnceWith(pathogenData());
+      expect(configure.mock.invocationCallOrder[0]).toBeLessThan(patch.mock.invocationCallOrder[0]);
+      expect(patch).toHaveBeenCalledExactlyOnceWith(
+        {
+          ...dummyDataForPathogenForm(notificationType),
+          notificationCategory: {
+            ...dummyDataForPathogenForm(notificationType).notificationCategory,
+            federalState: 'DE-BW',
+            notifiablePathogen: 'Backend pathogen',
+            ...(followUp && {
+              initialNotificationId: 'validated-notification-id',
+              notificationIdReference: 'relatesToOtherFacility',
+            }),
+          },
+        },
+        { emitEvent: false }
+      );
+      expect(service.notifierFacilityModel()).toMatchObject({ facilityInfo: { institutionName: 'TEST Organisation' } });
+      expect(service.submittingFacilityModel()).toMatchObject({ facilityInfo: { institutionName: 'Das Einsenderinstitut' } });
+      expect(service.notifiedPersonModel()).toMatchObject(dummyDataForPathogenForm(notificationType).notifiedPerson);
+      expect(service.pathogenModel()).toMatchObject(dummyDataForPathogenForm(notificationType).pathogenDTO);
+      expect(service.notificationCategoryModel()).toMatchObject({
+        notificationIdReference: followUp ? 'relatesToOtherFacility' : 'noReference',
+        ...(followUp && { initialNotificationId: 'validated-notification-id' }),
+      });
+      expect(storage.setSelectedPathogenCodeDisplay).toHaveBeenLastCalledWith(pathogen);
+      expect(storage.setFederalStateCode).toHaveBeenLastCalledWith('DE-BW');
+      expect(service.notificationCategoryFields()).not.toBe(originalFields);
+      expect(groupKeys.every(key => service[key].touched)).toBe(true);
+    });
+
+    describe('clipboard data', () => {
+      beforeEach(() => {
+        service.formsInitialized.set(true);
+        storage.getSelectedPathogenCodeDisplay.mockReturnValue(undefined);
+      });
+
+      it('loads the state-specific list and diagnostics before mapping all clipboard sections', async () => {
+        const list = new Subject<CodeDisplay[]>();
+        const diagnostics = new Subject<PathogenData>();
+        fhir.fetchPathogenCodeDisplaysByTypeAndState.mockReturnValue(list);
+        fhir.fetchDiagnosticsBasedOnPathogenSelection.mockReturnValue(diagnostics);
+        storage.getFederalStateCode.mockReturnValue('DE-BY');
+        const patch = vi.spyOn(service, 'patchFormData');
+        prefillService.populateFromClipboard(
+          new Map([
+            ['F.name', 'Clipboard laboratory'],
+            ['N.phone', '030123456'],
+            ['N.email', 'lab@example.org'],
+            ['S.name', 'Submitting laboratory'],
+            ['P.given', 'Ada'],
+            ['P.family', 'Lovelace'],
+            ['P.gender', 'FEMALE'],
+            ['T.notificationCategory', 'test'],
+            ['T.pathogen', 'species'],
+            ['T.material', 'Blood'],
+            ['T.method', 'PCR'],
+            ['T.analyt', 'Analyte'],
+            ['T.interpretation', 'POS'],
+            ['T.reportStatus', 'final'],
+            ['T.reference', 'OTHER'],
+            ['T.serviceRequest', 'order-123'],
+          ])
+        );
+        expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledExactlyOnceWith(NotificationType.NominalNotification7_1, 'DE-BY');
+        expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).not.toHaveBeenCalled();
+        list.next(pathogens);
+        expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).toHaveBeenCalledExactlyOnceWith('test', NotificationType.NominalNotification7_1);
+        expect(patch).not.toHaveBeenCalled();
+        const data = { ...pathogenData(), answerSet: [{ code: 'species', display: 'Species', designations: [] }] };
+        diagnostics.next(data);
+
+        await vi.waitFor(() => expect(patch).toHaveBeenCalledOnce());
+        expect(service.notifierFacilityModel()).toMatchObject({
+          facilityInfo: { institutionName: 'Clipboard laboratory' },
+          contacts: { phoneNumbers: [{ value: '030123456' }], emailAddresses: [{ value: 'lab@example.org' }] },
+        });
+        expect(service.submittingFacilityModel()).toMatchObject({ facilityInfo: { institutionName: 'Submitting laboratory' }, copyAddressCheckBox: false });
+        expect(service.notifiedPersonModel()).toMatchObject({ info: { firstname: 'Ada', lastname: 'Lovelace', gender: 'FEMALE' } });
+        expect(service.notificationCategoryModel()).toMatchObject({
+          notifiablePathogen: 'Test pathogen',
+          pathogen: { code: 'species', display: 'Species' },
+          notificationIdReference: 'relatesToOtherFacility',
+          laboratoryOrderId: 'order-123',
+        });
+        expect(service.pathogenModel()).toMatchObject({
+          specimenList: [
+            { specimenDTO: { material: 'Blood', methodPathogenList: [{ method: 'PCR', result: 'POS', analyt: { code: 'Analyte', display: 'Analyte' } }] } },
+          ],
+        });
+        expect(storage.setSelectedPathogenCodeDisplay).toHaveBeenCalledExactlyOnceWith(pathogens[0]);
+        expect(service.pathogenData).toBe(data);
+      });
+
+      it.each([
+        [NotificationType.NonNominalNotification7_3, undefined],
+        [NotificationType.AnonymousNotification7_3, undefined],
+        [NotificationType.FollowUpNotification7_1, '7.1'],
+        [NotificationType.FollowUpNotification7_3, '7.3'],
+      ] as const)('handles reference requests and person data for type %s', async (type, paragraph) => {
+        service.notificationType = type;
+        if (paragraph) storage.getSelectedPathogenCodeDisplay.mockReturnValue(pathogens[0]);
+        service.notificationCategoryModel.set({ initialNotificationId: 'validated-id' });
+        const patch = vi.spyOn(service, 'patchFormData');
+        prefillService.populateFromClipboard(
+          new Map([
+            ['T.notificationCategory', paragraph ? 'ignored-category' : 'test'],
+            ['T.relatesTo', 'clipboard-id'],
+            ['T.material', 'Blood'],
+            ['P.given', 'Not anonymous'],
+            ['P.birthDate', '12.12.2000'],
+            ['P.r.zip', '12345'],
+          ])
+        );
+
+        await vi.waitFor(() => expect(patch).toHaveBeenCalledOnce());
+        if (paragraph) {
+          expect(fhir.fetchAllPathogenCodeDisplays).toHaveBeenCalledExactlyOnceWith(paragraph);
+          expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).not.toHaveBeenCalled();
+        } else {
+          expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledExactlyOnceWith(type, 'DE-BW');
+        }
+        expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).toHaveBeenCalledExactlyOnceWith('test', type);
+        expect(service.notificationCategoryModel().initialNotificationId).toBe(
+          type === NotificationType.FollowUpNotification7_1 ? 'validated-id' : 'clipboard-id'
+        );
+        if (type !== NotificationType.NonNominalNotification7_3) {
+          expect(service.notifiedPersonModel()).toMatchObject({ info: { birthDate: '2000-12' }, residenceAddress: { zip: '123' } });
+          expect(service.notifiedPersonModel()).not.toHaveProperty('info.firstname');
+        }
+      });
+
+      it('patches partial facility data without backend calls or clearing existing contacts', async () => {
+        service.notifierFacilityModel.set({ contacts: { phoneNumbers: [{ contactType: 'phone', value: '030123456' }] } });
+        prefillService.populateFromClipboard(new Map([['F.name', 'Updated laboratory']]));
+
+        await vi.waitFor(() => expect(service.notifierFacilityModel().facilityInfo?.institutionName).toBe('Updated laboratory'));
+        expect(service.notifierFacilityModel().contacts).toEqual({ phoneNumbers: [{ contactType: 'phone', value: '030123456' }] });
+        expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).not.toHaveBeenCalled();
+        expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).not.toHaveBeenCalled();
+      });
+
+      it('reuses the selected diagnostics for a partial diagnostic import', async () => {
+        storage.getSelectedPathogenCodeDisplay.mockReturnValue(pathogens[0]);
+        service.setPathogenData(pathogenData());
+        prefillService.populateFromClipboard(new Map([['T.material', 'Blood']]));
+
+        await vi.waitFor(() => expect(service.pathogenModel()).toMatchObject({ specimenList: [{ specimenDTO: { material: 'Blood' } }] }));
+        expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).not.toHaveBeenCalled();
+        expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).not.toHaveBeenCalled();
+      });
+
+      it.each(['', undefined])('preserves existing diagnostic fields when receivedDate is %s in a partial import', async receivedDate => {
+        storage.getSelectedPathogenCodeDisplay.mockReturnValue(pathogens[0]);
+        const data = pathogenData();
+        data.materials = [{ code: '258529004', display: 'New material', designations: [] }];
+        service.setPathogenData(data);
+        const firstSpecimen = {
+          extractionDate: '2026-11-01',
+          receivedDate: '2026-11-02',
+          material: 'Blood',
+          methodPathogenList: [
+            { method: 'PCR', result: 'POS' },
+            { method: 'Other method', result: 'NEG' },
+          ],
+          resistanceList: [{ resistance: 'Antibiotic' }],
+        };
+        const secondSpecimen = { receivedDate: '2026-11-03', material: 'Second material' };
+        const receivedDateControl = new FormControl(firstSpecimen.receivedDate);
+        const specimenList = new FormArray([
+          new FormGroup({
+            specimenDTO: new FormGroup({
+              extractionDate: new FormControl(firstSpecimen.extractionDate),
+              receivedDate: receivedDateControl,
+              material: new FormControl(firstSpecimen.material),
+              methodPathogenList: new FormControl(firstSpecimen.methodPathogenList),
+              resistanceList: new FormControl(firstSpecimen.resistanceList),
+            }),
+          }),
+          new FormGroup({
+            specimenDTO: new FormGroup({
+              receivedDate: new FormControl(secondSpecimen.receivedDate),
+              material: new FormControl(secondSpecimen.material),
+            }),
+          }),
+        ]);
+        service.pathogenDTOGroup.addControl('specimenList', specimenList);
+        service.pathogenModel.set(service.pathogenDTOGroup.getRawValue());
+        receivedDateControl.setValue('2026-11-04');
+        const entries = new Map([['T.material', '258529004']]);
+        if (receivedDate !== undefined) entries.set('T.receivedDate', receivedDate);
+
+        prefillService.populateFromClipboard(entries);
+
+        await vi.waitFor(() =>
+          expect(service.pathogenModel()).toMatchObject({
+            specimenList: [{ specimenDTO: { ...firstSpecimen, receivedDate: '2026-11-04', material: 'New material' } }, { specimenDTO: secondSpecimen }],
+          })
+        );
+        expect(receivedDateControl.value).toBe('2026-11-04');
+        expect(specimenList.length).toBe(2);
+      });
+
+      it('clears stale diagnostics and species when switching the notification category', async () => {
+        storage.getSelectedPathogenCodeDisplay.mockReturnValue({ code: 'previous', display: 'Previous', designations: [] });
+        service.pathogenModel.set({ codeDisplay: { code: 'previous', display: 'Previous', designations: [] } });
+        service.notificationCategoryModel.set({ pathogen: { code: 'previous-species', display: 'Old species' } });
+        prefillService.populateFromClipboard(
+          new Map([
+            ['T.notificationCategory', 'test'],
+            ['T.material', 'Blood'],
+          ])
+        );
+
+        await vi.waitFor(() => expect(service.pathogenModel()).toMatchObject({ specimenList: [{ specimenDTO: { material: 'Blood' } }] }));
+        expect(service.pathogenModel().codeDisplay).toEqual(pathogens[0]);
+        expect(service.notificationCategoryModel().pathogen).toBeUndefined();
+      });
+
+      it.each(['backend', 'missing category', 'diagnostics without category'])('logs %s errors without applying data', async reason => {
+        if (reason === 'backend') fhir.fetchDiagnosticsBasedOnPathogenSelection.mockReturnValue(throwError(() => new Error('Backend failed')));
+        if (reason === 'missing category') fhir.fetchPathogenCodeDisplaysByTypeAndState.mockReturnValue(of([]));
+        const entries = new Map([['T.material', 'Blood']]);
+        if (reason !== 'diagnostics without category') entries.set('T.notificationCategory', 'test');
+        const patch = vi.spyOn(service, 'patchFormData');
+        prefillService.populateFromClipboard(entries);
+
+        await vi.waitFor(() => expect(logger.error).toHaveBeenCalledWith('Failed to populate clipboard data.', expect.any(Error)));
+        expect(patch).not.toHaveBeenCalled();
+      });
+
+      it('cancels clipboard mapping when the wizard is left', async () => {
+        const patch = vi.spyOn(service, 'patchFormData');
+        prefillService.populateFromClipboard(new Map([['P.given', 'Ada']]));
+        service.cancelPendingInitialization();
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(patch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('waits for the pathogen list and diagnostics before patching', () => {
+      service.initialize(NotificationType.NominalNotification7_1);
+      const pathogenResponse = new Subject<CodeDisplay[]>();
+      const diagnosticsResponse = new Subject<PathogenData>();
+      fhir.fetchPathogenCodeDisplaysByTypeAndState.mockReturnValue(pathogenResponse);
+      fhir.fetchDiagnosticsBasedOnPathogenSelection.mockReturnValue(diagnosticsResponse);
+      const patch = vi.spyOn(service, 'patchFormData');
+
+      prefillService.populateWithDummyData();
+      expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).not.toHaveBeenCalled();
+      pathogenResponse.next([{ code: 'invp', display: 'Influenza', designations: [] }]);
+      expect(patch).not.toHaveBeenCalled();
+      diagnosticsResponse.next(pathogenData());
+      expect(patch).toHaveBeenCalledOnce();
+    });
+
+    it.each(['pathogens', 'diagnostics', 'missing pathogen'])('logs %s failures without applying dummy data', failure => {
+      service.initialize(NotificationType.NominalNotification7_1);
+      const error = new Error('Backend unavailable');
+      fhir.fetchPathogenCodeDisplaysByTypeAndState.mockReturnValue(
+        failure === 'pathogens' ? throwError(() => error) : of(failure === 'missing pathogen' ? [] : [{ code: 'invp', display: 'Influenza', designations: [] }])
+      );
+      fhir.fetchDiagnosticsBasedOnPathogenSelection.mockReturnValue(throwError(() => error));
+      const patch = vi.spyOn(service, 'patchFormData');
+
+      prefillService.populateWithDummyData();
+
+      expect(logger.error).toHaveBeenCalledWith('Failed to populate dummy data.', expect.any(Error));
+      expect(patch).not.toHaveBeenCalled();
+      expect(storage.setSelectedPathogenCodeDisplay).not.toHaveBeenCalled();
+    });
+
+    it.each(['navigation', 'reinitialization', 'another click', 'explicit cancellation', 'clipboard import'])('cancels pending dummy data on %s', action => {
+      service.initialize(NotificationType.NominalNotification7_1);
+      const response = new Subject<PathogenData>();
+      fhir.fetchPathogenCodeDisplaysByTypeAndState.mockReturnValue(of([{ code: 'invp', display: 'Influenza', designations: [] }]));
+      fhir.fetchDiagnosticsBasedOnPathogenSelection.mockReturnValue(response);
+      const patch = vi.spyOn(service, 'patchFormData');
+      prefillService.populateWithDummyData();
+
+      if (action === 'navigation') service.cancelPendingInitialization();
+      if (action === 'reinitialization') service.initialize(NotificationType.NonNominalNotification7_3);
+      if (action === 'another click') prefillService.populateWithDummyData();
+      if (action === 'explicit cancellation') prefillService.cancelPendingPrefill();
+      if (action === 'clipboard import') prefillService.populateFromClipboard(new Map([['P.given', 'Ada']]));
+      response.next(pathogenData());
+
+      expect(patch).toHaveBeenCalledTimes(action === 'another click' ? 1 : 0);
+    });
+
+    it('rejects dummy data before initialization', () => {
+      prefillService.populateWithDummyData();
+
+      expect(logger.error).toHaveBeenCalledWith('Dummy data cannot be applied before form initialization.');
+      expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).not.toHaveBeenCalled();
+    });
+  });
+
+  it('suppresses child control events while patching and trimming arrays', () => {
+    const category = new FormControl<CodeDisplay | null>(null);
+    const extra = new FormControl('extra');
+    const array = new FormArray([new FormControl('old'), extra]);
+    service.notificationCategoryGroup.addControl('pathogen', category);
+    service.notifierFacilityGroup.addControl('contacts', array);
+    const selectionChange = vi.fn();
+    const arrayChange = vi.fn();
+    category.valueChanges.subscribe(selectionChange);
+    array.valueChanges.subscribe(arrayChange);
+
+    service.patchFormData({ notifierFacility: { contacts: [] }, notificationCategory: { pathogen: pathogens[0] }, pathogenDTO: {} }, { emitEvent: false });
+
+    expect(category.value).toEqual(pathogens[0]);
+    expect(array.length).toBe(0);
+    expect(selectionChange).not.toHaveBeenCalled();
+    expect(arrayChange).not.toHaveBeenCalled();
+    expect(service.notificationCategoryGroup.touched).toBe(true);
   });
 
   it.each([
@@ -187,7 +550,7 @@ describe('PathogenNotificationService', () => {
     expect(fhir.fetchFollowUpCode).toHaveBeenCalledExactlyOnceWith('follow-up-category', NotificationType.FollowUpNotification7_1);
     expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).toHaveBeenCalledExactlyOnceWith('test', NotificationType.FollowUpNotification7_1);
     expect(service.notificationCategoryModel()).toMatchObject({
-      pathogenDisplay: 'Test pathogen',
+      notifiablePathogen: 'Test pathogen',
       initialNotificationId: 'validated-notification-id',
     });
     expect(service.pathogenData).toEqual(pathogenData());
@@ -221,7 +584,7 @@ describe('PathogenNotificationService', () => {
     validNotificationId$.next(true);
 
     expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).toHaveBeenCalledExactlyOnceWith('second', NotificationType.FollowUpNotification7_3);
-    expect(service.notificationCategoryModel()).toMatchObject({ pathogenDisplay: 'Second pathogen' });
+    expect(service.notificationCategoryModel()).toMatchObject({ notifiablePathogen: 'Second pathogen' });
     expect(storage.setSelectedPathogenCodeDisplay).toHaveBeenCalledExactlyOnceWith(secondPathogen);
   });
 
@@ -392,7 +755,7 @@ describe('PathogenNotificationService', () => {
     expect(service.notifierFacilityFields().length).toBeGreaterThan(0);
     expect(service.submitterFacilityFields().length).toBeGreaterThan(0);
     expect(service.notifiedPersonFields().length).toBeGreaterThan(0);
-    const state = flattenFields(service.notificationCategoryFields()).find(field => field.key === 'federalStateCodeDisplay');
+    const state = flattenFields(service.notificationCategoryFields()).find(field => field.key === 'federalState');
     expect(state.props.options).toEqual([{ value: 'DE-BW', label: 'Baden-Wuerttemberg' }]);
   });
 
@@ -511,13 +874,19 @@ describe('PathogenNotificationService', () => {
     service.initialize(NotificationType.NominalNotification7_1);
     const checkbox = flattenFields(service.submitterFacilityFields()).find(field => field.key === 'copyAddressCheckBox');
     const checkboxControl = new FormControl(true);
+    service.submittingFacilityModel.set({ facilityInfo: { institutionName: 'Existing facility' } });
+    service.submittingFacilityGroup.addControl('facilityInfo', new FormGroup({ institutionName: new FormControl('Existing facility') }));
 
+    checkbox.props.change({ formControl: checkboxControl });
     checkbox.props.change({ formControl: checkboxControl });
 
     expect(checkboxControl.value).toBe(false);
+    expect(service.submittingFacilityGroup.get('facilityInfo.institutionName').value).toBe('Existing facility');
+    expect(service.submittingFacilityModel().facilityInfo.institutionName).toBe('Existing facility');
+    expect(dialog.showBasicClosableErrorDialog).toHaveBeenCalledOnce();
     expect(dialog.showBasicClosableErrorDialog).toHaveBeenCalledWith(
       'Bitte geben Sie die Daten für die Meldende Person zunächst vollständig an.',
-      'Fehler bei der Auswahl'
+      'Fehler bei der Auswahl der Adresse'
     );
   });
 
@@ -525,8 +894,153 @@ describe('PathogenNotificationService', () => {
     storage.getFederalStateCode.mockReturnValue(state);
     service.initialize(NotificationType.NominalNotification7_1);
     expect(storage.setFederalStateCode).toHaveBeenCalledWith('DE-BW');
-    expect(service.notificationCategoryModel()).toEqual({ federalStateCodeDisplay: 'DE-BW' });
+    expect(service.notificationCategoryModel()).toEqual({ federalState: 'DE-BW' });
     expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BW');
+  });
+
+  describe('with filterable federal state select', () => {
+    const bavaria: CodeDisplay = { code: 'DE-BY', display: 'Bayern', designations: [] };
+
+    beforeEach(() => {
+      vi.spyOn(environment, 'featureFlags', 'get').mockReturnValue({ FEATURE_FLAG_CORE_SIDENAV: true, FEATURE_FLAG_FILTERABLE_PATHOGEN: true });
+    });
+
+    it('initializes the federal state field with the stored CodeDisplay', () => {
+      storage.getFederalState.mockReturnValue(bavaria);
+      service.initialize(NotificationType.NominalNotification7_1);
+      expect(storage.setFederalState).toHaveBeenCalledWith(bavaria);
+      expect(storage.setFederalStateCode).not.toHaveBeenCalled();
+      expect(service.notificationCategoryModel()).toEqual({ federalState: bavaria });
+      expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BY');
+    });
+
+    it('reads, stores and converts federal states as CodeDisplays', () => {
+      service.federalStateCodeDisplays = [...states, bavaria];
+      expect(service.getStoredFederalStateCode()).toBe('DE-BW');
+      storage.getFederalState.mockReturnValue(bavaria);
+      expect(service.getStoredFederalStateCode()).toBe('DE-BY');
+
+      service.storeFederalState('DE-BW');
+      expect(storage.setFederalState).toHaveBeenCalledWith(states[0]);
+      expect(service.toFederalStateFormValue('DE-BY')).toBe(bavaria);
+      expect(service.toFederalStateFormValue({ code: 'DE-BW', display: 'other reference' })).toBe(states[0]);
+    });
+
+    it('converts prefilled federal state codes into CodeDisplays', () => {
+      service.federalStateCodeDisplays = [bavaria];
+      service.applyPrefillData({ notificationCategory: { federalState: 'DE-BY' }, pathogenDTO: {} });
+      expect(service.notificationCategoryModel().federalState).toBe(bavaria);
+    });
+
+    it('converts pathogens into code/display options for the filterable pathogen select', () => {
+      const pathogen: CodeDisplay = { code: 'invp', display: 'Influenza', designations: [] };
+      expect(service.toPathogenFormValue(pathogen)).toEqual({ code: 'invp', display: 'Influenza' });
+      expect(service.toPathogenFormValue(undefined)).toBeUndefined();
+
+      service.pathogenCodeDisplays = [pathogen];
+      service.applyPrefillData({ notificationCategory: { notifiablePathogen: 'Influenza' }, pathogenDTO: {} });
+      expect(service.notificationCategoryModel().notifiablePathogen).toEqual({ code: 'invp', display: 'Influenza' });
+    });
+
+    it('creates filterable selects for all select fields', () => {
+      service.initialize(NotificationType.NominalNotification7_1);
+      service.setPathogenData(pathogenData());
+      const fields = flattenFields([
+        ...service.notifierFacilityFields(),
+        ...service.submitterFacilityFields(),
+        ...service.notifiedPersonFields(),
+        ...service.diagnosticFormFields(),
+      ]);
+      const selects = fields.filter(field =>
+        ['salutation', 'gender', 'country', 'material', 'method', 'resistance', 'resistanceGene'].includes(field.key as string)
+      );
+      const diagnosticSelects = selects.filter(field => ['material', 'method', 'resistance', 'resistanceGene'].includes(field.key as string));
+
+      expect(selects.length).toBeGreaterThanOrEqual(9);
+      selects.forEach(field => {
+        expect(field.type).toBe('filterable-select');
+        expect(field.asyncValidators).toBeUndefined();
+      });
+      expect(diagnosticSelects.length).toBe(4);
+      diagnosticSelects.forEach(field => expect(field.props).toEqual(expect.objectContaining({ optionValueKey: 'code', optionLabelKey: 'display' })));
+      expect(fields.find(field => field.key === 'country').defaultValue).toEqual({ value: 'DE', label: 'Deutschland' });
+      expect(fields.find(field => field.key === 'material').props.options).toEqual([{ code: 'Blood', display: 'Blood' }]);
+    });
+
+    it.each([NotificationType.NonNominalNotification7_3, NotificationType.AnonymousNotification7_3, NotificationType.FollowUpNotification7_1])(
+      'requests filterable gender and country selects from the portal-core configs for %s',
+      notificationType => {
+        service.initialize(notificationType);
+        const fields = flattenFields(service.notifiedPersonFields());
+        const gender = fields.find(field => field.id === 'gender');
+        const country = fields.find(field => field.id === 'residence-address-country');
+
+        expect(gender.type).toBe('filterable-select');
+        expect(gender.props.options).toContainEqual({ value: 'MALE', label: 'Männlich' });
+        expect(country.type).toBe('filterable-select');
+        expect(country.defaultValue).toEqual({ value: 'DE', label: 'Deutschland' });
+      }
+    );
+
+    it('converts prefilled codes and displays into select options', () => {
+      service.initialize(NotificationType.NominalNotification7_1);
+      service.setPathogenData(pathogenData());
+      service.applyPrefillData({
+        notifierFacility: { address: { country: 'DE' }, contact: { salutation: 'Mrs' } },
+        notifiedPerson: { info: { gender: 'FEMALE' } as never, residenceAddress: { country: 'DE' } },
+        pathogenDTO: {
+          specimenList: [
+            {
+              material: 'Blood',
+              methodPathogenList: [{ method: 'PCR' }],
+              resistanceList: [{ resistance: 'Antibiotic' }],
+              resistanceGeneList: [{ resistanceGene: 'Gene' }],
+            },
+          ].map(specimenDTO => ({ specimenDTO })) as never,
+        },
+      });
+
+      expect(service.notifierFacilityModel().address.country).toEqual({ value: 'DE', label: 'Deutschland' });
+      expect(service.notifierFacilityModel().contact.salutation).toEqual({ value: 'Mrs', label: 'Frau' });
+      expect((service.notifiedPersonModel() as any).info.gender).toEqual({ value: 'FEMALE', label: 'Weiblich' });
+      expect(service.notifiedPersonModel().residenceAddress.country).toEqual({ value: 'DE', label: 'Deutschland' });
+      const specimen = (service.pathogenModel() as any).specimenList[0].specimenDTO;
+      expect(specimen.material).toEqual({ code: 'Blood', display: 'Blood' });
+      expect(specimen.methodPathogenList[0].method).toEqual({ code: 'PCR', display: 'PCR' });
+      expect(specimen.resistanceList[0].resistance).toEqual({ code: 'Antibiotic', display: 'Antibiotic' });
+      expect(specimen.resistanceGeneList[0].resistanceGene).toEqual({ code: 'Gene', display: 'Gene' });
+    });
+
+    it('converts a stored notifier facility with codes into select options', () => {
+      storage.getNotifierFacilityModel.mockReturnValue({ address: { country: 'DE' }, contact: { salutation: 'Mr' } });
+      service.initialize(NotificationType.NominalNotification7_1);
+      expect(service.notifierFacilityModel()).toEqual({
+        address: { country: { value: 'DE', label: 'Deutschland' } },
+        contact: { salutation: { value: 'Mr', label: 'Herr' } },
+      });
+    });
+
+    it('restores the default country option when the submitting facility is reset', () => {
+      service.initialize(NotificationType.NominalNotification7_1);
+      const checkbox = flattenFields(service.submitterFacilityFields()).find(field => field.key === 'copyAddressCheckBox');
+      checkbox.props.change({ formControl: new FormControl(false) } as FormlyFieldConfig);
+      expect(service.submittingFacilityModel().address).toEqual({ country: { value: 'DE', label: 'Deutschland' } });
+    });
+  });
+
+  it('converts a stored notifier facility with select options back into codes without the filterable select', () => {
+    storage.getNotifierFacilityModel.mockReturnValue({
+      address: { country: { value: 'DE', label: 'Deutschland' } },
+      contact: { salutation: { value: 'Mr', label: 'Herr' } },
+    });
+    service.initialize(NotificationType.NominalNotification7_1);
+    expect(service.notifierFacilityModel()).toEqual({ address: { country: 'DE' }, contact: { salutation: 'Mr' } });
+  });
+
+  it('keeps the pathogen display text without the filterable pathogen select', () => {
+    const pathogen: CodeDisplay = { code: 'invp', display: 'Influenza', designations: [] };
+    expect(service.toPathogenFormValue(pathogen)).toBe('Influenza');
+    expect(service.toPathogenFormValue(undefined)).toBe('');
   });
 
   it('waits for every initial request to complete before publishing the configurations', () => {
@@ -639,7 +1153,7 @@ describe('PathogenNotificationService', () => {
     expect(formControl.value).toBeNull();
     expect(dialog.showBasicClosableErrorDialog).toHaveBeenCalledExactlyOnceWith(
       'Bitte geben Sie zunächst den Namen und die Adresse der Einsendeeinrichtung vollständig und korrekt an.',
-      'Fehler bei der Auswahl'
+      'Fehler bei der Auswahl der Adresse'
     );
   });
 
@@ -692,6 +1206,23 @@ describe('PathogenNotificationService', () => {
       expect(dialog.showBasicClosableErrorDialog).toHaveBeenCalledOnce();
     }
   );
+
+  it('accepts a submitting facility with a country option from the filterable select', async () => {
+    service.submittingFacilityModel.set({
+      facilityInfo: { institutionName: 'Laboratory' },
+      address: { street: 'Main Street', houseNumber: '1', zip: '12345', city: 'Berlin', country: { value: 'DE', label: 'Deutschland' } as never },
+    });
+    const addressTypeField = flattenFields(service.getNotifiedPersonFields(NotificationType.NominalNotification7_1)).find(
+      field => field.key === 'currentAddressType'
+    );
+    const formControl = new FormControl(AddressType.SubmittingFacility);
+
+    addressTypeField.props.change({ formControl });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(formControl.value).toBe(AddressType.SubmittingFacility);
+    expect(dialog.showBasicClosableErrorDialog).not.toHaveBeenCalled();
+  });
 
   it('rejects a whitespace-only institution name even when its registered control is valid', async () => {
     service.submittingFacilityModel.set({

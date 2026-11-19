@@ -22,17 +22,19 @@ import { isoToGermanFormat } from '../../../legacy/common-utils';
 import { RESISTANCE_GENE_RESULT_OPTION_LIST, RESISTANCE_RESULT_OPTION_LIST, RESULT_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import { EXTRACTION_START_ERROR_MSG } from '../../../common/pathogen-formly-validation-module';
 import { NotificationType } from '../../../common/routing-helper';
-import { customCodeDisplay, FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
+import { FormlyConstants, formlyRow } from '@gematik/demis-portal-core-library';
 import { PathogenFormInfos } from '../../../utils/disclaimer-texts';
-import { isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
+import { isFilterablePathogenEnabled, isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
+import { formlyRequiredFieldsHint } from '../../../legacy/formly/configs/reusable/commons';
+import { CodeDisplay } from '../../../../../api/notification';
 
 export const pathogenSpecimenFields = (
   notificationType: NotificationType,
-  materialDisplays: string[],
-  methodDisplays: string[],
-  resistanceGeneDisplays?: string[],
-  resistanceDisplays?: string[],
-  analytOptions?: customCodeDisplay[],
+  materialOptions: DiagnosticOptions,
+  methodOptions: DiagnosticOptions,
+  resistanceGeneOptions?: DiagnosticOptions,
+  resistanceOptions?: DiagnosticOptions,
+  analytOptions?: CodeDisplay[],
   pathogenHeader?: string,
   pathogenSubheader?: string
 ): FormlyFieldConfig[] => {
@@ -42,6 +44,7 @@ export const pathogenSpecimenFields = (
       template: PathogenFormInfos.insertAllKnownInfosToFulfillReportingObligation + `<h2>${pathogenHeader}</h2><h3>${pathogenSubheader}</h3>`,
       key: 'diagnosticInfoWrapper',
     },
+    formlyRequiredFieldsHint(),
     {
       id: 'favoriteAddPathogen',
       key: 'favoriteAddPathogen',
@@ -87,7 +90,9 @@ export const pathogenSpecimenFields = (
                   receivedDatePart = ` vom ${isoToGermanFormat(dateString)}`;
                 } else receivedDatePart = '';
 
-                const materialPart = field.model?.material ? ` aus ${field.model.material}` : '';
+                // TODO can be simplified to field.model?.material?.display with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+                const material = field.model?.material?.display ?? field.model?.material;
+                const materialPart = material ? ` aus ${material}` : '';
                 return receivedDatePart || materialPart ? 'Diagnostik' + materialPart + receivedDatePart : 'Probe';
               },
               'props.isSingle': (field: FormlyFieldConfig) => {
@@ -129,20 +134,36 @@ export const pathogenSpecimenFields = (
                 },
               ]),
               formlyRow([
-                {
-                  id: 'material',
-                  key: 'material',
-                  type: 'autocomplete',
-                  className: FormlyConstants.COLMD12,
-                  props: {
-                    label: 'Material',
-                    filter: (term: string) => applyFilter(term, materialDisplays),
-                    required: true,
-                  },
-                  asyncValidators: {
-                    validation: ['optionMatches'],
-                  },
-                },
+                // TODO remove legacy autocomplete with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+                isFilterablePathogenEnabled()
+                  ? {
+                      id: 'material',
+                      key: 'material',
+                      className: FormlyConstants.COLMD12,
+                      type: 'filterable-select',
+                      props: {
+                        label: 'Material',
+                        required: true,
+                        options: materialOptions as CodeDisplay[],
+                        optionValueKey: 'code',
+                        optionLabelKey: 'display',
+                        clearable: true,
+                      },
+                    }
+                  : {
+                      id: 'material',
+                      key: 'material',
+                      className: FormlyConstants.COLMD12,
+                      type: 'autocomplete',
+                      props: {
+                        label: 'Material',
+                        required: true,
+                        filter: (term: string) => applyFilter(term, materialOptions as string[]),
+                      },
+                      asyncValidators: {
+                        validation: ['optionMatches'],
+                      },
+                    },
               ]),
               {
                 className: FormlyConstants.LAYOUT_HEADER,
@@ -169,20 +190,36 @@ export const pathogenSpecimenFields = (
                 fieldArray: {
                   fieldGroupClassName: FormlyConstants.ROW,
                   fieldGroup: [
-                    {
-                      id: 'method',
-                      key: 'method',
-                      type: 'autocomplete',
-                      className: FormlyConstants.COLMD12 + ' method',
-                      props: {
-                        label: 'Methode',
-                        filter: (term: string) => applyFilter(term, methodDisplays),
-                        required: true,
-                      },
-                      asyncValidators: {
-                        validation: ['optionMatches'],
-                      },
-                    },
+                    // TODO remove legacy autocomplete with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+                    isFilterablePathogenEnabled()
+                      ? {
+                          id: 'method',
+                          key: 'method',
+                          className: FormlyConstants.COLMD12 + ' method',
+                          type: 'filterable-select',
+                          props: {
+                            label: 'Methode',
+                            required: true,
+                            options: methodOptions as CodeDisplay[],
+                            optionValueKey: 'code',
+                            optionLabelKey: 'display',
+                            clearable: true,
+                          },
+                        }
+                      : {
+                          id: 'method',
+                          key: 'method',
+                          className: FormlyConstants.COLMD12 + ' method',
+                          type: 'autocomplete',
+                          props: {
+                            label: 'Methode',
+                            required: true,
+                            filter: (term: string) => applyFilter(term, methodOptions as string[]),
+                          },
+                          asyncValidators: {
+                            validation: ['optionMatches'],
+                          },
+                        },
                     {
                       id: 'analyt',
                       key: 'analyt',
@@ -194,6 +231,7 @@ export const pathogenSpecimenFields = (
                         optionValueKey: 'code',
                         optionLabelKey: 'display',
                         options: analytOptions,
+                        clearable: true,
                         hintStart: 'Angabe des Analyten notwendig, wenn Angabe für ausgewähltes Testverfahren zutrifft',
                       },
 
@@ -223,24 +261,40 @@ export const pathogenSpecimenFields = (
                   id: 'resistanceList',
                 },
                 className: 'resistance-repeat-section',
-                expressions: { hide: () => resistanceDisplays?.length === 0 },
+                expressions: { hide: () => resistanceOptions?.length === 0 },
                 fieldArray: {
                   fieldGroupClassName: FormlyConstants.ROW,
                   fieldGroup: [
-                    {
-                      key: 'resistance',
-                      type: 'autocomplete',
-                      className: FormlyConstants.COLMD12 + ' resistance',
-                      props: {
-                        label: 'Antibiotika-Resistenz',
-                        filter: (term: string) => applyFilter(term, resistanceDisplays),
-                        required: true,
-                        largeWidth: FormlyConstants.COLMD11,
-                      },
-                      asyncValidators: {
-                        validation: ['optionMatches'],
-                      },
-                    },
+                    // TODO remove legacy autocomplete with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+                    isFilterablePathogenEnabled()
+                      ? {
+                          key: 'resistance',
+                          className: FormlyConstants.COLMD12 + ' resistance',
+                          type: 'filterable-select',
+                          props: {
+                            label: 'Antibiotika-Resistenz',
+                            required: true,
+                            largeWidth: FormlyConstants.COLMD11,
+                            options: (resistanceOptions ?? []) as CodeDisplay[],
+                            optionValueKey: 'code',
+                            optionLabelKey: 'display',
+                            clearable: true,
+                          },
+                        }
+                      : {
+                          key: 'resistance',
+                          className: FormlyConstants.COLMD12 + ' resistance',
+                          type: 'autocomplete',
+                          props: {
+                            label: 'Antibiotika-Resistenz',
+                            required: true,
+                            largeWidth: FormlyConstants.COLMD11,
+                            filter: (term: string) => applyFilter(term, (resistanceOptions ?? []) as string[]),
+                          },
+                          asyncValidators: {
+                            validation: ['optionMatches'],
+                          },
+                        },
                     {
                       key: 'resistanceResult',
                       className: FormlyConstants.COLMD12_INLINE + ' resistanceResult',
@@ -264,24 +318,40 @@ export const pathogenSpecimenFields = (
                   additionalHeader: 'Resistenzdeterminante',
                   id: 'resistanceGeneList',
                 },
-                expressions: { hide: () => resistanceGeneDisplays?.length === 0 },
+                expressions: { hide: () => resistanceGeneOptions?.length === 0 },
                 fieldArray: {
                   fieldGroupClassName: FormlyConstants.ROW,
                   fieldGroup: [
-                    {
-                      key: 'resistanceGene',
-                      type: 'autocomplete',
-                      className: FormlyConstants.COLMD12 + ' resistanceGene',
-                      props: {
-                        label: 'Resitenzdeterminate',
-                        filter: (term: string) => applyFilter(term, resistanceGeneDisplays),
-                        required: true,
-                        largeWidth: FormlyConstants.COLMD11,
-                      },
-                      asyncValidators: {
-                        validation: ['optionMatches'],
-                      },
-                    },
+                    // TODO remove legacy autocomplete with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+                    isFilterablePathogenEnabled()
+                      ? {
+                          key: 'resistanceGene',
+                          className: FormlyConstants.COLMD12 + ' resistanceGene',
+                          type: 'filterable-select',
+                          props: {
+                            label: 'Resitenzdeterminate',
+                            required: true,
+                            largeWidth: FormlyConstants.COLMD11,
+                            options: (resistanceGeneOptions ?? []) as CodeDisplay[],
+                            optionValueKey: 'code',
+                            optionLabelKey: 'display',
+                            clearable: true,
+                          },
+                        }
+                      : {
+                          key: 'resistanceGene',
+                          className: FormlyConstants.COLMD12 + ' resistanceGene',
+                          type: 'autocomplete',
+                          props: {
+                            label: 'Resitenzdeterminate',
+                            required: true,
+                            largeWidth: FormlyConstants.COLMD11,
+                            filter: (term: string) => applyFilter(term, (resistanceGeneOptions ?? []) as string[]),
+                          },
+                          asyncValidators: {
+                            validation: ['optionMatches'],
+                          },
+                        },
                     {
                       key: 'resistanceGeneResult',
                       className: FormlyConstants.COLMD12_INLINE + ' resistanceGeneResult',
@@ -315,3 +385,6 @@ const filterDisplayValues = (term: string, data: string[]) => {
 };
 
 export const applyFilter = (term: string, data: string[]) => of(term ? filterDisplayValues(term, data) : data.slice());
+
+// TODO can be narrowed to CodeDisplay[] with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+export type DiagnosticOptions = string[] | CodeDisplay[];

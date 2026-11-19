@@ -18,7 +18,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExpansionPanelWrapperComponent } from './expansion-panel.wrapper';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { RouterModule } from '@angular/router';
 
 describe('ExpansionPanelWrapperComponent', () => {
@@ -36,7 +36,8 @@ describe('ExpansionPanelWrapperComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ExpansionPanelWrapperComponent, NoopAnimationsModule, RouterModule.forRoot([])],
+      imports: [ExpansionPanelWrapperComponent, RouterModule.forRoot([])],
+      providers: [{ provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } }],
     }).compileComponents();
   });
 

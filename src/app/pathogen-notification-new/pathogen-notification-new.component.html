@@ -4,8 +4,8 @@
       <p>{{ headingDescription() }}</p>
     </ng-template>
     <ng-template #additionalSideNavActions>
-      <!--      <app-hexhexbutton (pasteClicked)="handleHexHexChange()" />-->
-      <!--      <gem-demis-paste-box (dataPasted)="onClipboardDataPasted($event)" />-->
+      <app-hexhexbutton (pasteHexHexData)="handleHexHexChange()" />
+      <gem-demis-paste-box (dataPasted)="onClipboardDataPasted($event)" />
     </ng-template>
   </gem-demis-side-navigation>
 </gem-demis-max-height-content-container>

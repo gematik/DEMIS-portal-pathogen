@@ -20,14 +20,16 @@ import { AddressType, CodeDisplay } from '../../../../../../api/notification';
 import {
   GERMANY_COUNTRY_CODE,
   getDesignationValueIfAvailable,
+  mapCodeDisplaysToOptionList,
   ZIP_GERMANY_MAX_LENGTH,
   ZIP_GERMANY_MIN_LENGTH,
   ZIP_INTERNATIONAL_MAX_LENGTH,
   ZIP_INTERNATIONAL_MIN_LENGTH,
 } from '../../../common-utils';
 
-import { formlyInputField, formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
+import { filterableSelectField, formlyInputField, formlyRow, FormlyConstants, SelectOption } from '@gematik/demis-portal-core-library';
 import { CURRENT_ADDRESS_ID } from './notified-person.config';
+import { isFilterablePathogenEnabled } from '../../../../utils/pathogen-notification-mapper';
 
 export const addressFormConfigFields = (
   countryCodeDisplays: CodeDisplay[],
@@ -100,22 +102,51 @@ export const addressFormConfigFields = (
       required: required,
     },
   }),
-  {
-    id: `${idPrefix}country`,
-    key: 'country',
-    className: FormlyConstants.COLMD12,
-    type: 'select',
-    defaultValue: GERMANY_COUNTRY_CODE,
-    props: {
-      label: 'Land',
-      required: true,
-      disabled: countryDisabled,
-      options: countryCodeDisplays.map(value => {
-        return { value: value.code, label: getDesignationValueIfAvailable(value) };
-      }),
-    },
-  },
+  // TODO remove legacy select with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+  isFilterablePathogenEnabled()
+    ? filterableCountryField(`${idPrefix}country`, FormlyConstants.COLMD12, countryCodeDisplays, {
+        required: true,
+        disabled: countryDisabled,
+      })
+    : {
+        id: `${idPrefix}country`,
+        key: 'country',
+        className: FormlyConstants.COLMD12,
+        type: 'select',
+        defaultValue: GERMANY_COUNTRY_CODE,
+        props: {
+          label: 'Land',
+          required: true,
+          disabled: countryDisabled,
+          options: countryCodeDisplays.map(value => {
+            return { value: value.code, label: getDesignationValueIfAvailable(value) };
+          }),
+        },
+      },
 ];
+
+const filterableCountryField = (
+  id: string,
+  className: string,
+  countryCodeDisplays: CodeDisplay[],
+  { required, disabled }: { required: boolean; disabled: boolean }
+): FormlyFieldConfig => {
+  const options = mapCodeDisplaysToOptionList(countryCodeDisplays);
+  const defaultValue = options.find(option => option.value === GERMANY_COUNTRY_CODE);
+  return {
+    ...filterableSelectField<SelectOption>({
+      id,
+      key: 'country',
+      label: 'Land',
+      options,
+      required,
+      disabled,
+      clearable: true,
+      ...(defaultValue && { defaultValue }),
+    }),
+    className,
+  };
+};
 
 export const addressFormPanelConfigFields = (countryCodeDisplays: CodeDisplay[], required: boolean, idPrefix: string, addressType: AddressType) =>
   [
@@ -171,21 +202,24 @@ export const addressFormPanelConfigFields = (countryCodeDisplays: CodeDisplay[],
     ]),
     formlyRow(
       [
-        {
-          id: `${idPrefix}country`,
-          key: 'country',
-          className: 'col-md-12',
-          type: 'select',
-          defaultValue: GERMANY_COUNTRY_CODE,
-          props: {
-            label: 'Land',
-            required: required,
-            disabled: required,
-            options: countryCodeDisplays.map(value => {
-              return { value: value.code, label: getDesignationValueIfAvailable(value) };
-            }),
-          },
-        },
+        // TODO remove legacy select with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+        isFilterablePathogenEnabled()
+          ? filterableCountryField(`${idPrefix}country`, 'col-md-12', countryCodeDisplays, { required, disabled: required })
+          : {
+              id: `${idPrefix}country`,
+              key: 'country',
+              className: 'col-md-12',
+              type: 'select',
+              defaultValue: GERMANY_COUNTRY_CODE,
+              props: {
+                label: 'Land',
+                required: required,
+                disabled: required,
+                options: countryCodeDisplays.map(value => {
+                  return { value: value.code, label: getDesignationValueIfAvailable(value) };
+                }),
+              },
+            },
       ],
       undefined,
       'row margin-right-exp-label-correction'

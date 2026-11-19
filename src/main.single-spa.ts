@@ -24,7 +24,6 @@ import { setPublicPath } from 'systemjs-webpack-interop';
 import { environment } from './environments/environment';
 import { AppComponent } from './app/app.component';
 import { LoggerModule } from 'ngx-logger';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app/app-routing.module';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AuthInterceptor } from './app/pathogen-notification/services/auth/auth.interceptor';
@@ -58,7 +57,6 @@ const lifecycles = singleSpaAngular({
         },
         provideSingleSpaPlatform(),
         provideHttpClient(withInterceptorsFromDi()),
-        provideAnimations(),
         ClipboardDataService,
         FhirPathogenNotificationService,
         provideFormlyCore([

@@ -19,9 +19,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatSelectHarness } from '@angular/material/select/testing';
-import { MockedComponentFixture } from 'ng-mocks';
 import { lastValueFrom, of } from 'rxjs';
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { getAutocomplete, getButton, getCheckbox, getDialog, getInput, getRadioGroup, getSelect, selectRadioOption } from '../shared/material-harness-utils';
 import {
   ADD_BUTTON_CLIPBOARD,
@@ -48,7 +46,7 @@ import {
   FIELD_CURRENT_ADDRESS_ZIP,
   FIELD_MATERIAL,
   FIELD_PATHOGEN,
-  FIELD_PATHOGEN_DISPLAY,
+  FIELD_NOTIFIABLE_PATHOGEN,
   FIELD_RESIDENCE_ADDRESS_CITY,
   FIELD_RESIDENCE_ADDRESS_COUNTRY,
   FIELD_RESIDENCE_ADDRESS_HOUSE_NUMBER,
@@ -71,19 +69,37 @@ import {
   clickNextButton,
   createClipboardStringFromObject,
   setInputFieldValue,
-  switchToPage,
   verifyAutocompleteField,
   verifyInputFieldValues,
   verifyRadioButton,
   verifySelectField,
-  verifyStateOfDiagnosticPage,
+  verifyStateOfDiagnosticPage as verifyLegacyStateOfDiagnosticPage,
   waitForStability,
 } from '../shared/test-utils';
-import { buildMock, mainConfig, setupIntegrationTests } from './base';
+import {
+  buildMock,
+  IntegrationFixture,
+  setupCoreSidenavIntegrationTests,
+  setupIntegrationTests,
+  switchToIntegrationPage as switchToPage,
+  useTemporaryProductionMode,
+} from './base';
+import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
-describe('Pathogen - Clipboard Integration Tests', () => {
+describe.each([false, true])('Pathogen - Clipboard Integration Tests (FEATURE_FLAG_CORE_SIDENAV: %s)', featureFlagCoreSidenav => {
   let loader: HarnessLoader;
-  let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+  let fixture: IntegrationFixture;
+
+  async function verifyStateOfDiagnosticPage(loader: HarnessLoader, expectedState: string | null) {
+    if (featureFlagCoreSidenav) {
+      await waitForStability(fixture);
+      const headers = fixture.nativeElement.querySelectorAll('mat-step-header');
+      expect(headers).toHaveLength(5);
+      expect(headers[4].getAttribute('aria-disabled')).toBe(expectedState === 'disabled_step' ? 'true' : 'false');
+    } else {
+      await verifyLegacyStateOfDiagnosticPage(loader, expectedState);
+    }
+  }
 
   const testClipboardFieldMappingOfNotifiedPersonAddressFor = parameters => {
     parameters.forEach(({ key, value, addressType, selector }) => {
@@ -106,14 +122,9 @@ describe('Pathogen - Clipboard Integration Tests', () => {
     });
   };
 
-  beforeEach(async () => await buildMock(true));
-  beforeEach(() => {
-    const result = setupIntegrationTests({
-      ...mainConfig,
-      featureFlags: {
-        ...mainConfig.featureFlags,
-      },
-    });
+  beforeEach(async () => await buildMock(true, NotificationType.NominalNotification7_1, featureFlagCoreSidenav));
+  beforeEach(async () => {
+    const result = featureFlagCoreSidenav ? setupCoreSidenavIntegrationTests() : setupIntegrationTests();
     vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue(undefined);
 
     fixture = result.fixture;
@@ -121,7 +132,10 @@ describe('Pathogen - Clipboard Integration Tests', () => {
     setDiagnosticBasedOnPathogenSelection(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP);
     loader = result.loader;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
+
+  useTemporaryProductionMode();
 
   describe('Notifier Facility', () => {
     it('should fill all values of notifier facility', async () => {
@@ -130,7 +144,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
       vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-      fixture.detectChanges();
+      await waitForStability(fixture);
       await verifyInputFieldValues(loader, [
         {
           selector: notifierTestFacility.institutionName.selector,
@@ -255,7 +269,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       const p = lastValueFrom(of(clipboardString.concat(clipboardString)));
       vi.spyOn(window.navigator.clipboard, 'readText').mockReturnValue(p);
       await (await getButton(loader, ADD_BUTTON_CLIPBOARD)).click();
-      fixture.detectChanges();
+      await waitForStability(fixture);
       await verifyInputFieldValues(loader, [
         {
           selector: TEST_NOTIFIED_PERSON.firstName.selector,
@@ -404,7 +418,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
         // Titeltext prüfen
         const title = await dialog.getTitleText();
-        expect(title).toMatch(/Fehler bei der Auswahl der Adresse/);
+        expect(title).toContain(featureFlagCoreSidenav ? 'Fehler bei der Auswahl der Adresse' : 'Fehler bei der Auswahl der Adresse');
 
         await (await getButton(documentRootLoader, '#close-btn')).click();
         await waitForStability(fixture);
@@ -475,12 +489,12 @@ describe('Pathogen - Clipboard Integration Tests', () => {
         await waitForStability(fixture);
         // assert that page 4 (notificationCategory) has the correct values from clipboard
         await verifySelectField(loader, {
-          expectedValue: TEST_NOTIFICATION_CATEGORY.federalStateCodeDisplay.value,
-          selector: TEST_NOTIFICATION_CATEGORY.federalStateCodeDisplay.selector,
+          expectedValue: TEST_NOTIFICATION_CATEGORY.federalState.value,
+          selector: TEST_NOTIFICATION_CATEGORY.federalState.selector,
         });
         await verifyAutocompleteField(loader, {
-          expectedValue: TEST_NOTIFICATION_CATEGORY.pathogenDisplay.value,
-          selector: TEST_NOTIFICATION_CATEGORY.pathogenDisplay.selector,
+          expectedValue: TEST_NOTIFICATION_CATEGORY.notifiablePathogen.value,
+          selector: TEST_NOTIFICATION_CATEGORY.notifiablePathogen.selector,
         });
         await verifySelectField(loader, {
           expectedValue: TEST_NOTIFICATION_CATEGORY.pathogen.value,
@@ -531,7 +545,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
     it('should overwrite diagnostic data after clipboard with new material', async () => {
       // set code for influenzavirus
-      await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, 'Influenzavirus', fixture);
+      await setInputFieldValue(loader, `#${FIELD_NOTIFIABLE_PATHOGEN}`, 'Influenzavirus', fixture);
       setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);
       fixture.detectChanges();
 
@@ -551,7 +565,7 @@ describe('Pathogen - Clipboard Integration Tests', () => {
 
     it('should not overwrite diagnostic data after clipboard with empty material', async () => {
       // set code for influenzavirus
-      await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, 'Influenzavirus', fixture);
+      await setInputFieldValue(loader, `#${FIELD_NOTIFIABLE_PATHOGEN}`, 'Influenzavirus', fixture);
       setSelectedPathogenCodeDisplay(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP.codeDisplay);
       fixture.detectChanges();
 
@@ -583,14 +597,14 @@ describe('Pathogen - Clipboard Integration Tests', () => {
       await waitForStability(fixture);
       await switchToPage(4, fixture);
       await waitForStability(fixture);
-      await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, 'Bornaviren', fixture);
+      await setInputFieldValue(loader, `#${FIELD_NOTIFIABLE_PATHOGEN}`, 'Bornaviren', fixture);
       await waitForStability(fixture);
       // bug: switches back to page 1 without given reason
       await switchToPage(4, fixture);
       await waitForStability(fixture);
 
-      const pathogenDisplay = await getAutocomplete(loader, `#${FIELD_PATHOGEN_DISPLAY}`);
-      expect(await pathogenDisplay.getValue()).toBe('Bornaviren');
+      const notifiablePathogen = await getAutocomplete(loader, `#${FIELD_NOTIFIABLE_PATHOGEN}`);
+      expect(await notifiablePathogen.getValue()).toBe('Bornaviren');
 
       const pathogen = await getSelect(loader, `#${FIELD_PATHOGEN}`);
       expect(await pathogen.getValueText()).toBe('');

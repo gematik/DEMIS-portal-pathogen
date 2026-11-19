@@ -24,8 +24,6 @@ import { getAutocomplete, getCheckbox, getInput, getRadioGroup, getSelect, getSt
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { TestDataDiagnosticPage, TestDataFacilityPage, TestDataNotificationCategoryPage, TestDataNotifiedPersonPage } from './test-objects';
 import { MatStepHarness } from '@angular/material/stepper/testing';
-import { MockedComponentFixture } from 'ng-mocks';
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { ADDRESS_TYPE_PRIMARYASCURRENT, ADDRESS_TYPE_SUBMITTING_FACILITY } from './test-constants';
 
 export async function checkDescribingError(fixture: ComponentFixture<any>, input: MatInputHarness | MatAutocompleteHarness, expectedResult: string) {
@@ -205,7 +203,7 @@ export async function verifyStateOfDiagnosticPage(loader: HarnessLoader, expecte
   expect(await steps[4].getAriaLabelledby()).toBe(expectedState);
 }
 
-export async function selectAndVerifySubmittingFacilityAsCurrentAddress(loader: HarnessLoader, fixture: MockedComponentFixture<PathogenNotificationComponent>) {
+export async function selectAndVerifySubmittingFacilityAsCurrentAddress(loader: HarnessLoader, fixture: ComponentFixture<unknown>) {
   await waitForStability(fixture, 100);
   const radioGroup = await getRadioGroup(loader, '#currentAddressType');
   await selectRadioOption(radioGroup, 'Wohnsitz');

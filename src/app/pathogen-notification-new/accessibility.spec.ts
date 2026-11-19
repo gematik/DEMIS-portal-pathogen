@@ -16,7 +16,7 @@
  */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { FormlyModule } from '@ngx-formly/core';
 import { FormlyMaterialModule } from '@ngx-formly/material';
@@ -53,7 +53,6 @@ describe('Pathogen a11y tests', () => {
     await TestBed.configureTestingModule({
       imports: [
         PathogenNotificationNewComponent,
-        NoopAnimationsModule,
         FormlyMaterialModule,
         FormlyModule.forRoot({
           ...PathogenFormlyConfig,
@@ -62,6 +61,7 @@ describe('Pathogen a11y tests', () => {
         }),
       ],
       providers: [
+        { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
         { provide: Router, useValue: { url: `/${allowedRoutes.nominal}` } },
         {
           provide: FollowUpNotificationIdService,

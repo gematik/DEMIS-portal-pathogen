@@ -59,10 +59,10 @@ describe('Pathogen - Anonymous Integration Tests', () => {
 
   it('should not show federalState select', async () => {
     await switchToPage(4, fixture);
-    const federalStateSelect = fixture.nativeElement.querySelector('[id="federalStateCodeDisplay"]');
-    const pathogenDisplaySelect = fixture.nativeElement.querySelector('[id="pathogenDisplay"]');
+    const federalStateSelect = fixture.nativeElement.querySelector('[id="federalState"]');
+    const notifiablePathogenSelect = fixture.nativeElement.querySelector('[id="notifiablePathogen"]');
 
     expect(federalStateSelect, 'federalStateSelect should not be present but was found').toBeNull();
-    expect(pathogenDisplaySelect, 'pathogenDisplaySelect could not be found').toBeTruthy();
+    expect(notifiablePathogenSelect, 'notifiablePathogenSelect could not be found').toBeTruthy();
   });
 });

@@ -18,9 +18,7 @@
 import { beforeEach, describe, expect, it, type Mock } from 'vitest';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { TestBed } from '@angular/core/testing';
-import { MockedComponentFixture } from 'ng-mocks';
 import { getButton, getInput, getRadioGroup, selectRadioOption } from '../shared/material-harness-utils';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
@@ -29,11 +27,9 @@ import {
   clickBackButton,
   clickNextButton,
   selectAndVerifySubmittingFacilityAsCurrentAddress,
-  selectPageByNumber,
   setCheckboxTo,
   setInputFieldValue,
   setTextFieldValuesFor,
-  switchToPage,
   verifyInputFieldValues,
   waitForStability,
 } from '../shared/test-utils';
@@ -49,13 +45,13 @@ import {
 } from '../shared/test-constants';
 import { TEST_DATA, TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY, TEST_NOTIFIED_PERSON } from '../shared/test-objects';
-import { buildMock, mainConfig, setupIntegrationTests } from './base';
+import { buildMock, IntegrationFixture, setupCoreSidenavIntegrationTests, setupIntegrationTests, switchToIntegrationPage } from './base';
 import { NotifiedPersonDisclaimer } from '../../app/pathogen-notification/utils/disclaimer-texts';
+import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
-describe('Pathogen - Notified Person Integration Tests', () => {
-  let component: PathogenNotificationComponent;
+describe.each([false, true])('Pathogen - Notified Person Integration Tests (FEATURE_FLAG_CORE_SIDENAV: %s)', featureFlagCoreSidenav => {
   let loader: HarnessLoader;
-  let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+  let fixture: IntegrationFixture;
 
   let fetchCountryCodeDisplaysSpy: Mock;
   let fetchFederalStateCodeDisplaysSpy: Mock;
@@ -87,13 +83,12 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     });
   };
 
-  beforeEach(async () => await buildMock());
+  beforeEach(async () => await buildMock(false, NotificationType.NominalNotification7_1, featureFlagCoreSidenav));
 
-  beforeEach(() => {
-    const result = setupIntegrationTests();
+  beforeEach(async () => {
+    const result = featureFlagCoreSidenav ? setupCoreSidenavIntegrationTests() : setupIntegrationTests();
 
     fixture = result.fixture;
-    component = result.component;
     loader = result.loader;
 
     fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as Mock;
@@ -106,11 +101,12 @@ describe('Pathogen - Notified Person Integration Tests', () => {
     setDiagnosticBasedOnPathogenSelection(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP);
 
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   describe('Notified Person', () => {
     beforeEach(async () => {
-      await switchToPage(3, fixture);
+      await switchToIntegrationPage(3, fixture);
     });
 
     it('should be at notified person form', async () => {
@@ -188,22 +184,21 @@ describe('Pathogen - Notified Person Integration Tests', () => {
       ]);
     });
 
-    // flaky
-    it.skip('When submitting facility copy checkbox is checked and data in notifier facility is changed, this address should also change', async () => {
+    it('When submitting facility copy checkbox is checked and data in notifier facility is changed, this address should also change', async () => {
       // preparation: enable checkbox in submittingFacility and go to notifiedPerson to select submittingFacility as currentAddressType
       await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
 
-      await selectPageByNumber(loader, fixture, 2);
+      await switchToIntegrationPage(3, fixture);
 
       await selectAndVerifySubmittingFacilityAsCurrentAddress(loader, fixture);
 
       // go back to notifierFacility and change value
-      await selectPageByNumber(loader, fixture, 0);
+      await switchToIntegrationPage(1, fixture);
       await setInputFieldValue(loader, facility.institutionName.selector, facility.institutionName.value, fixture);
       await waitForStability(fixture);
 
       // go to notifiedPerson and assert value has changed
-      await selectPageByNumber(loader, fixture, 2);
+      await switchToIntegrationPage(3, fixture);
       await verifyInputFieldValues(loader, [
         {
           selector: TEST_NOTIFIED_PERSON.currentName.selector,
@@ -212,8 +207,7 @@ describe('Pathogen - Notified Person Integration Tests', () => {
       ]);
     });
 
-    //flaky test
-    it.skip('When submitting facility copy checkbox is checked and unchecked again, then the radio button type should be null', async () => {
+    it('When submitting facility copy checkbox is checked and unchecked again, then the radio button type should be null', async () => {
       // preparation: enable checkbox in submittingFacility and go to notifiedPerson to select submittingFacility as currentAddressType
       await setCheckboxTo(true, FIELD_COPY_ADDRESS, fixture, loader);
       await verifyInputFieldValues(loader, [
@@ -222,14 +216,14 @@ describe('Pathogen - Notified Person Integration Tests', () => {
           expectedValue: TEST_DATA.notifierFacility.facilityInfo.institutionName,
         },
       ]);
-      await selectPageByNumber(loader, fixture, 2);
+      await switchToIntegrationPage(3, fixture);
       await waitForStability(fixture);
       await selectAndVerifySubmittingFacilityAsCurrentAddress(loader, fixture);
       // change: go back to submitting facility and disable checkbox
-      await selectPageByNumber(loader, fixture, 1);
+      await switchToIntegrationPage(2, fixture);
       await setCheckboxTo(false, FIELD_COPY_ADDRESS, fixture, loader);
       // assertion: no currentAddressType should be selected
-      await selectPageByNumber(loader, fixture, 2);
+      await switchToIntegrationPage(3, fixture);
       await waitForStability(fixture);
       const radioGroup = await getRadioGroup(loader, '#currentAddressType');
       expect(await radioGroup.getCheckedValue()).toBe(null);

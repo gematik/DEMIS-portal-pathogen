@@ -22,7 +22,7 @@ import { format, isValid, parse } from 'date-fns';
 import { DateTime } from 'luxon';
 
 import { CodeDisplay, Designation, Gender, PractitionerInfo } from '../../../api/notification';
-import { customCodeDisplay, selectOption } from '@gematik/demis-portal-core-library';
+import { selectOption } from '@gematik/demis-portal-core-library';
 // CONST:..................................
 
 /*** id: de-DE ***/
@@ -178,7 +178,7 @@ export function mapCodeDisplaysToOptionList(codeDisplays: CodeDisplay[]): select
   });
 }
 
-export function formatCodeDisplayToDesignationOption(cd: CodeDisplay): customCodeDisplay {
+export function formatCodeDisplayToDesignationOption(cd: CodeDisplay): CodeDisplay {
   return { code: cd.code, display: getDesignationValueIfAvailable(cd) };
 }
 
@@ -198,6 +198,9 @@ export function findCodeDisplayByDisplayValue(codeDisplayList: CodeDisplay[], di
 export function findCodeDisplayByCodeValue(codeDisplayList: CodeDisplay[], codeValue: string): CodeDisplay {
   return codeDisplayList.find(cd => cd.code === codeValue);
 }
+
+// TODO can be replaced by option.value with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+export const getSelectOptionValue = (value: any) => (value && typeof value === 'object' ? value.value : value);
 
 // 'None' is hardcoded and not in the enum because it's only needed for the frontend
 export const ExtendedSalutationEnum = {

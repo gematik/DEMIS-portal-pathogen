@@ -187,8 +187,8 @@ describe('FhirPathogenNotificationService', () => {
           display: 'Test',
         },
         reportStatus: NotificationLaboratoryCategory.ReportStatusEnum.Final,
-        federalStateCodeDisplay: 'removeMe',
-        pathogenDisplay: 'removeMeToo',
+        federalState: 'removeMe',
+        notifiablePathogen: 'removeMeToo',
       },
       submittingFacility: {
         copyAddressCheckBox: true,

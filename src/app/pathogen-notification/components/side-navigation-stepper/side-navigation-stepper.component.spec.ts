@@ -103,25 +103,25 @@ describe('SideNavigationStepperComponent', () => {
     expect(routerSpy).toHaveBeenCalledWith(['./'], { relativeTo: component['route'], fragment: 'step1' });
   });
 
-  it('should return "disabled_step" for isEditable when pathogenDisplay is null', () => {
+  it('should return "disabled_step" for isEditable when notifiablePathogen is null', () => {
     const fixture = MockRender(SideNavigationStepperComponent, {
-      model: { notificationCategory: { pathogenDisplay: null } },
+      model: { notificationCategory: { notifiablePathogen: null } },
     });
     const component = fixture.point.componentInstance;
     expect(component.isEditable(4)).toBe('disabled_step');
   });
 
-  it('should return "disabled_step" for isEditable when pathogenDisplay is empty', () => {
+  it('should return "disabled_step" for isEditable when notifiablePathogen is empty', () => {
     const fixture = MockRender(SideNavigationStepperComponent, {
-      model: { notificationCategory: { pathogenDisplay: '' } },
+      model: { notificationCategory: { notifiablePathogen: '' } },
     });
     const component = fixture.point.componentInstance;
     expect(component.isEditable(4)).toBe('disabled_step');
   });
 
-  it('should return null for isEditable when pathogenDisplay is set', () => {
+  it('should return null for isEditable when notifiablePathogen is set', () => {
     const fixture = MockRender(SideNavigationStepperComponent, {
-      model: { notificationCategory: { pathogenDisplay: 'Influenza' } },
+      model: { notificationCategory: { notifiablePathogen: 'Influenza' } },
     });
     const component = fixture.point.componentInstance;
     expect(component.isEditable(4)).toBeNull();

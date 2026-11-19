@@ -113,7 +113,7 @@ import {
   FIELD_NOTIFIER_FACILITY_LASTNAME,
   FIELD_NOTIFIER_FACILITY_PREFIX,
   FIELD_PATHOGEN,
-  FIELD_PATHOGEN_DISPLAY,
+  FIELD_NOTIFIABLE_PATHOGEN,
   FIELD_PHONE_1,
   FIELD_RECEIVED_DATE,
   FIELD_REPORT_STATUS,
@@ -136,8 +136,8 @@ interface TestDataStructure {
 }
 
 export interface TestDataNotificationCategoryPage {
-  federalStateCodeDisplay: TestDataStructure;
-  pathogenDisplay: TestDataStructure;
+  federalState: TestDataStructure;
+  notifiablePathogen: TestDataStructure;
   pathogen: TestDataStructure;
   reportStatus: TestDataStructure;
   notificationIdReference: TestDataStructure;
@@ -371,12 +371,12 @@ export const TEST_NOTIFIED_PERSON: TestDataNotifiedPersonPage = {
 };
 
 export const TEST_NOTIFICATION_CATEGORY: TestDataNotificationCategoryPage = {
-  federalStateCodeDisplay: {
+  federalState: {
     selector: `#${FIELD_FEDERAL_STATE}`,
     value: CLIPBOARD_LABEL_FEDERAL_STATE,
   },
-  pathogenDisplay: {
-    selector: `#${FIELD_PATHOGEN_DISPLAY}`,
+  notifiablePathogen: {
+    selector: `#${FIELD_NOTIFIABLE_PATHOGEN}`,
     value: TEST_DATA.pathogenCodeDisplays[0].designations[0].value,
     clipboardDataKey: 'T.notificationCategory',
     clipboardValue: CLIPBOARD_VALUE_NOTIFICATION_CATEGORY,

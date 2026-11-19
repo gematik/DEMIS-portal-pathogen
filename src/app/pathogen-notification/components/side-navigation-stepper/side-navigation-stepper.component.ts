@@ -46,7 +46,7 @@ export class SideNavigationStepperComponent {
   }
 
   isEditable(index: number) {
-    const isDiagnosticReadySpecimenPrep = !this.model()?.notificationCategory?.pathogenDisplay ? 'disabled_step' : null;
+    const isDiagnosticReadySpecimenPrep = !this.model()?.notificationCategory?.notifiablePathogen ? 'disabled_step' : null;
     return index == 4 && isDiagnosticReadySpecimenPrep;
   }
 

@@ -21,15 +21,16 @@ import { MockedComponentFixture } from 'ng-mocks';
 import { getAllButtonsWithSameSelector, getButton, getInput, getMultipleInputFieldsWithSameSelector } from '../shared/material-harness-utils';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { checkDescribingError } from '../shared/test-utils';
-import { buildMock, setupIntegrationTests } from './base';
+import { buildMock, setupCoreSidenavIntegrationTests, setupIntegrationTests } from './base';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { ADD_BUTTON_EMAIL, ADD_BUTTON_PHONE, FIELD_EMAIL_1, FIELD_EMAIL, FIELD_PHONE_1, FIELD_PHONE } from '../shared/test-constants';
 import { TEST_PARAMETER_VALIDATION } from '../shared/test-data';
+import { WrapperComponent } from '../../app/wrapper/wrapper.component';
+import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
-describe('Pathogen - Notifier Facility Integration Tests', () => {
-  let component: PathogenNotificationComponent;
+describe.each([false, true])('Pathogen - Notifier Facility Integration Tests (FEATURE_FLAG_CORE_SIDENAV: %s)', (featureFlagCoreSidenav: boolean) => {
   let loader: HarnessLoader;
-  let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+  let fixture: MockedComponentFixture<PathogenNotificationComponent | WrapperComponent>;
 
   const testValidationFor = parameters => {
     parameters.forEach(({ field, value, expectedResult }) => {
@@ -55,17 +56,18 @@ describe('Pathogen - Notifier Facility Integration Tests', () => {
     });
   };
 
-  beforeEach(async () => await buildMock());
+  beforeEach(async () => await buildMock(false, NotificationType.NominalNotification7_1, featureFlagCoreSidenav));
 
   beforeEach(async () => {
-    const result = setupIntegrationTests();
+    const result = featureFlagCoreSidenav ? setupCoreSidenavIntegrationTests() : setupIntegrationTests();
     fixture = result.fixture;
-    component = result.component;
     loader = result.loader;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
   it('should be at notifier facility form', async () => {
     expect(fixture.nativeElement.textContent).toContain('Ansprechperson (Melder)');
+    expect(fixture.nativeElement.querySelector('app-pathogen-notification-new') !== null).toBe(featureFlagCoreSidenav);
   });
   describe('Validation of facilityInfo', () => {
     testValidationFor(TEST_PARAMETER_VALIDATION.facilityInfo);

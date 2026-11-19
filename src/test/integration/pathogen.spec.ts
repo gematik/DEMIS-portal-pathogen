@@ -41,7 +41,6 @@ import {
   FIELD_DEPARTMENTNAME,
   FIELD_EMAIL_1,
   FIELD_EMAIL_2,
-  FIELD_EMAIL,
   FIELD_FIRST_NAME,
   FIELD_INSTITUTIONAME,
   FIELD_LAST_NAME,
@@ -49,7 +48,6 @@ import {
   FIELD_NOTIFIER_FACILITY_FIRSTNAME,
   FIELD_NOTIFIER_FACILITY_LASTNAME,
   FIELD_PHONE_1,
-  FIELD_PHONE,
   FIELD_SUBMITTING_FACILITY_ADDRESS_CITY,
   FIELD_SUBMITTING_FACILITY_ADDRESS_HOUSE_NUMBER,
   FIELD_SUBMITTING_FACILITY_ADDRESS_STREET,
@@ -65,12 +63,13 @@ import {
 import { TEST_PARAMETER_SET_NOTIFIER, TEST_PARAMETER_VALIDATION } from '../shared/test-data';
 import { TEST_FACILITY } from '../shared/test-objects';
 import { lastValueFrom, of } from 'rxjs';
-import { buildMock, setupIntegrationTests } from './base';
+import { buildMock, setupCoreSidenavIntegrationTests, setupIntegrationTests } from './base';
+import { WrapperComponent } from '../../app/wrapper/wrapper.component';
+import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
-describe('Pathogen - Integration Tests', () => {
-  let component: PathogenNotificationComponent;
+describe.each([false, true])('Pathogen - Integration Tests (FEATURE_FLAG_CORE_SIDENAV: %s)', (featureFlagCoreSidenav: boolean) => {
   let loader: HarnessLoader;
-  let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+  let fixture: MockedComponentFixture<PathogenNotificationComponent | WrapperComponent>;
 
   let fetchCountryCodeDisplaysSpy: Mock;
   let fetchFederalStateCodeDisplaysSpy: Mock;
@@ -102,25 +101,30 @@ describe('Pathogen - Integration Tests', () => {
     });
   };
 
-  beforeEach(async () => await buildMock());
+  beforeEach(async () => await buildMock(false, NotificationType.NominalNotification7_1, featureFlagCoreSidenav));
 
   beforeEach(async () => {
-    const result = setupIntegrationTests();
+    const result = featureFlagCoreSidenav ? setupCoreSidenavIntegrationTests() : setupIntegrationTests();
     fixture = result.fixture;
-    component = result.component;
     loader = result.loader;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should show 7.1 header', async () => {
     const textContent = fixture.nativeElement.textContent;
     expect(textContent.includes('Erregernachweis (§ 7.1)')).toBe(true);
+    expect(fixture.nativeElement.querySelector('app-pathogen-notification-new') !== null).toBe(featureFlagCoreSidenav);
   });
 
   it('should not send, when nothing is inserted', async () => {
     const submitButton = getHtmlButtonElement(fixture.nativeElement, '#btn-send-notification');
     expect(submitButton).toBeTruthy();
-    expect(submitButton.disabled).toBe(true);
+    if (featureFlagCoreSidenav) {
+      expect(submitButton.getAttribute('aria-disabled')).toBe('true');
+    } else {
+      expect(submitButton.disabled).toBe(true);
+    }
   });
 
   it('should switch to next formular when clicking nextButton', async () => {

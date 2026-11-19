@@ -84,7 +84,7 @@ export class FormWrapperComponent extends FieldType implements OnInit {
   }
 
   checkPathogenSelection(model: any, label: string) {
-    return label === 'Meldetatbestand' ? !!model?.notificationCategory?.pathogenDisplay : true;
+    return label === 'Meldetatbestand' ? !!model?.notificationCategory?.notifiablePathogen : true;
   }
 
   protected readonly JSON = JSON;

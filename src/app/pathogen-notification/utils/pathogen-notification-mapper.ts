@@ -17,7 +17,12 @@
 
 import { CodeDisplay, NotificationLaboratoryCategory, SpecimenDTO } from '../../../api/notification';
 import { selectNotificationCategoryFields } from '../formly/configs/pathogen/select-notification-category.config';
-import { formatCodeDisplayToDisplay, getDesignationValueIfAvailable, mapCodeDisplaysToOptionList } from '../legacy/common-utils';
+import {
+  formatCodeDisplayToDesignationOption,
+  formatCodeDisplayToDisplay,
+  getDesignationValueIfAvailable,
+  mapCodeDisplaysToOptionList,
+} from '../legacy/common-utils';
 import { environment } from '../../../environments/environment';
 import { FormGroup } from '@angular/forms';
 import { FormlyFieldConfig } from '@ngx-formly/core';
@@ -28,31 +33,17 @@ import { NotifiedPersonDisclaimer } from './disclaimer-texts';
 import { notifiedPersonFormConfigFields } from '../legacy/formly/configs/reusable/notified-person.config';
 
 export function initializeNotifiedPersonFields(notificationType: NotificationType, countryCodeDisplays: CodeDisplay[]): FormlyFieldConfig[] {
+  const countryOptions = mapCodeDisplaysToOptionList(countryCodeDisplays);
+  const options = { filterableSelectIsActivated: isFilterablePathogenEnabled() };
   switch (notificationType) {
     case NotificationType.FollowUpNotification7_1:
-      return notifiedPersonAnonymousConfigFields(
-        mapCodeDisplaysToOptionList(countryCodeDisplays),
-        GENDER_OPTION_LIST,
-        NotifiedPersonDisclaimer.FOLLOW_UP_DISCLAIMER
-      );
+      return notifiedPersonAnonymousConfigFields(countryOptions, GENDER_OPTION_LIST, NotifiedPersonDisclaimer.FOLLOW_UP_DISCLAIMER, options);
     case NotificationType.FollowUpNotification7_3:
-      return notifiedPersonAnonymousConfigFields(
-        mapCodeDisplaysToOptionList(countryCodeDisplays),
-        GENDER_OPTION_LIST,
-        NotifiedPersonDisclaimer.FOLLOW_UP_NONNOMINAL_DISCLAIMER
-      );
+      return notifiedPersonAnonymousConfigFields(countryOptions, GENDER_OPTION_LIST, NotifiedPersonDisclaimer.FOLLOW_UP_NONNOMINAL_DISCLAIMER, options);
     case NotificationType.AnonymousNotification7_3:
-      return notifiedPersonAnonymousConfigFields(
-        mapCodeDisplaysToOptionList(countryCodeDisplays),
-        GENDER_OPTION_LIST,
-        NotifiedPersonDisclaimer.ANONYMOUS_DISCLAIMER
-      );
+      return notifiedPersonAnonymousConfigFields(countryOptions, GENDER_OPTION_LIST, NotifiedPersonDisclaimer.ANONYMOUS_DISCLAIMER, options);
     case NotificationType.NonNominalNotification7_3:
-      return notifiedPersonNotByNameConfigFields(
-        mapCodeDisplaysToOptionList(countryCodeDisplays),
-        GENDER_OPTION_LIST,
-        NotifiedPersonDisclaimer.NON_NOMINAL_DISCLAIMER
-      );
+      return notifiedPersonNotByNameConfigFields(countryOptions, GENDER_OPTION_LIST, NotifiedPersonDisclaimer.NON_NOMINAL_DISCLAIMER, options);
     default:
       return notifiedPersonFormConfigFields(countryCodeDisplays);
   }
@@ -62,6 +53,7 @@ export const isNonNominalNotificationEnabled = () => environment.featureFlags?.F
 export const isAnonymousNotificationEnabled = () => environment.featureFlags?.FEATURE_FLAG_ANONYMOUS_NOTIFICATION;
 export const isFollowUpNonNominalEnabled = () => environment.featureFlags?.FEATURE_FLAG_FOLLOW_UP_7_3 && isNonNominalNotificationEnabled();
 export const isCoreSidenavEnabled = () => environment.featureFlags?.FEATURE_FLAG_CORE_SIDENAV;
+export const isFilterablePathogenEnabled = () => isCoreSidenavEnabled() && environment.featureFlags?.FEATURE_FLAG_FILTERABLE_PATHOGEN;
 
 export const isNonNominalNotification = (notificationType: NotificationType) => {
   return (
@@ -85,13 +77,20 @@ export const initializeSelectPathogenFields = (
   notificationType: NotificationType,
   selectPathogen?: (pathogen: CodeDisplay) => void
 ) => {
-  return selectNotificationCategoryFields(federalStateCodeDisplays, pathogenCodeDisplays.map(formatCodeDisplayToDisplay), [], notificationType, selectPathogen);
+  return selectNotificationCategoryFields(
+    federalStateCodeDisplays,
+    pathogenCodeDisplays.map(formatCodeDisplayToDisplay),
+    [],
+    notificationType,
+    selectPathogen,
+    isFilterablePathogenEnabled() ? pathogenCodeDisplays.map(formatCodeDisplayToDesignationOption) : []
+  );
 };
 
 export const initializeDiagnosticFields = (selectedFederalStateCode: string, model: any) => {
   model.pathogenForm.notificationCategory = {
-    federalStateCodeDisplay: selectedFederalStateCode,
-    pathogenDisplay: '',
+    federalState: selectedFederalStateCode,
+    notifiablePathogen: '',
   };
   return model;
 };
@@ -165,8 +164,8 @@ const removeTemporaryValidationWrapperField = (form: any) => {
 
 export const clearDiagnosticForClipboard = (selectedPathogenCodeDisplay: CodeDisplay, federalStateCode: string, model: any) => {
   model.pathogenForm.notificationCategory = {
-    federalStateCodeDisplay: federalStateCode || 'DE-BW',
-    pathogenDisplay: getDesignationValueIfAvailable(selectedPathogenCodeDisplay),
+    federalState: federalStateCode || 'DE-BW',
+    notifiablePathogen: getDesignationValueIfAvailable(selectedPathogenCodeDisplay),
   };
   model.pathogenForm.pathogenDTO = {
     codeDisplay: selectedPathogenCodeDisplay,
