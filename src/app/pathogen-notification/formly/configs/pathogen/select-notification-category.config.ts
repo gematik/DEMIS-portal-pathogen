@@ -23,8 +23,9 @@ import { filterDisplayValues, MORE_INFO_MAX_LENGTH } from '../../../legacy/commo
 import { NOTIFICATION_ID_REFERENCE_LIST, REPORT_STATUS_OPTION_LIST } from '../../../legacy/formly-options-lists';
 import { NotificationType } from '../../../common/routing-helper';
 import { specificReportingObligations } from 'src/app/pathogen-notification/utils/disclaimer-texts';
-import { isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
+import { isFilterablePathogenEnabled, isFollowUpNotification } from '../../../utils/pathogen-notification-mapper';
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
+import { formlyRequiredFieldsHint } from '../../../legacy/formly/configs/reusable/commons';
 
 const INITIAL_NOTIFICATION_ID_TEXT_NO_REREFERENCE =
   '<span>Für diese Meldung wird eine neue Meldungs-ID erzeugt, die Sie für einen zukünftigen Meldungsverweis nutzen können. Sie finden diese auf der PDF-Meldungsquittung in der Zeile “Meldungs-ID” oder auf der letzten Seite beim QR-Code.</span><br><br>';
@@ -111,11 +112,12 @@ const initialNotificationIdField = (notificationType: NotificationType): FormlyF
 // --- Main export ---
 
 export const selectNotificationCategoryFields = (
-  federalStateCodeDisplays: CodeDisplay[],
+  federalStateOptions: CodeDisplay[],
   pathogenDisplays: string[],
   subPathogenDisplays: string[],
   notificationType: NotificationType,
-  selectPathogen?: (pathogen: CodeDisplay) => void
+  selectPathogen?: (pathogen: CodeDisplay) => void,
+  pathogenOptions: CodeDisplay[] = []
 ): FormlyFieldConfig[] => {
   return [
     formlyRow([
@@ -125,6 +127,7 @@ export const selectNotificationCategoryFields = (
         key: 'selectPathogenInfoWrapper',
       },
     ]),
+    formlyRequiredFieldsHint(),
     {
       id: 'favoriteAddPathogen',
       key: 'favoriteAddPathogen',
@@ -141,45 +144,86 @@ export const selectNotificationCategoryFields = (
       className: '',
       template: '<h2>Erregerauswahl</h2>',
     },
-
+    ...(isFilterablePathogenEnabled()
+      ? [
+          formlyRow([
+            {
+              id: 'federalState',
+              key: 'federalState',
+              type: 'filterable-select',
+              className: FormlyConstants.COLMD12,
+              props: {
+                label: 'Bundesland des Melders',
+                options: federalStateOptions,
+                optionValueKey: 'code',
+                optionLabelKey: 'display',
+                clearable: false,
+                required: true,
+              },
+              expressions: {
+                hide: () => !showFederalStateSelection(notificationType),
+              },
+            },
+          ]),
+        ]
+      : [
+          formlyRow([
+            {
+              id: 'federalState',
+              key: 'federalState',
+              type: 'select',
+              className: FormlyConstants.COLMD12,
+              props: {
+                label: 'Bundesland des Melders',
+                options: federalStateOptions.map(value => {
+                  return { value: value.code, label: value.display };
+                }),
+                required: true,
+              },
+              expressions: {
+                hide: () => !showFederalStateSelection(notificationType),
+              },
+            },
+          ]),
+        ]),
     formlyRow([
-      {
-        id: 'federalStateCodeDisplay',
-        key: 'federalStateCodeDisplay',
-        type: 'select',
-        className: FormlyConstants.COLMD12,
-        props: {
-          label: 'Bundesland des Melders',
-          options: federalStateCodeDisplays.map(value => {
-            return { value: value.code, label: value.display };
-          }),
-          required: true,
-        },
-        expressions: {
-          hide: () => !showFederalStateSelection(notificationType),
-        },
-      },
-    ]),
-    formlyRow([
-      {
-        id: 'pathogenDisplay',
-        key: 'pathogenDisplay',
-        type: 'autocomplete',
-        className: FormlyConstants.COLMD12,
-        props: {
-          label: 'Meldepflichtiger Krankheitserreger',
-          filter: (term: string) => of(term ? filterDisplayValues(term, pathogenDisplays) : pathogenDisplays.slice()),
-          required: true,
-        },
-        expressions: {
-          'props.disabled': () => {
-            return isFollowUpNotification(notificationType);
+      isFilterablePathogenEnabled()
+        ? {
+            id: 'notifiablePathogen',
+            key: 'notifiablePathogen',
+            type: 'filterable-select',
+            className: FormlyConstants.COLMD12,
+            props: {
+              label: 'Meldepflichtiger Krankheitserreger',
+              options: pathogenOptions,
+              optionValueKey: 'code',
+              optionLabelKey: 'display',
+              clearable: true,
+              required: true,
+            },
+            expressions: {
+              'props.disabled': () => isFollowUpNotification(notificationType),
+            },
+          }
+        : {
+            id: 'notifiablePathogen',
+            key: 'notifiablePathogen',
+            type: 'autocomplete',
+            className: FormlyConstants.COLMD12,
+            props: {
+              label: 'Meldepflichtiger Krankheitserreger',
+              filter: (term: string) => of(term ? filterDisplayValues(term, pathogenDisplays) : pathogenDisplays.slice()),
+              required: true,
+            },
+            expressions: {
+              'props.disabled': () => {
+                return isFollowUpNotification(notificationType);
+              },
+            },
+            asyncValidators: {
+              validation: ['optionMatches'],
+            },
           },
-        },
-        asyncValidators: {
-          validation: ['optionMatches'],
-        },
-      },
     ]),
     formlyRow([
       {
@@ -193,9 +237,10 @@ export const selectNotificationCategoryFields = (
           options: subPathogenDisplays,
           optionValueKey: 'code',
           optionLabelKey: 'display',
+          clearable: true,
         },
         expressions: {
-          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).pathogenDisplay,
+          'props.disabled': (field: FormlyFieldConfig) => !localModel(field).notifiablePathogen,
         },
       },
     ]),

@@ -16,34 +16,33 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { buildMock, mainConfig, setupIntegrationTests } from './base';
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
+import { buildMock, IntegrationFixture, mainConfig, setupCoreSidenavIntegrationTests, setupIntegrationTests } from './base';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MockedComponentFixture } from 'ng-mocks';
 import { switchToPage } from '../shared/test-utils';
 import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 
-describe('Pathogen - Nonnominal Integration Tests', () => {
-  let component: PathogenNotificationComponent;
+describe.each([false, true])('Pathogen - Nonnominal Integration Tests (FEATURE_FLAG_CORE_SIDENAV: %s)', featureFlagCoreSidenav => {
   let loader: HarnessLoader;
-  let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+  let fixture: IntegrationFixture;
 
-  beforeEach(() => buildMock(true, NotificationType.NonNominalNotification7_3));
+  beforeEach(() => buildMock(true, NotificationType.NonNominalNotification7_3, featureFlagCoreSidenav));
 
-  beforeEach(() => {
-    const result = setupIntegrationTests({
+  beforeEach(async () => {
+    const config = {
       ...mainConfig,
       featureFlags: { ...mainConfig.featureFlags, FEATURE_FLAG_NON_NOMINAL_NOTIFICATION: true },
-    });
+    };
+    const result = featureFlagCoreSidenav ? setupCoreSidenavIntegrationTests(config) : setupIntegrationTests(config);
 
     fixture = result.fixture;
-    component = result.component;
     loader = result.loader;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
-    expect(component, 'PathogenNotificationComponent could not be created').toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-pathogen-notification-new') !== null).toBe(featureFlagCoreSidenav);
   });
 
   it('should show 7.3 header', () => {
@@ -60,11 +59,11 @@ describe('Pathogen - Nonnominal Integration Tests', () => {
 
   it('should not show federalState select', async () => {
     await switchToPage(4, fixture);
-    const federalStateSelect = fixture.nativeElement.querySelector('[id="federalStateCodeDisplay"]');
-    const pathogenDisplaySelect = fixture.nativeElement.querySelector('[id="pathogenDisplay"]');
+    const federalStateSelect = fixture.nativeElement.querySelector('[id="federalState"]');
+    const notifiablePathogenSelect = fixture.nativeElement.querySelector('[id="notifiablePathogen"]');
 
     expect(federalStateSelect, 'federalStateSelect should not be present but was found').toBeNull();
-    expect(pathogenDisplaySelect, 'pathogenDisplaySelect could not be found').toBeTruthy();
+    expect(notifiablePathogenSelect, 'notifiablePathogenSelect could not be found').toBeTruthy();
   });
 
   it('should show the default disclaimer text on notified person page', async () => {

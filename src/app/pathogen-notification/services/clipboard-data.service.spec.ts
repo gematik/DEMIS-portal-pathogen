@@ -26,6 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 import { overrides } from '../../../test/shared/test-setup-utils';
 import { MessageDialogService } from '@gematik/demis-portal-core-library';
 import { environment } from '../../../environments/environment';
+import { NotificationType } from '../common/routing-helper';
 
 describe('ClipboardDataService', () => {
   let service: ClipboardDataService;
@@ -69,26 +70,26 @@ describe('ClipboardDataService', () => {
       });
     });
     describe('ANONYMOUS_PERSON_RULES', () => {
-      it('should convert dd.mm.yyyy birthDate to mm.yyyy format', async () => {
+      it('should convert dd.mm.yyyy birthDate to yyyy-mm format', async () => {
         const model = {};
         const problems = await service.fillModel(ANONYMOUS_PERSON_RULES, [['P.birthDate', '12.12.2024']], model);
         expect(model).toEqual({
           notifiedPerson: {
             info: {
-              birthDate: '12.2024',
+              birthDate: '2024-12',
             },
           },
         });
 
         expect(problems).toEqual([]);
       });
-      it('should keep birthDate unchanged if already in mm.yyyy format', async () => {
+      it('should convert mm.yyyy birthDate to yyyy-mm format', async () => {
         const model = {};
         const problems = await service.fillModel(ANONYMOUS_PERSON_RULES, [['P.birthDate', '12.2024']], model);
         expect(model).toEqual({
           notifiedPerson: {
             info: {
-              birthDate: '12.2024',
+              birthDate: '2024-12',
             },
           },
         });
@@ -121,6 +122,41 @@ describe('ClipboardDataService', () => {
 
         expect(problems).toEqual([]);
       });
+    });
+  });
+
+  describe('clipboard date normalization without rendered datepickers', () => {
+    it.each([
+      ['05.11.1998', '2026-11-04', '04.11.2026', '1998-11-05', '2026-11-04', '2026-11-04'],
+      ['1998-11-05', '04.11.2026', '2026-11-04', '1998-11-05', '2026-11-04', '2026-11-04'],
+      ['invalid-date', 'invalid-date', 'invalid-date', 'invalid-date', 'invalid-date', 'invalid-date'],
+    ])('normalizes birth date %s and diagnostic dates', async (birthDate, collectedDate, receivedDate, expectedBirth, expectedCollected, expectedReceived) => {
+      const form = await service.mapClipboardData(
+        new Map([
+          ['P.birthDate', birthDate],
+          ['T.collectedDate', collectedDate],
+          ['T.receivedDate', receivedDate],
+        ]),
+        NotificationType.NominalNotification7_1
+      );
+
+      expect(form).toMatchObject({
+        notifiedPerson: { info: { birthDate: expectedBirth } },
+        pathogenDTO: {
+          specimenList: [{ specimenDTO: { extractionDate: expectedCollected, receivedDate: expectedReceived } }],
+        },
+      });
+    });
+
+    it.each([
+      ['05.11.1998', '1998-11'],
+      ['11.1998', '1998-11'],
+      ['1998-11', '1998-11'],
+      ['1998', '1998'],
+    ])('normalizes anonymous birth date %s while preserving reduced precision', async (birthDate, expected) => {
+      const form = await service.mapClipboardData(new Map([['P.birthDate', birthDate]]), NotificationType.AnonymousNotification7_3);
+
+      expect(form).toMatchObject({ notifiedPerson: { info: { birthDate: expected } } });
     });
   });
 

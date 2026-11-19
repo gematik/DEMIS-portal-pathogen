@@ -21,7 +21,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SideNavigationWrapperComponent } from './side-navigation-wrapper.component';
 import { PathogenNotificationComponent } from '../../pathogen-notification.component';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { RouterModule } from '@angular/router';
 import { MockProvider } from 'ng-mocks';
 import { NGXLogger } from 'ngx-logger';
@@ -32,8 +32,12 @@ describe('SideNavigationWrapperComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SideNavigationWrapperComponent, NoopAnimationsModule, RouterModule.forRoot([])],
-      providers: [{ provide: PathogenNotificationComponent, useValue: {} }, MockProvider(NGXLogger)],
+      imports: [SideNavigationWrapperComponent, RouterModule.forRoot([])],
+      providers: [
+        { provide: PathogenNotificationComponent, useValue: {} },
+        MockProvider(NGXLogger),
+        { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
   });

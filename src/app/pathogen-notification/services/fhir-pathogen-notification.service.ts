@@ -83,12 +83,12 @@ export class FhirPathogenNotificationService {
 
   fetchPathogenCodeDisplaysByTypeAndState(type: NotificationType, federalStateCode?: string): Observable<CodeDisplay[]> {
     if (isFollowUpNotification(type)) {
-      // only §7.1 nominal needs federal states
+      // only § 7.1 nominal needs federal states
       return of([]);
     }
-    const pathToCodeDisplaysByNotificationType = this.getCodeDisplaysByNotificationType(type, federalStateCode);
+    const path = this.getPathogenCodeDisplaysPath(type, federalStateCode);
     return this.httpClient
-      .get<CodeDisplay[]>(pathToCodeDisplaysByNotificationType, {
+      .get<CodeDisplay[]>(path, {
         headers: this.futsHeaders,
       })
       .pipe(
@@ -101,7 +101,7 @@ export class FhirPathogenNotificationService {
       );
   }
 
-  private getCodeDisplaysByNotificationType(type: NotificationType, federalStateCode: string) {
+  private getPathogenCodeDisplaysPath(type: NotificationType, federalStateCode: string) {
     switch (type) {
       case NotificationType.NonNominalNotification7_3:
       case NotificationType.AnonymousNotification7_3:
@@ -257,8 +257,8 @@ export class FhirPathogenNotificationService {
   }
 
   private removeUnusedFormlyFields(testResults: PathogenTest) {
-    delete testResults.notificationCategory['federalStateCodeDisplay'];
-    delete testResults.notificationCategory['pathogenDisplay'];
+    delete testResults.notificationCategory['federalState'];
+    delete testResults.notificationCategory['notifiablePathogen'];
     delete testResults.submittingFacility['copyAddressCheckBox'];
     return testResults;
   }

@@ -129,8 +129,8 @@ const pathogenTestDummyDataSource = (isNonNominal: boolean) => {
     notificationCategory: isNonNominal
       ? pathogenDataNonNominalWithDate.notificationCategory
       : {
-          federalStateCodeDisplay: 'DE-BW',
-          pathogenDisplay: 'Influenzavirus',
+          federalState: 'DE-BW',
+          notifiablePathogen: 'Influenzavirus',
           pathogen: {
             code: '407479009',
             designations: [],
@@ -172,7 +172,7 @@ const pathogenDataNonNominal = (todayDate: string) => {
   return {
     pathogen: 'hivp',
     notificationCategory: {
-      pathogenDisplay: 'Humanes Immundefizienz-Virus (HIV)',
+      notifiablePathogen: 'Humanes Immundefizienz-Virus (HIV)',
       pathogen: {
         code: '89293008',
         designations: [],

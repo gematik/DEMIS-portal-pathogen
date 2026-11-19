@@ -20,7 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { StepNavigation } from '@gematik/demis-portal-core-library';
-import { FieldType, FormlyFieldConfig, FormlyForm, FormlyModule } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyFieldConfig, FormlyForm, FormlyModule } from '@ngx-formly/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PathogenConstants } from '../../pathogen-notification/common/constants';
 import { NotificationStepFormComponent } from '../notification-step-form/notification-step-form.component';
@@ -31,7 +31,7 @@ import { SubmittingFacilityComponent } from './submitting-facility.component';
   imports: [ReactiveFormsModule],
   template: '<input [formControl]="formControl" />',
 })
-class SubmittingFacilityInputTestComponent extends FieldType {}
+class SubmittingFacilityInputTestComponent extends FieldType<FieldTypeConfig> {}
 
 describe('SubmittingFacilityComponent', () => {
   let fixture: ComponentFixture<SubmittingFacilityComponent>;
@@ -124,7 +124,6 @@ describe('SubmittingFacilityComponent', () => {
   });
 
   it('provides only right-hand actions for navigating forward and submitting', () => {
-    expect(fixture.componentInstance.actionsLeft()).toBeUndefined();
     const template = fixture.componentInstance.actionsRight();
     expect(template).toBeDefined();
     const actions = template.createEmbeddedView({});

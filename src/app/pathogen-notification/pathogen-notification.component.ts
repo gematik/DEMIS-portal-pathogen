@@ -30,6 +30,7 @@ import {
   getDesignationValueIfAvailable,
 } from './legacy/common-utils';
 import { notifierFacilityFormConfigFieldsFull } from './legacy/formly/configs/reusable/notifier-facility.config';
+import { findFieldByKey } from './legacy/formly/configs/reusable/commons';
 import { FhirPathogenNotificationService } from './services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from './services/pathogen-notification-storage.service';
 import { ClipboardDataService } from './services/clipboard-data.service';
@@ -215,11 +216,11 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   getPathogenSelectionField() {
-    return this.fields[0].fieldGroup.find(field => field.key === this.notificationCategoryKey).fieldGroup[4].fieldGroup[0];
+    return findFieldByKey(this.fields[0].fieldGroup.find(field => field.key === this.notificationCategoryKey).fieldGroup, 'notifiablePathogen');
   }
 
   getSubPathogenSelectionField(): FormlyFieldConfig {
-    return this.fields[0].fieldGroup.find(field => field.key === this.notificationCategoryKey).fieldGroup[5].fieldGroup[0];
+    return findFieldByKey(this.fields[0].fieldGroup.find(field => field.key === this.notificationCategoryKey).fieldGroup, 'pathogen');
   }
 
   getNotifiedPersonFields(notificationType: NotificationType): FormlyFieldConfig[] {
@@ -327,8 +328,8 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   subscribeToCurrentAddressTypeChanges() {
-    const currentAddressField = this.notifiedPersonFields[5].fieldGroup.find(field => field.key === 'currentAddress');
-    const currentAddressTypeField = this.notifiedPersonFields[5].fieldGroup.find(field => field.key === 'currentAddressType');
+    const currentAddressField = findFieldByKey(this.notifiedPersonFields, 'currentAddress');
+    const currentAddressTypeField = findFieldByKey(this.notifiedPersonFields, 'currentAddressType');
 
     currentAddressTypeField?.formControl?.valueChanges
       .pipe(takeUntil(this.unsubscriber), distinctUntilChanged())
@@ -370,15 +371,15 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
   }
 
   subscribeToFederalStateChanges() {
-    const federalStateSelection = this.selectPathogenFields[3].fieldGroup[0];
+    const federalStateSelection = findFieldByKey(this.selectPathogenFields, 'federalState');
     federalStateSelection?.formControl?.valueChanges
       .pipe(takeUntil(this.unsubscriber))
       .subscribe(federalState => this.updateAfterFederalStateSelection(federalState));
   }
 
   subscribeToPathogenChanges() {
-    const pathogenDisplay = this.selectPathogenFields[4].fieldGroup[0];
-    pathogenDisplay?.formControl?.valueChanges.pipe(takeUntil(this.unsubscriber), distinctUntilChanged()).subscribe(pathogen => {
+    const notifiablePathogen = findFieldByKey(this.selectPathogenFields, 'notifiablePathogen');
+    notifiablePathogen?.formControl?.valueChanges.pipe(takeUntil(this.unsubscriber), distinctUntilChanged()).subscribe(pathogen => {
       //reset diagnostic if pathogen is cleared
       if (pathogen === '') {
         this.notificationStorageService.removeSelectedPathogenCodeDisplay();
@@ -469,16 +470,16 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
         }
         this.model.pathogenForm.notificationCategory = {
           ...this.model.pathogenForm.notificationCategory,
-          federalStateCodeDisplay: this.notificationStorageService.getFederalStateCode() || 'DE-BW',
-          pathogenDisplay: getDesignationValueIfAvailable(selectedPathogenCodeDisplay),
+          federalState: this.notificationStorageService.getFederalStateCode() || 'DE-BW',
+          notifiablePathogen: getDesignationValueIfAvailable(selectedPathogenCodeDisplay),
         };
         if (fromHexHexButton) {
           this.updateFormForHexHex();
         } else {
           this.model.pathogenForm.notificationCategory = {
             ...this.model.pathogenForm.notificationCategory,
-            federalStateCodeDisplay: this.notificationStorageService.getFederalStateCode() || 'DE-BW',
-            pathogenDisplay: getDesignationValueIfAvailable(selectedPathogenCodeDisplay),
+            federalState: this.notificationStorageService.getFederalStateCode() || 'DE-BW',
+            notifiablePathogen: getDesignationValueIfAvailable(selectedPathogenCodeDisplay),
           };
           setTimeout(() => {
             this.closePathogenSelectionAutocomplete();
@@ -513,8 +514,9 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
       this.form.patchValue(this.model.pathogenForm);
       // trigger change for copyAddressCheckBox in case that data was overwritten
       if (checkBoxValueBefore && !this.model.pathogenForm.submittingFacility.copyAddressCheckBox) {
-        this.submitterFacilityFields[1].formControl.patchValue(false);
-        this.submitterFacilityFields[1].props.change(this.submitterFacilityFields[1]);
+        const copyAddressCheckBox = findFieldByKey(this.submitterFacilityFields, 'copyAddressCheckBox');
+        copyAddressCheckBox.formControl.patchValue(false);
+        copyAddressCheckBox.props.change(copyAddressCheckBox);
       }
       if (!fromButtonClick) {
         this.changeLoadingState(false);
@@ -577,7 +579,7 @@ export class PathogenNotificationComponent implements OnInit, OnDestroy {
 
   private closePathogenSelectionAutocomplete() {
     //bug: autocomplete options dialog did not close
-    globalThis.document.getElementById('pathogenDisplay')?.blur();
+    globalThis.document.getElementById('notifiablePathogen')?.blur();
     globalThis.document.body.click();
   }
 

@@ -2,6 +2,13 @@
 
 # Release portal-pathogen
 
+## Release 1.9.9
+- Updated minor/patch versions of dependencies
+- Finalized new side navigation from portal-core incl. clipboard data handling and accessibility improvements (FEATURE_FLAG_CORE_SIDENAV)
+- Added required fields hint
+- Replaced all autocomplete fields with filterable-select (FEATURE_FLAG_FILTERABLE_PATHOGEN)
+- Removed deprecated angular packages
+
 ## Release 1.9.8
 - Migrated from Karma/Jasmine to Vitest/Playwright for testing
 - Removed FEATURE_FLAG_FOOTER_LINKS_CORRECTION

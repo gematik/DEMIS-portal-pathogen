@@ -21,6 +21,7 @@ import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import ResistanceResultEnum = ResistanceDTO.ResistanceResultEnum;
 import ResistanceGeneResultEnum = ResistanceGeneDTO.ResistanceGeneResultEnum;
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
+import { ExtendedSalutationEnum } from './common-utils';
 
 export const RESIDENCE_ADDRESS_TYPE_OPTION_LIST = [
   { value: AddressType.Primary, label: 'Hauptwohnung' },
@@ -40,6 +41,13 @@ export const GENDER_OPTION_LIST = [
   { value: Gender.Diverse, label: 'Divers' },
   { value: Gender.Otherx, label: 'Kein Geschlechtseintrag' },
   { value: Gender.Unknown, label: 'Unbekannt' },
+];
+
+export const SALUTATION_OPTION_LIST = [
+  { value: ExtendedSalutationEnum.Mrs, label: 'Frau' },
+  { value: ExtendedSalutationEnum.Mr, label: 'Herr' },
+  // 'None' is hardcoded and not in the enum because it's only needed for the frontend
+  { value: ExtendedSalutationEnum.None, label: 'Keine Anrede' },
 ];
 
 export const RESULT_OPTION_LIST = [

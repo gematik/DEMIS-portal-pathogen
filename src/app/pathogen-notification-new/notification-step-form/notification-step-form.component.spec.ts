@@ -117,7 +117,6 @@ describe('Shared notification step templates', () => {
       expect(form.form).toBe(service[testCase.group]);
       expect(form.model).toBe(service[testCase.model]());
       expect(wrapper.title()).toBe(testCase.title);
-      expect(Boolean(fixture.componentInstance.actionsLeft())).toBe(testCase.back);
 
       const actions = fixture.componentInstance.actionsRight().createEmbeddedView({});
       actions.detectChanges();

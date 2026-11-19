@@ -16,7 +16,7 @@
  */
 
 import { CodeDisplay, ContactPointInfo } from '../../../../api/notification';
-import { findCodeDisplayByCodeValue, formatCodeDisplayToDisplay, parseGender, parseSalutation } from '../../legacy/common-utils';
+import { findCodeDisplayByCodeValue, formatCodeDisplayToDisplay, germanToIsoFormat, parseGender, parseSalutation } from '../../legacy/common-utils';
 
 export type ClipboardRules = Record<string, (key: string, partialModel: any) => any | Promise<any>>;
 
@@ -26,15 +26,15 @@ export function addContact(contactType: ContactPointInfo.ContactTypeEnum, value:
 }
 
 export const initialModelForClipboard = (pathogenValueFromClipboard: string, pathogenCodeDisplays: CodeDisplay[]) => {
-  let pathogenDisplay = '';
+  let notifiablePathogen = '';
   if (pathogenValueFromClipboard) {
-    pathogenDisplay = formatCodeDisplayToDisplay(findCodeDisplayByCodeValue(pathogenCodeDisplays, pathogenValueFromClipboard));
+    notifiablePathogen = formatCodeDisplayToDisplay(findCodeDisplayByCodeValue(pathogenCodeDisplays, pathogenValueFromClipboard));
   }
   return {
     pathogen: pathogenValueFromClipboard,
     notificationCategory: {
-      federalStateCodeDisplay: 'DE-BW',
-      pathogenDisplay: pathogenDisplay,
+      federalState: 'DE-BW',
+      notifiablePathogen: notifiablePathogen,
     },
     pathogenDTO: {
       codeDisplay: findCodeDisplayByCodeValue(pathogenCodeDisplays, pathogenValueFromClipboard),
@@ -81,7 +81,7 @@ const getNotifiedPersonAnonymousBirthDate = (value: string) => {
   const formattedDate = parts.length === 3 ? `${parts[1]}.${parts[2]}` : value;
 
   return {
-    notifiedPerson: { info: { birthDate: formattedDate } },
+    notifiedPerson: { info: { birthDate: germanToIsoFormat(formattedDate) } },
   };
 };
 
@@ -132,7 +132,7 @@ export const NOMINAL_PERSON_RULES: ClipboardRules = {
   'P.given': value => ({ notifiedPerson: { info: { firstname: value } } }),
   'P.family': value => ({ notifiedPerson: { info: { lastname: value } } }),
   'P.birthDate': value => ({
-    notifiedPerson: { info: { birthDate: value } },
+    notifiedPerson: { info: { birthDate: germanToIsoFormat(value) } },
   }),
   'P.phone': (value, model) => getNotifiedPersonContactsPhone(value, model),
   'P.email': (value, model) => getNotifiedPersonContactEmail(value, model),

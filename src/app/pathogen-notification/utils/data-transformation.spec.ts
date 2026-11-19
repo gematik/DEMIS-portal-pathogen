@@ -45,8 +45,8 @@ describe('DataTransformation', () => {
     it('should set interpretation, initialNotificationId and laboratoryOrderId with the given values', () => {
       const pathogenForm = {
         notificationCategory: {
-          federalStateCodeDisplay: 'DE-BW',
-          pathogenDisplay: 'Influenzavirus',
+          federalState: 'DE-BW',
+          notifiablePathogen: 'Influenzavirus',
           pathogen: {
             code: '407479009',
             display: 'Influenza A virus (organism)',
@@ -111,8 +111,8 @@ describe('DataTransformation', () => {
     it('should set interpretation, initialNotificationId and laboratoryOrderId to undefined', () => {
       const pathogenForm = {
         notificationCategory: {
-          federalStateCodeDisplay: 'DE-BW',
-          pathogenDisplay: 'Influenzavirus',
+          federalState: 'DE-BW',
+          notifiablePathogen: 'Influenzavirus',
           pathogen: {
             code: '407479009',
             display: 'Influenza A virus (organism)',
@@ -326,9 +326,9 @@ describe('DataTransformation', () => {
 
     const baseDiagnosticForm = {
       notificationCategory: {
-        federalStateCodeDisplay: 'DE-BW',
+        federalState: 'DE-BW',
         pathogen: 'Influenza A-Virus',
-        pathogenDisplay: 'Influenzavirus',
+        notifiablePathogen: 'Influenzavirus',
         reportStatus: 'preliminary',
       },
       pathogenDTO: {
@@ -444,9 +444,9 @@ describe('DataTransformation', () => {
 
     const buildPathogenForm = (pathogenValue: unknown) => ({
       notificationCategory: {
-        federalStateCodeDisplay: 'DE-BW',
+        federalState: 'DE-BW',
         pathogen: pathogenValue,
-        pathogenDisplay: 'Influenzavirus',
+        notifiablePathogen: 'Influenzavirus',
         reportStatus: 'preliminary',
       },
       pathogenDTO: {
@@ -472,6 +472,76 @@ describe('DataTransformation', () => {
       const result = transformDiagnostic(buildPathogenForm(pathogenAsCodeDisplay), {}, pathogenData, selectedPathogen);
 
       expect(result.notificationCategory.pathogen).toEqual(pathogenAsCodeDisplay);
+    });
+  });
+
+  describe('filterable-select option values', () => {
+    const pathogenData = TEST_DATA.diagnosticBasedOnPathogenSelectionINVP;
+    const selectedPathogen = TEST_DATA.pathogenCodeDisplays[0];
+    const resistance = { code: 'res-1', display: 'Resistance', designations: [] };
+    const resistanceGene = { code: 'gene-1', display: 'Gene', designations: [] };
+    const germany = { value: 'DE', label: 'Deutschland' };
+
+    it('should resolve diagnostic options by code', () => {
+      const pathogenForm = {
+        notificationCategory: { federalState: 'DE-BW', pathogen: pathogenData.answerSet[0], reportStatus: 'preliminary' },
+        pathogenDTO: {
+          specimenList: [
+            {
+              specimenDTO: {
+                extractionDate: '05.02.2025',
+                receivedDate: '05.02.2025',
+                material: { code: '119334006', display: 'Sputum' },
+                methodPathogenList: [{ method: { code: '117040002', display: 'DNA-Sequenzierung' }, result: 'POS' }],
+                resistanceList: [{ resistance: { code: 'res-1', display: 'Resistenz' }, resistanceResult: 'R' }],
+                resistanceGeneList: [{ resistanceGene: { code: 'gene-1', display: 'Gen' }, resistanceGeneResult: 'D' }],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = transformDiagnostic(pathogenForm, {}, { ...pathogenData, resistances: [resistance], resistanceGenes: [resistanceGene] }, selectedPathogen);
+      const specimen = result.pathogenDTO.specimenList[0];
+
+      expect(specimen.material).toEqual(pathogenData.materials[1]);
+      expect(specimen.methodPathogenList[0].method).toEqual(pathogenData.methods[0]);
+      expect(specimen.resistanceList[0].resistance).toEqual(resistance);
+      expect(specimen.resistanceGeneList[0].resistanceGene).toEqual(resistanceGene);
+    });
+
+    it('should transform person and address options to codes', () => {
+      const pathogenForm = {
+        notifiedPerson: {
+          info: { gender: { value: 'FEMALE', label: 'Weiblich' }, birthDate: '1990-01-01' },
+          residenceAddress: { country: germany, zip: '12345' },
+          residenceAddressType: AddressType.Primary,
+        },
+      };
+
+      const notByName = transformPathogenFormToPathogenTest(pathogenForm as never, NotificationType.NonNominalNotification7_3);
+      expect(notByName.notifiedPerson.info.gender).toBe('FEMALE');
+      expect(notByName.notifiedPerson.residenceAddress.country).toBe('DE');
+
+      const anonymous = transformPathogenFormToPathogenTest(pathogenForm as never, NotificationType.FollowUpNotification7_1);
+      expect(anonymous.notifiedPersonAnonymous.gender).toBe('FEMALE');
+      expect(anonymous.notifiedPersonAnonymous.residenceAddress.country).toBe('DE');
+    });
+
+    it.each([
+      [{ value: 'Mrs', label: 'Frau' }, 'Mrs'],
+      [{ value: 'None', label: 'Keine Anrede' }, undefined],
+    ])('should transform the salutation option %o of the facilities to %s', (salutation, expected) => {
+      const facility = { address: { country: germany }, contact: { salutation } };
+      const result = transformPathogenFormToPathogenTest(
+        { notifierFacility: facility, submittingFacility: facility } as never,
+        NotificationType.FollowUpNotification7_1
+      );
+
+      expect(result.notifierFacility.contact.salutation).toBe(expected);
+      expect(result.notifierFacility.address.country).toBe('DE');
+      expect(result.submittingFacility.contact.salutation).toBe(expected);
+      expect(result.submittingFacility.address.country).toBe('DE');
     });
   });
 

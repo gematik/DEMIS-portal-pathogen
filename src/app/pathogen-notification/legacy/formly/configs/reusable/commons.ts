@@ -18,6 +18,7 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { tap } from 'rxjs/operators';
 import { AddressType } from '../../../../../../api/notification';
+import { FormlyConstants } from '@gematik/demis-portal-core-library';
 
 const condition = (field: FormlyFieldConfig, isNotifier: boolean) => {
   if (isNotifier) {
@@ -67,8 +68,21 @@ function allPropsDefined<T extends object>(obj: T): obj is { [K in keyof T]: Exc
   return Object.values(obj).every(v => v !== undefined && v !== '');
 }
 
+export function findFieldByKey(fields: FormlyFieldConfig[] | undefined, key: string): FormlyFieldConfig | undefined {
+  for (const field of fields ?? []) {
+    if (field.key === key) {
+      return field;
+    }
+    const nested = findFieldByKey(field.fieldGroup, key);
+    if (nested) {
+      return nested;
+    }
+  }
+  return undefined;
+}
+
 export function getCurrentAddress(fieldGroup: FormlyFieldConfig[]) {
-  return fieldGroup.find(field => field.key === 'notifiedPerson').fieldGroup[5].fieldGroup.find(field => field.key === 'currentAddress');
+  return findFieldByKey(fieldGroup.find(field => field.key === 'notifiedPerson').fieldGroup, 'currentAddress');
 }
 
 export function copyAddress(sourceFacility: any, target: FormlyFieldConfig) {
@@ -82,7 +96,13 @@ export function copyAddress(sourceFacility: any, target: FormlyFieldConfig) {
     .props.setFieldCount(sourceFacility.contacts.emailAddresses.length);
   target.formControl.patchValue(sourceFacility);
   target.formControl.disable();
-  const departmentName = target.fieldGroup.find(field => field.key === 'facilityInfo').fieldGroup[1].fieldGroup[0];
+  const departmentName = findFieldByKey(target.fieldGroup, 'departmentName');
   departmentName.formControl.enable();
   departmentName.focus = true;
 }
+export const requiredFieldsHintTemplate = `<p class="demis-form-required-fields-hint" role="note" aria-label="Hinweis: Felder mit Stern sind Pflichtangaben">Felder mit * sind Pflichtangaben</p>`;
+
+export const formlyRequiredFieldsHint = (): FormlyFieldConfig => ({
+  className: FormlyConstants.LAYOUT_FULL_LINE,
+  template: `<div class="demis-form-required-fields-hint-row">${requiredFieldsHintTemplate}</div>`,
+});

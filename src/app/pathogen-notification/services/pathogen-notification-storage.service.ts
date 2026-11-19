@@ -30,6 +30,7 @@ export class PathogenNotificationStorageService {
   public readonly PATHOGEN_FAVORITES = 'PATHOGEN_FAVORITES';
   public readonly PATHOGEN_FAVORITES_7_3 = 'PATHOGEN_FAVORITES_7_3';
   public readonly FEDERAL_STATE_CODE = 'FEDERAL_STATE_CODE';
+  public readonly FEDERAL_STATE = 'FEDERAL_STATE';
   public readonly NOTIFIER_FACILITY = 'NOTIFIER_FACILITY';
 
   // Event emitter to notify components of changes in the favorites list
@@ -53,6 +54,14 @@ export class PathogenNotificationStorageService {
 
   getFederalStateCode(): string {
     return this.localStorageService.getItem(this.FEDERAL_STATE_CODE);
+  }
+
+  setFederalState(federalState: CodeDisplay): void {
+    this.localStorageService.setItem(this.FEDERAL_STATE, federalState);
+  }
+
+  getFederalState(): CodeDisplay {
+    return this.localStorageService.getItem(this.FEDERAL_STATE);
   }
 
   setNotifierFacility(notifierFacility: NotifierFacility): void {

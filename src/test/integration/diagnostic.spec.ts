@@ -18,21 +18,12 @@
 import { beforeEach, describe, expect, it, type Mock } from 'vitest';
 import { FhirPathogenNotificationService } from '../../app/pathogen-notification/services/fhir-pathogen-notification.service';
 import { PathogenNotificationStorageService } from '../../app/pathogen-notification/services/pathogen-notification-storage.service';
-import { PathogenNotificationComponent } from '../../app/pathogen-notification/pathogen-notification.component';
 import { TestBed } from '@angular/core/testing';
-import { MockedComponentFixture } from 'ng-mocks';
 import { getHtmlButtonElement } from '../shared/html-element-utils';
 import { getAutocomplete, getButton, getInput, getRadioGroup, getSelect, selectRadioOption } from '../shared/material-harness-utils';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { setDiagnosticBasedOnPathogenSelection, setSelectedPathogenCodeDisplay } from '../shared/test-setup-utils';
-import {
-  checkDescribingError,
-  clickAddDiagnosticButton,
-  clickAddSpecimenButton,
-  clickDeleteButton,
-  setInputFieldValue,
-  switchToPage,
-} from '../shared/test-utils';
+import { checkDescribingError, clickAddDiagnosticButton, clickAddSpecimenButton, clickDeleteButton, setInputFieldValue } from '../shared/test-utils';
 import {
   ERROR_EXTRACTION_DATE,
   FIELD_EXTRACTION_DATE,
@@ -44,7 +35,7 @@ import {
   FIELD_METHOD_0,
   FIELD_NOTIFICATION_ID_REFERENCE,
   FIELD_PATHOGEN,
-  FIELD_PATHOGEN_DISPLAY,
+  FIELD_NOTIFIABLE_PATHOGEN,
   FIELD_RECEIVED_DATE,
   FIELD_REPORT_STATUS,
   FIELD_RESULT,
@@ -65,13 +56,20 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MethodPathogenDTO } from '../../api/notification';
 import { RESULT_OPTION_LIST } from '../../app/pathogen-notification/legacy/formly-options-lists';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
-import { buildMock, mainConfig, setupIntegrationTests } from './base';
+import {
+  buildMock,
+  IntegrationFixture,
+  setupCoreSidenavIntegrationTests,
+  setupIntegrationTests,
+  switchToIntegrationPage,
+  useTemporaryProductionMode,
+} from './base';
+import { NotificationType } from '../../app/pathogen-notification/common/routing-helper';
 import ResultEnum = MethodPathogenDTO.ResultEnum;
 
-describe('Pathogen - Diagnostic Integration Tests', () => {
-  let component: PathogenNotificationComponent;
+describe.each([false, true])('Pathogen - Diagnostic Integration Tests (FEATURE_FLAG_CORE_SIDENAV: %s)', featureFlagCoreSidenav => {
   let loader: HarnessLoader;
-  let fixture: MockedComponentFixture<PathogenNotificationComponent>;
+  let fixture: IntegrationFixture;
 
   let fetchCountryCodeDisplaysSpy: Mock;
   let fetchFederalStateCodeDisplaysSpy: Mock;
@@ -101,15 +99,11 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
     });
   };
 
-  beforeEach(async () => await buildMock(true));
-  beforeEach(() => {
-    const result = setupIntegrationTests({
-      ...mainConfig,
-      featureFlags: { ...mainConfig.featureFlags },
-    });
+  beforeEach(async () => await buildMock(true, NotificationType.NominalNotification7_1, featureFlagCoreSidenav));
+  beforeEach(async () => {
+    const result = featureFlagCoreSidenav ? setupCoreSidenavIntegrationTests() : setupIntegrationTests();
 
     fixture = result.fixture;
-    component = result.component;
     loader = result.loader;
 
     fetchCountryCodeDisplaysSpy = TestBed.inject(FhirPathogenNotificationService).fetchCountryCodeDisplays as Mock;
@@ -122,12 +116,15 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
     setDiagnosticBasedOnPathogenSelection(TEST_DATA.diagnosticBasedOnPathogenSelectionINVP);
 
     fixture.detectChanges();
+    await fixture.whenStable();
   });
+
+  useTemporaryProductionMode();
 
   describe('NotificationCategory and Diagnostic', () => {
     // Meldetatbestand
-    let federalStateCodeDisplay: MatSelectHarness;
-    let pathogenDisplay: MatAutocompleteHarness;
+    let federalState: MatSelectHarness;
+    let notifiablePathogen: MatAutocompleteHarness;
     let pathogen: MatSelectHarness;
     let reportStatus: MatRadioGroupHarness;
     let notificationIdReference: MatRadioGroupHarness;
@@ -143,9 +140,9 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
     let result: MatRadioGroupHarness;
 
     beforeEach(async () => {
-      await switchToPage(4, fixture);
-      federalStateCodeDisplay = await getSelect(loader, `#${FIELD_FEDERAL_STATE}`);
-      pathogenDisplay = await getAutocomplete(loader, `#${FIELD_PATHOGEN_DISPLAY}`);
+      await switchToIntegrationPage(4, fixture);
+      federalState = await getSelect(loader, `#${FIELD_FEDERAL_STATE}`);
+      notifiablePathogen = await getAutocomplete(loader, `#${FIELD_NOTIFIABLE_PATHOGEN}`);
       pathogen = await getSelect(loader, `#${FIELD_PATHOGEN}`);
       reportStatus = await getRadioGroup(loader, `#${FIELD_REPORT_STATUS}`);
       initialNotificationId = await getInput(loader, `#${FIELD_INIT_NOTIFICATION_ID}`);
@@ -155,11 +152,11 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
     });
 
     it('should check default values on Meldetatbestands Page', async () => {
-      expect(await federalStateCodeDisplay.getValueText()).toBe('Baden-Württemberg');
-      expect(await federalStateCodeDisplay.isDisabled()).toBe(false);
+      expect(await federalState.getValueText()).toBe('Baden-Württemberg');
+      expect(await federalState.isDisabled()).toBe(false);
 
-      expect(await pathogenDisplay.getValue()).toBe(VALUE_EMPTY);
-      expect(await pathogenDisplay.isDisabled()).toBe(false);
+      expect(await notifiablePathogen.getValue()).toBe(VALUE_EMPTY);
+      expect(await notifiablePathogen.isDisabled()).toBe(false);
 
       expect(await pathogen.getValueText()).toBe(VALUE_EMPTY);
       expect(await pathogen.isDisabled()).toBe(true);
@@ -180,8 +177,8 @@ describe('Pathogen - Diagnostic Integration Tests', () => {
 
     describe('Diagnostic only', () => {
       beforeEach(async () => {
-        await setInputFieldValue(loader, `#${FIELD_PATHOGEN_DISPLAY}`, PATHOGEN_DISPLAY, fixture);
-        await switchToPage(5, fixture);
+        await setInputFieldValue(loader, `#${FIELD_NOTIFIABLE_PATHOGEN}`, PATHOGEN_DISPLAY, fixture);
+        await switchToIntegrationPage(5, fixture);
         expect(await getButton(loader, '#btn-weitere-probe-hinzufügen')).toBeTruthy();
         extractionDate = await getInput(loader, `#${FIELD_EXTRACTION_DATE}`);
         receivedDate = await getInput(loader, `#${FIELD_RECEIVED_DATE}`);

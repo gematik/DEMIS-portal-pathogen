@@ -20,23 +20,26 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { StepContentComponent } from '@gematik/demis-portal-core-library';
 import { PathogenNotificationService } from '../pathogen-notification.service';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { distinctUntilChanged, of, take, tap } from 'rxjs';
+import { distinctUntilChanged, filter, map, of, take, tap } from 'rxjs';
 import { NotificationStepFormComponent } from '../notification-step-form/notification-step-form.component';
 import { NotificationStepActionsComponent } from '../notification-step-actions/notification-step-actions.component';
 import { PathogenConstants } from '../../pathogen-notification/common/constants';
 import { CodeDisplay, PathogenData } from '../../../api/notification';
 import {
   filterDisplayValues,
+  findCodeDisplayByCodeValue,
   findCodeDisplayByDisplayValue,
   formatCodeDisplayToDesignationOption,
   formatCodeDisplayToDisplay,
 } from '../../pathogen-notification/legacy/common-utils';
+import { isFilterablePathogenEnabled } from '../../pathogen-notification/utils/pathogen-notification-mapper';
 
 import { PathogenNotificationStorageService } from '../../pathogen-notification/services/pathogen-notification-storage.service';
 import { FhirPathogenNotificationService } from '../../pathogen-notification/services/fhir-pathogen-notification.service';
 import { catchError } from 'rxjs/operators';
 import { NGXLogger } from 'ngx-logger';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { findFieldByKey } from '../../pathogen-notification/legacy/formly/configs/reusable/commons';
 
 @Component({
   selector: 'app-notification-category',
@@ -75,9 +78,9 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
     if (field.type === 'demis-favorites-list') {
       this.configureFavoritesField(configuredField);
     }
-    if (field.key === 'federalStateCodeDisplay') {
+    if (field.key === 'federalState') {
       configuredField.hooks = { ...field.hooks, onInit: initializedField => this.subscribeToFederalStateChanges(initializedField) };
-    } else if (field.key === 'pathogenDisplay') {
+    } else if (field.key === 'notifiablePathogen') {
       this.configurePathogenSelectionField(configuredField);
     } else if (field.key === 'pathogen') {
       this.configureSubPathogenSelectionField(configuredField);
@@ -93,28 +96,40 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
         if (this.notificationStorageService.getSelectedPathogenCodeDisplay()?.code === pathogen.code) {
           return;
         }
-        // Avoid triggering a second diagnostics request through the pathogen value-change handler.
-        this.getPathogenSelectionField().formControl.setValue(formatCodeDisplayToDisplay(pathogen), { emitEvent: false });
         this.setValueForSubPathogenSelectionField('');
-        this.updateAfterPathogenSelection(pathogen);
+        if (isFilterablePathogenEnabled()) {
+          this.getPathogenSelectionField().formControl.setValue(this.notificationService.toPathogenFormValue(pathogen));
+        } else {
+          // Avoid triggering a second diagnostics request through the pathogen value-change handler.
+          this.getPathogenSelectionField().formControl.setValue(formatCodeDisplayToDisplay(pathogen), { emitEvent: false });
+          this.updateAfterPathogenSelection(pathogen);
+        }
         this.notificationService.notificationCategoryGroup.markAsTouched();
       },
     };
   }
 
   private configurePathogenSelectionField(field: FormlyFieldConfig): void {
-    field.props = {
-      ...field.props,
-      // Read the shared list so the filter uses pathogens available for the current federal state.
-      filter: (term: string) => {
-        const pathogenDisplays = this.notificationService.pathogenCodeDisplays.map(formatCodeDisplayToDisplay);
-        return of(term ? filterDisplayValues(term, pathogenDisplays) : pathogenDisplays.slice());
-      },
-    };
+    if (isFilterablePathogenEnabled()) {
+      // Read the shared list so the options match the pathogens available for the current federal state.
+      field.props = { ...field.props, options: this.getPathogenOptions() };
+    } else {
+      field.props = {
+        ...field.props,
+        filter: (term: string) => {
+          const pathogenDisplays = this.notificationService.pathogenCodeDisplays.map(formatCodeDisplayToDisplay);
+          return of(term ? filterDisplayValues(term, pathogenDisplays) : pathogenDisplays.slice());
+        },
+      };
+    }
     field.hooks = {
       ...field.hooks,
       onInit: initializedField => this.subscribeToPathogenChanges(initializedField),
     };
+  }
+
+  private getPathogenOptions() {
+    return this.notificationService.pathogenCodeDisplays.map(formatCodeDisplayToDesignationOption);
   }
 
   private configureSubPathogenSelectionField(field: FormlyFieldConfig): void {
@@ -126,21 +141,13 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
   }
 
   private getSelectionField(key: string): FormlyFieldConfig {
-    const findField = (fields: FormlyFieldConfig[]): FormlyFieldConfig | undefined => {
-      for (const field of fields) {
-        if (field.key === key) return field;
-        const nestedField = field.fieldGroup && findField(field.fieldGroup);
-        if (nestedField) return nestedField;
-      }
-      return undefined;
-    };
-    const field = findField(this.fieldConfig());
+    const field = findFieldByKey(this.fieldConfig(), key);
     if (!field) throw new Error(`Notification category field "${key}" is missing.`);
     return field;
   }
 
   private getPathogenSelectionField() {
-    return this.getSelectionField('pathogenDisplay');
+    return this.getSelectionField('notifiablePathogen');
   }
 
   private setValueForSubPathogenSelectionField(value: string | undefined) {
@@ -161,8 +168,8 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
     }
 
     this.isLoading.set(true);
-    const federalStateCodeDisplay = this.notificationStorageService.getFederalStateCode() ?? 'DE-BW';
-    this.resetNotificationCategoryAndDiagnostic(federalStateCodeDisplay, formatCodeDisplayToDisplay(selectedPathogenCodeDisplay));
+    const federalStateCode = this.notificationService.getStoredFederalStateCode();
+    this.resetNotificationCategoryAndDiagnostic(federalStateCode, this.notificationService.toPathogenFormValue(selectedPathogenCodeDisplay));
     this.fhirPathogenNotificationService
       .fetchDiagnosticsBasedOnPathogenSelection(selectedPathogenCodeDisplay.code, this.notificationType)
       .pipe(
@@ -171,7 +178,7 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
         catchError(error => {
           this.logger.error(error);
           this.notificationStorageService.removeSelectedPathogenCodeDisplay();
-          this.resetNotificationCategoryAndDiagnostic(federalStateCodeDisplay);
+          this.resetNotificationCategoryAndDiagnostic(federalStateCode);
           this.isLoading.set(false);
           return of();
         })
@@ -186,17 +193,22 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
       });
   }
 
-  private subscribeToPathogenChanges(pathogenDisplay: FormlyFieldConfig) {
-    return pathogenDisplay.formControl.valueChanges.pipe(
+  private subscribeToPathogenChanges(notifiablePathogen: FormlyFieldConfig) {
+    const filterable = isFilterablePathogenEnabled();
+    return notifiablePathogen.formControl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
+      map((pathogen: CodeDisplay | string | null) => (filterable ? ((pathogen as CodeDisplay | null)?.code ?? '') : pathogen)),
       distinctUntilChanged(),
       tap(pathogen => {
         //reset diagnostic if pathogen is cleared
         if (pathogen === '') {
           this.notificationStorageService.removeSelectedPathogenCodeDisplay();
-          this.resetNotificationCategoryAndDiagnostic(this.notificationStorageService.getFederalStateCode() ?? 'DE-BW');
+          this.resetNotificationCategoryAndDiagnostic(this.notificationService.getStoredFederalStateCode());
         } else {
-          const selectedPathogenCodeDisplay = findCodeDisplayByDisplayValue(this.notificationService.pathogenCodeDisplays, pathogen);
+          const pathogenCodeDisplays = this.notificationService.pathogenCodeDisplays;
+          const selectedPathogenCodeDisplay = filterable
+            ? findCodeDisplayByCodeValue(pathogenCodeDisplays, pathogen as string)
+            : findCodeDisplayByDisplayValue(pathogenCodeDisplays, pathogen as string);
           if (selectedPathogenCodeDisplay) {
             this.updateAfterPathogenSelection(selectedPathogenCodeDisplay);
             this.notificationService.pathogenDTOGroup.enable();
@@ -211,7 +223,7 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
    * Defaults to DE-BW when no state is provided.
    */
   private updateAfterFederalStateSelection(selectedFederalStateCode = 'DE-BW') {
-    this.notificationStorageService.setFederalStateCode(selectedFederalStateCode);
+    this.notificationService.storeFederalState(selectedFederalStateCode);
     this.notificationStorageService.removeSelectedPathogenCodeDisplay();
     this.resetNotificationCategoryAndDiagnostic(selectedFederalStateCode);
     this.fhirPathogenNotificationService
@@ -219,8 +231,12 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((pathogenCodeDisplays: CodeDisplay[]) => {
         this.notificationService.pathogenCodeDisplays = pathogenCodeDisplays;
-        // Refresh the autocomplete's active filter after the asynchronous list update.
-        this.getPathogenSelectionField().formControl.setValue('');
+        if (isFilterablePathogenEnabled()) {
+          this.getPathogenSelectionField().props.options = this.getPathogenOptions();
+        } else {
+          // Refresh the autocomplete's active filter after the asynchronous list update.
+          this.getPathogenSelectionField().formControl.setValue('');
+        }
       });
     this.resetDiagnostic();
   }
@@ -235,21 +251,36 @@ export class NotificationCategoryComponent extends StepContentComponent<void> {
     this.notificationService.pathogenModel.set({});
   }
 
-  private resetNotificationCategoryAndDiagnostic(federalStateCodeDisplay: string, pathogenDisplay = '') {
+  private resetNotificationCategoryAndDiagnostic(
+    federalStateCode: string,
+    notifiablePathogen: CodeDisplay | string | undefined = this.notificationService.toPathogenFormValue(undefined)
+  ) {
     this.getSubPathogenSelectionField().props.options = [];
-    const categoryModel = { federalStateCodeDisplay, pathogenDisplay, pathogen: undefined };
+    const categoryModel = {
+      federalState: this.notificationService.toFederalStateFormValue(federalStateCode),
+      notifiablePathogen,
+      pathogen: undefined,
+    };
     this.notificationService.notificationCategoryGroup.reset(categoryModel, { emitEvent: false });
     this.notificationService.notificationCategoryModel.set(categoryModel);
     // Notify the core select so its displayed value is cleared along with the form control.
     this.setValueForSubPathogenSelectionField(undefined);
     this.resetDiagnostic();
+    if (isFilterablePathogenEnabled()) {
+      this.getPathogenSelectionField().formControl.setValue(notifiablePathogen);
+    }
   }
 
   private subscribeToFederalStateChanges(federalStateSelection: FormlyFieldConfig) {
     return federalStateSelection.formControl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
+      // The filterable select emits CodeDisplay objects; compare codes so new object references with the same state are ignored.
+      map((federalState: CodeDisplay | string | null) => (typeof federalState === 'string' ? federalState : federalState?.code)),
+      // Formly re-patches the detached control of a hidden federal state field (e.g. §7.3) on every model change.
+      // With CodeDisplay values this emits the unchanged state, which must not clear the selected pathogen.
+      filter(federalStateCode => federalStateCode !== this.notificationService.getStoredFederalStateCode()),
       distinctUntilChanged(),
-      tap(federalState => this.updateAfterFederalStateSelection(federalState))
+      tap(federalStateCode => this.updateAfterFederalStateSelection(federalStateCode))
     );
   }
 }

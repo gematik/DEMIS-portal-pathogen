@@ -17,6 +17,7 @@
 
 import {
   AddressType,
+  CodeDisplay,
   ContactPointInfo,
   NotificationLaboratoryCategory,
   NotifiedPerson,
@@ -51,11 +52,16 @@ export type NotifiedPersonFormModel = DeepPartial<Omit<NotifiedPerson, 'contacts
   contacts?: ContactPointInfo[] | ContactsFormModel;
 };
 
+export type NotificationCategoryFormModel = DeepPartial<NotificationLaboratoryCategory> & {
+  federalState?: CodeDisplay | string;
+  notifiablePathogen?: CodeDisplay | string;
+};
+
 export interface PathogenFormModel {
   notifierFacility?: NotifierFacilityFormModel;
   notifiedPerson?: NotifiedPersonFormModel | DeepPartial<NotifiedPersonAnonymous>;
   notifiedPersonAnonymous?: DeepPartial<NotifiedPersonAnonymous>;
   submittingFacility?: SubmittingFacilityFormModel;
-  notificationCategory?: DeepPartial<NotificationLaboratoryCategory>;
+  notificationCategory?: NotificationCategoryFormModel;
   pathogenDTO: DeepPartial<PathogenDTO>;
 }

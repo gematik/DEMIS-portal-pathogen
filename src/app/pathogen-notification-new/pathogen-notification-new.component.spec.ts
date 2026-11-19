@@ -30,6 +30,7 @@ import { NotificationCategoryComponent } from './notification-category/notificat
 import { PathogenDiagnosticComponent } from './pathogen-diagnostic/pathogen-diagnostic.component';
 import { PathogenNotificationNewComponent } from './pathogen-notification-new.component';
 import { PathogenNotificationService } from './pathogen-notification.service';
+import { PathogenNotificationPrefillService } from './pathogen-notification-prefill.service';
 import { getStepData } from './step-data';
 import { SubmittingFacilityComponent } from './submitting-facility/submitting-facility.component';
 
@@ -64,9 +65,15 @@ describe('PathogenNotificationNewComponent', () => {
     initialize: ReturnType<typeof vi.fn>;
     cancelPendingInitialization: ReturnType<typeof vi.fn>;
   };
+  const prefillService = {
+    populateWithDummyData: vi.fn(),
+    populateFromClipboard: vi.fn(),
+    cancelPendingPrefill: vi.fn(),
+  };
   let router: { url: string };
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     service = {
       notifierFacilityGroup: new FormGroup({}),
       submittingFacilityGroup: new FormGroup({}),
@@ -87,6 +94,7 @@ describe('PathogenNotificationNewComponent', () => {
       imports: [PathogenNotificationNewComponent],
       providers: [
         { provide: PathogenNotificationService, useValue: service },
+        { provide: PathogenNotificationPrefillService, useValue: prefillService },
         { provide: Router, useValue: router },
       ],
     })
@@ -161,6 +169,21 @@ describe('PathogenNotificationNewComponent', () => {
     fixture.destroy();
 
     expect(service.cancelPendingInitialization).toHaveBeenCalledOnce();
+    expect(prefillService.cancelPendingPrefill).toHaveBeenCalledOnce();
+  });
+
+  it('delegates HexHex prefilling to the service', () => {
+    fixture.componentInstance.handleHexHexChange();
+
+    expect(prefillService.populateWithDummyData).toHaveBeenCalledOnce();
+  });
+
+  it('delegates clipboard data to the service', () => {
+    const data = new Map([['P.given', 'Ada']]);
+
+    fixture.componentInstance.onClipboardDataPasted(data);
+
+    expect(prefillService.populateFromClipboard).toHaveBeenCalledExactlyOnceWith(data);
   });
 
   it('maps all five steps to the corresponding content components in workflow order', () => {

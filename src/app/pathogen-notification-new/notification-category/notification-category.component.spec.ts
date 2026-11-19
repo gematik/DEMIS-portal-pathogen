@@ -23,7 +23,7 @@ import { FormlyFilterableSelectComponent, MessageDialogService, StepNavigation }
 import { FieldType, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { NGXLogger } from 'ngx-logger';
 import { firstValueFrom, of, Subject, throwError } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CodeDisplay, PathogenData } from '../../../api/notification';
 import { NotificationType } from '../../pathogen-notification/common/routing-helper';
 import { FavoritesListComponent } from '../../pathogen-notification/components/favorites-list/favorites-list.component';
@@ -32,6 +32,7 @@ import { FhirPathogenNotificationService } from '../../pathogen-notification/ser
 import { PathogenNotificationStorageService } from '../../pathogen-notification/services/pathogen-notification-storage.service';
 import { PathogenNotificationService } from '../pathogen-notification.service';
 import { NotificationCategoryComponent } from './notification-category.component';
+import { environment } from '../../../environments/environment';
 import { AutocompleteTypeComponent } from '../../pathogen-notification/legacy/formly/types/autocomplete/autocomplete-type.component';
 
 @Component({ template: '' })
@@ -46,16 +47,16 @@ describe('NotificationCategoryComponent selection changes', () => {
       notificationType: NotificationType.NominalNotification7_1,
       pathogenCodeDisplays: [pathogen],
       notificationCategoryGroup: new FormGroup({
-        federalStateCodeDisplay: new FormControl('DE-BW'),
-        pathogenDisplay: new FormControl(''),
+        federalState: new FormControl('DE-BW'),
+        notifiablePathogen: new FormControl(''),
         pathogen: new FormControl('Previous species'),
       }),
-      notificationCategoryModel: signal({ federalStateCodeDisplay: 'DE-BW', pathogenDisplay: '', pathogen: 'Previous species' }),
+      notificationCategoryModel: signal({ federalState: 'DE-BW', notifiablePathogen: '', pathogen: 'Previous species' }),
       notificationCategoryFields: signal<FormlyFieldConfig[]>([
         {
-          fieldGroup: ['federalStateCodeDisplay', 'pathogenDisplay', 'pathogen'].map(key => ({
+          fieldGroup: ['federalState', 'notifiablePathogen', 'pathogen'].map(key => ({
             key,
-            type: key === 'pathogenDisplay' ? 'autocomplete' : 'selection-test',
+            type: key === 'notifiablePathogen' ? 'autocomplete' : 'selection-test',
             props: {},
           })),
         },
@@ -63,6 +64,10 @@ describe('NotificationCategoryComponent selection changes', () => {
       pathogenDTOGroup: new FormGroup({ specimen: new FormControl('Previous diagnostic') }),
       pathogenModel: signal({ specimen: 'Previous diagnostic' }),
       setPathogenData: vi.fn(),
+      getStoredFederalStateCode: vi.fn(() => storage.getFederalStateCode() ?? 'DE-BW'),
+      storeFederalState: vi.fn((code: string) => storage.setFederalStateCode(code)),
+      toFederalStateFormValue: vi.fn((code: string) => code),
+      toPathogenFormValue: vi.fn((pathogen?: CodeDisplay) => (pathogen ? formatCodeDisplayToDisplay(pathogen) : '')),
     };
     const storage = {
       getSelectedPathogenCodeDisplay: vi.fn<() => CodeDisplay | undefined>().mockReturnValue(undefined),
@@ -110,7 +115,7 @@ describe('NotificationCategoryComponent selection changes', () => {
 
   it('loads diagnostics for a localized pathogen and stops loading after the first response', () => {
     const { fixture, service, storage, fhir, response } = context;
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Deutscher Erreger');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Deutscher Erreger');
     expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).toHaveBeenCalledExactlyOnceWith('test', NotificationType.NominalNotification7_1);
     expect(fixture.componentInstance.isLoading()).toBe(true);
     expect(service.pathogenModel()).toEqual({});
@@ -118,7 +123,7 @@ describe('NotificationCategoryComponent selection changes', () => {
     response.next({ ...data, header: 'Ignored response' });
     expect(service.setPathogenData).toHaveBeenCalledExactlyOnceWith(data);
     expect(storage.setSelectedPathogenCodeDisplay).toHaveBeenCalledExactlyOnceWith(pathogen);
-    expect(service.notificationCategoryModel().pathogenDisplay).toBe('Deutscher Erreger');
+    expect(service.notificationCategoryModel().notifiablePathogen).toBe('Deutscher Erreger');
     expect(fixture.componentInstance.isLoading()).toBe(false);
   });
 
@@ -151,14 +156,14 @@ describe('NotificationCategoryComponent selection changes', () => {
   it('does not reload or clear diagnostics for the already selected pathogen', () => {
     const { service, storage, fhir } = context;
     storage.getSelectedPathogenCodeDisplay.mockReturnValue(pathogen);
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Deutscher Erreger');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Deutscher Erreger');
     expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).not.toHaveBeenCalled();
     expect(service.pathogenModel()).toEqual({ specimen: 'Previous diagnostic' });
   });
 
   it('ignores input that does not match a reportable pathogen', () => {
     const { service, fhir } = context;
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Unknown pathogen');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Unknown pathogen');
     expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).not.toHaveBeenCalled();
     expect(service.pathogenModel()).toEqual({ specimen: 'Previous diagnostic' });
   });
@@ -166,9 +171,9 @@ describe('NotificationCategoryComponent selection changes', () => {
   it('clears dependent data and stored selection when the pathogen is cleared', () => {
     const { service, storage } = context;
     const resetDiagnostic = vi.spyOn(service.pathogenDTOGroup, 'reset');
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('');
     expect(storage.removeSelectedPathogenCodeDisplay).toHaveBeenCalledOnce();
-    expect(service.notificationCategoryModel()).toEqual({ federalStateCodeDisplay: 'DE-BW', pathogenDisplay: '', pathogen: undefined });
+    expect(service.notificationCategoryModel()).toEqual({ federalState: 'DE-BW', notifiablePathogen: '', pathogen: undefined });
     expect(service.pathogenModel()).toEqual({});
     expect(service.pathogenDTOGroup.controls.specimen.value).toBeNull();
     expect(service.notificationCategoryGroup.untouched).toBe(true);
@@ -179,10 +184,10 @@ describe('NotificationCategoryComponent selection changes', () => {
     const { fixture, service, storage, fhir, logger } = context;
     const error = new Error('Diagnostics unavailable');
     fhir.fetchDiagnosticsBasedOnPathogenSelection.mockReturnValue(throwError(() => error));
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Deutscher Erreger');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Deutscher Erreger');
     expect(logger.error).toHaveBeenCalledExactlyOnceWith(error);
     expect(storage.removeSelectedPathogenCodeDisplay).toHaveBeenCalledOnce();
-    expect(service.notificationCategoryGroup.controls.pathogenDisplay.value).toBe('');
+    expect(service.notificationCategoryGroup.controls.notifiablePathogen.value).toBe('');
     expect(service.notificationCategoryModel().pathogen).toBeUndefined();
     expect(service.setPathogenData).not.toHaveBeenCalled();
     expect(fixture.componentInstance.isLoading()).toBe(false);
@@ -192,7 +197,7 @@ describe('NotificationCategoryComponent selection changes', () => {
     const { fixture, service, response } = context;
     const autocomplete = fixture.debugElement.query(By.directive(AutocompleteTypeComponent)).componentInstance as AutocompleteTypeComponent;
     service.pathogenCodeDisplays.push({ code: 'other', display: 'Other pathogen', designations: [] });
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Deutscher Erreger');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Deutscher Erreger');
     response.error(new Error('Diagnostics unavailable'));
     fixture.detectChanges();
 
@@ -211,9 +216,9 @@ describe('NotificationCategoryComponent selection changes', () => {
   it('uses DE-BW when no federal state is stored', () => {
     const { service, storage, response } = context;
     storage.getFederalStateCode.mockReturnValue(undefined);
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Deutscher Erreger');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Deutscher Erreger');
     response.next(data);
-    expect(service.notificationCategoryModel().federalStateCodeDisplay).toBe('DE-BW');
+    expect(service.notificationCategoryModel().federalState).toBe('DE-BW');
   });
 
   it('preserves diagnostics when species are changed, repeated or cleared', () => {
@@ -233,14 +238,14 @@ describe('NotificationCategoryComponent selection changes', () => {
 
   it('filters the refreshed pathogen list and ignores repeated federal states', async () => {
     const { fixture, service, fhir, statesResponse } = context;
-    service.notificationCategoryGroup.controls.federalStateCodeDisplay.setValue('DE-BE');
-    service.notificationCategoryGroup.controls.federalStateCodeDisplay.setValue('DE-BE');
+    service.notificationCategoryGroup.controls.federalState.setValue('DE-BE');
+    service.notificationCategoryGroup.controls.federalState.setValue('DE-BE');
     expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledExactlyOnceWith(NotificationType.NominalNotification7_1, 'DE-BE');
     statesResponse.next([pathogen, { code: 'other', display: 'Other pathogen', designations: [] }]);
     const field = fixture.debugElement
       .queryAll(By.directive(AutocompleteTypeComponent))
       .map(element => (element.componentInstance as AutocompleteTypeComponent).field)
-      .find(field => field.key === 'pathogenDisplay');
+      .find(field => field.key === 'notifiablePathogen');
     expect(await firstValueFrom(field.props.filter('deutscher'))).toEqual(['Deutscher Erreger']);
     expect(await firstValueFrom(field.props.filter('no match'))).toEqual([]);
     expect(await firstValueFrom(field.props.filter(''))).toEqual(['Deutscher Erreger', 'Other pathogen']);
@@ -253,7 +258,7 @@ describe('NotificationCategoryComponent selection changes', () => {
     const subscription = autocomplete.filter.subscribe(options => (displayedOptions = options));
     expect(displayedOptions).toEqual(['Deutscher Erreger']);
 
-    service.notificationCategoryGroup.controls.federalStateCodeDisplay.setValue('DE-BE');
+    service.notificationCategoryGroup.controls.federalState.setValue('DE-BE');
     const newPathogens: CodeDisplay[] = [
       { code: 'one', display: 'First pathogen', designations: [] },
       { code: 'two', display: 'Second pathogen', designations: [] },
@@ -261,14 +266,14 @@ describe('NotificationCategoryComponent selection changes', () => {
     statesResponse.next(newPathogens);
 
     expect(displayedOptions).toEqual(['First pathogen', 'Second pathogen']);
-    expect(service.notificationCategoryGroup.controls.pathogenDisplay.value).toBe('');
-    expect(service.notificationCategoryModel().pathogenDisplay).toBe('');
+    expect(service.notificationCategoryGroup.controls.notifiablePathogen.value).toBe('');
+    expect(service.notificationCategoryModel().notifiablePathogen).toBe('');
     subscription.unsubscribe();
   });
 
   it('cancels pending diagnostics when the component is destroyed', () => {
     const { fixture, service, storage, response } = context;
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Deutscher Erreger');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Deutscher Erreger');
     fixture.destroy();
     response.next(data);
     expect(service.setPathogenData).not.toHaveBeenCalled();
@@ -281,7 +286,7 @@ describe('NotificationCategoryComponent selection changes', () => {
       .queryAll(By.directive(SelectionTestField))
       .map(element => (element.componentInstance as SelectionTestField).field)
       .find(field => field.key === 'pathogen');
-    service.notificationCategoryGroup.controls.pathogenDisplay.setValue('Deutscher Erreger');
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue('Deutscher Erreger');
     response.next({
       ...data,
       answerSet: [
@@ -298,7 +303,7 @@ describe('NotificationCategoryComponent selection changes', () => {
 
   it('cancels pending federal state requests when the component is destroyed', () => {
     const { fixture, service, statesResponse } = context;
-    service.notificationCategoryGroup.controls.federalStateCodeDisplay.setValue('DE-BE');
+    service.notificationCategoryGroup.controls.federalState.setValue('DE-BE');
     fixture.destroy();
     statesResponse.next([]);
     expect(service.pathogenCodeDisplays).toEqual([pathogen]);
@@ -323,10 +328,10 @@ describe('NotificationCategoryComponent favorites', () => {
       notificationType: NotificationType.NominalNotification7_1,
       pathogenCodeDisplays: [data.codeDisplay],
       pathogenData: undefined as PathogenData | undefined,
-      notificationCategoryGroup: new FormGroup({ pathogenDisplay: new FormControl('Test') }),
-      notificationCategoryModel: signal({ pathogenDisplay: 'Test', pathogen: answerSet[0] }),
+      notificationCategoryGroup: new FormGroup({ notifiablePathogen: new FormControl('Test') }),
+      notificationCategoryModel: signal({ notifiablePathogen: 'Test', pathogen: answerSet[0] }),
       notificationCategoryFields: signal<FormlyFieldConfig[]>([
-        { key: 'pathogenDisplay', type: 'selection-test' },
+        { key: 'notifiablePathogen', type: 'selection-test' },
         {
           key: 'pathogen',
           type: 'filterable-select',
@@ -338,6 +343,9 @@ describe('NotificationCategoryComponent favorites', () => {
       setPathogenData: (nextData: PathogenData) => {
         service.pathogenData = nextData;
       },
+      getStoredFederalStateCode: () => 'DE-BW',
+      toFederalStateFormValue: (code: string) => code,
+      toPathogenFormValue: (pathogen?: CodeDisplay) => (pathogen ? formatCodeDisplayToDisplay(pathogen) : ''),
     };
     const diagnosticsResponse = new Subject<PathogenData>();
     await TestBed.configureTestingModule({
@@ -368,7 +376,7 @@ describe('NotificationCategoryComponent favorites', () => {
     let fixture = TestBed.createComponent(NotificationCategoryComponent);
     fixture.detectChanges();
     await fixture.whenStable();
-    service.notificationCategoryGroup.get('pathogenDisplay').setValue('Test');
+    service.notificationCategoryGroup.get('notifiablePathogen').setValue('Test');
     diagnosticsResponse.next(data);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -391,7 +399,7 @@ describe('NotificationCategoryComponent favorites', () => {
       designations: [],
     }));
     service.pathogenCodeDisplays.push(nextPathogen);
-    service.notificationCategoryGroup.get('pathogenDisplay').setValue('Next pathogen');
+    service.notificationCategoryGroup.get('notifiablePathogen').setValue('Next pathogen');
     fixture.detectChanges();
     await fixture.whenStable();
     expect(select.triggerDisplay()).toBe('');
@@ -436,19 +444,19 @@ describe('NotificationCategoryComponent favorites', () => {
       pathogenCodeDisplays: [pathogen],
       pathogenData: undefined as PathogenData | undefined,
       notificationCategoryGroup: new FormGroup({
-        federalStateCodeDisplay: new FormControl('DE-BW'),
-        pathogenDisplay: new FormControl(''),
+        federalState: new FormControl('DE-BW'),
+        notifiablePathogen: new FormControl(''),
         pathogen: new FormControl('Previous species'),
       }),
-      notificationCategoryModel: signal({ federalStateCodeDisplay: 'DE-BW', pathogenDisplay: '', pathogen: undefined }),
+      notificationCategoryModel: signal({ federalState: 'DE-BW', notifiablePathogen: '', pathogen: undefined }),
       pathogenDTOGroup: new FormGroup({ specimen: new FormControl('Previous diagnostic') }),
       pathogenModel: signal({ specimen: 'Previous diagnostic' }),
       notificationCategoryFields: signal<FormlyFieldConfig[]>([
         {
           fieldGroup: [
             { key: 'favoritePathogen', type: 'demis-favorites-list', props: { notificationType: NotificationType.NominalNotification7_1 } },
-            { key: 'federalStateCodeDisplay', type: 'selection-test' },
-            { key: 'pathogenDisplay', type: 'selection-test', props: {} },
+            { key: 'federalState', type: 'selection-test' },
+            { key: 'notifiablePathogen', type: 'selection-test', props: {} },
             {
               key: 'pathogen',
               type: 'filterable-select',
@@ -458,6 +466,10 @@ describe('NotificationCategoryComponent favorites', () => {
         },
       ]),
       setPathogenData: vi.fn(),
+      getStoredFederalStateCode: vi.fn(() => storage.getFederalStateCode() ?? 'DE-BW'),
+      storeFederalState: vi.fn((code: string) => storage.setFederalStateCode(code)),
+      toFederalStateFormValue: vi.fn((code: string) => code),
+      toPathogenFormValue: vi.fn((pathogen?: CodeDisplay) => (pathogen ? formatCodeDisplayToDisplay(pathogen) : '')),
     };
     const storage = {
       favoritesChanged: new Subject<void>(),
@@ -504,12 +516,12 @@ describe('NotificationCategoryComponent favorites', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(notificationService.notificationCategoryGroup.get('pathogenDisplay').value).toBe(formatCodeDisplayToDisplay(pathogen));
+    expect(notificationService.notificationCategoryGroup.get('notifiablePathogen').value).toBe(formatCodeDisplayToDisplay(pathogen));
     expect(notificationService.notificationCategoryGroup.get('pathogen').value).toEqual(formatCodeDisplayToDesignationOption(subPathogen));
     expect(notificationService.notificationCategoryGroup.touched).toBe(true);
     expect(notificationService.notificationCategoryModel()).toEqual({
-      federalStateCodeDisplay: 'DE-BW',
-      pathogenDisplay: 'Test pathogen',
+      federalState: 'DE-BW',
+      notifiablePathogen: 'Test pathogen',
       pathogen: formatCodeDisplayToDesignationOption(subPathogen),
     });
     expect(notificationService.pathogenDTOGroup.get('specimen').value).toBeNull();
@@ -531,13 +543,13 @@ describe('NotificationCategoryComponent favorites', () => {
     expect(notificationService.pathogenDTOGroup.get('specimen').value).toBe('Diagnostic content');
     expect(notificationService.pathogenModel()).toEqual({ specimen: 'Diagnostic content' });
 
-    notificationService.notificationCategoryGroup.get('federalStateCodeDisplay').setValue('DE-BE');
+    notificationService.notificationCategoryGroup.get('federalState').setValue('DE-BE');
 
     expect(storage.setFederalStateCode).toHaveBeenCalledWith('DE-BE');
     expect(storage.removeSelectedPathogenCodeDisplay).toHaveBeenCalled();
     expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BE');
-    expect(notificationService.notificationCategoryGroup.get('federalStateCodeDisplay').value).toBe('DE-BE');
-    expect(notificationService.notificationCategoryGroup.get('pathogenDisplay').value).toBe('');
+    expect(notificationService.notificationCategoryGroup.get('federalState').value).toBe('DE-BE');
+    expect(notificationService.notificationCategoryGroup.get('notifiablePathogen').value).toBe('');
     expect(notificationService.pathogenModel()).toEqual({});
     expect(notificationService.pathogenCodeDisplays).toEqual([updatedPathogen]);
     fixture.destroy();
@@ -549,7 +561,7 @@ describe('NotificationCategoryComponent favorites', () => {
     const selectionFields = reopenedFixture.debugElement
       .queryAll(By.directive(SelectionTestField))
       .map(element => (element.componentInstance as SelectionTestField).field);
-    const pathogenField = selectionFields.find(field => field.key === 'pathogenDisplay');
+    const pathogenField = selectionFields.find(field => field.key === 'notifiablePathogen');
     expect(await firstValueFrom(pathogenField.props.filter(''))).toEqual(['Updated pathogen']);
 
     const subPathogenField = (
@@ -557,5 +569,129 @@ describe('NotificationCategoryComponent favorites', () => {
     ).field;
     expect(subPathogenField.props.options).toEqual(data.answerSet.map(formatCodeDisplayToDesignationOption));
     reopenedFixture.destroy();
+  });
+});
+
+describe('NotificationCategoryComponent with filterable pathogen select', () => {
+  const pathogen: CodeDisplay = { code: 'test', display: 'Test pathogen', designations: [{ language: 'de', value: 'Deutscher Erreger' }] };
+  const updatedPathogen: CodeDisplay = { code: 'updated', display: 'Updated pathogen', designations: [] };
+  const data: PathogenData = { codeDisplay: pathogen, header: 'Test', answerSet: [], materials: [], methods: [] };
+
+  afterEach(() => vi.restoreAllMocks());
+
+  async function setup() {
+    vi.spyOn(environment, 'featureFlags', 'get').mockReturnValue({ FEATURE_FLAG_CORE_SIDENAV: true, FEATURE_FLAG_FILTERABLE_PATHOGEN: true });
+    const service = {
+      notificationType: NotificationType.NominalNotification7_1,
+      pathogenCodeDisplays: [pathogen],
+      notificationCategoryGroup: new FormGroup({
+        federalState: new FormControl<string>('DE-BW'),
+        notifiablePathogen: new FormControl<unknown>(undefined),
+        pathogen: new FormControl<unknown>(undefined),
+      }),
+      notificationCategoryModel: signal<Record<string, unknown>>({ federalState: 'DE-BW' }),
+      notificationCategoryFields: signal<FormlyFieldConfig[]>([
+        {
+          fieldGroup: [
+            { key: 'federalState', type: 'selection-test', props: {} },
+            { key: 'notifiablePathogen', type: 'filterable-select', props: { required: true, optionValueKey: 'code', optionLabelKey: 'display', options: [] } },
+            { key: 'pathogen', type: 'filterable-select', props: { optionValueKey: 'code', optionLabelKey: 'display' } },
+          ],
+        },
+      ]),
+      pathogenDTOGroup: new FormGroup({ specimen: new FormControl('Previous diagnostic') }),
+      pathogenModel: signal({ specimen: 'Previous diagnostic' }),
+      setPathogenData: vi.fn(),
+      getStoredFederalStateCode: vi.fn(() => storage.getFederalStateCode() ?? 'DE-BW'),
+      storeFederalState: vi.fn((code: string) => storage.setFederalStateCode(code)),
+      toFederalStateFormValue: vi.fn((code: string) => code),
+      toPathogenFormValue: vi.fn((value?: CodeDisplay) => (value ? formatCodeDisplayToDesignationOption(value) : undefined)),
+    };
+    const storage = {
+      getSelectedPathogenCodeDisplay: vi.fn<() => CodeDisplay | undefined>().mockReturnValue(undefined),
+      getFederalStateCode: vi.fn<() => string | undefined>().mockReturnValue('DE-BW'),
+      setSelectedPathogenCodeDisplay: vi.fn(),
+      removeSelectedPathogenCodeDisplay: vi.fn(),
+      setFederalStateCode: vi.fn(),
+    };
+    storage.setFederalStateCode.mockImplementation(code => storage.getFederalStateCode.mockReturnValue(code));
+    const fhir = {
+      fetchDiagnosticsBasedOnPathogenSelection: vi.fn().mockReturnValue(of(data)),
+      fetchPathogenCodeDisplaysByTypeAndState: vi.fn().mockReturnValue(of([updatedPathogen])),
+    };
+    await TestBed.configureTestingModule({
+      imports: [
+        NotificationCategoryComponent,
+        FormlyModule.forRoot({
+          types: [
+            { name: 'selection-test', component: SelectionTestField },
+            { name: 'filterable-select', component: FormlyFilterableSelectComponent },
+          ],
+        }),
+      ],
+      providers: [
+        { provide: PathogenNotificationService, useValue: service },
+        { provide: PathogenNotificationStorageService, useValue: storage },
+        { provide: FhirPathogenNotificationService, useValue: fhir },
+        { provide: StepNavigation, useValue: {} },
+        { provide: NGXLogger, useValue: { error: vi.fn() } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(NotificationCategoryComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const pathogenField = fixture.debugElement
+      .queryAll(By.directive(FormlyFilterableSelectComponent))
+      .map(element => element.componentInstance as FormlyFilterableSelectComponent)
+      .find(component => component.field.key === 'notifiablePathogen').field;
+    return { fixture, service, storage, fhir, pathogenField };
+  }
+
+  it('offers the available pathogens as code/display options', async () => {
+    const { pathogenField } = await setup();
+    expect(pathogenField.props.options).toEqual([formatCodeDisplayToDesignationOption(pathogen)]);
+  });
+
+  it('loads diagnostics once for a selected option and keeps the option as value', async () => {
+    const { service, storage, fhir } = await setup();
+    const option = formatCodeDisplayToDesignationOption(pathogen);
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue(option);
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue({ ...option });
+
+    expect(fhir.fetchDiagnosticsBasedOnPathogenSelection).toHaveBeenCalledExactlyOnceWith('test', NotificationType.NominalNotification7_1);
+    expect(storage.setSelectedPathogenCodeDisplay).toHaveBeenCalledExactlyOnceWith(pathogen);
+    expect(service.notificationCategoryGroup.controls.notifiablePathogen.value).toEqual(option);
+    expect(service.notificationCategoryModel().notifiablePathogen).toEqual(option);
+  });
+
+  it('resets dependent data when the selection is cleared', async () => {
+    const { service, storage } = await setup();
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue(formatCodeDisplayToDesignationOption(pathogen));
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue(null);
+
+    expect(storage.removeSelectedPathogenCodeDisplay).toHaveBeenCalled();
+    expect(service.notificationCategoryGroup.controls.notifiablePathogen.value).toBeUndefined();
+    expect(service.pathogenModel()).toEqual({});
+  });
+
+  it('clears the selection and refreshes the options after a federal state change', async () => {
+    const { service, fhir, pathogenField } = await setup();
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue(formatCodeDisplayToDesignationOption(pathogen));
+    service.notificationCategoryGroup.controls.federalState.setValue('DE-BE');
+
+    expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).toHaveBeenCalledWith(NotificationType.NominalNotification7_1, 'DE-BE');
+    expect(service.notificationCategoryGroup.controls.notifiablePathogen.value).toBeUndefined();
+    expect(pathogenField.props.options).toEqual([formatCodeDisplayToDesignationOption(updatedPathogen)]);
+  });
+
+  it('keeps the selected pathogen when the unchanged federal state is emitted as a new object', async () => {
+    const { service, storage, fhir } = await setup();
+    const option = formatCodeDisplayToDesignationOption(pathogen);
+    service.notificationCategoryGroup.controls.notifiablePathogen.setValue(option);
+    (service.notificationCategoryGroup.controls.federalState as FormControl<unknown>).setValue({ code: 'DE-BW', display: 'Baden-Württemberg' });
+
+    expect(fhir.fetchPathogenCodeDisplaysByTypeAndState).not.toHaveBeenCalled();
+    expect(storage.removeSelectedPathogenCodeDisplay).not.toHaveBeenCalled();
+    expect(service.notificationCategoryGroup.controls.notifiablePathogen.value).toEqual(option);
   });
 });

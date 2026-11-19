@@ -25,6 +25,7 @@ import { validateUUID } from '../../../legacy/notification-form-validation-modul
 import ReportStatusEnum = NotificationLaboratoryCategory.ReportStatusEnum;
 import NotificationIdReferenceEnum = NotificationLaboratoryCategory.NotificationIdReferenceEnum;
 import { mainConfig } from '../../../../../test/integration/base';
+import { findFieldByKey } from '../../../legacy/formly/configs/reusable/commons';
 
 describe('selectNotificationCategoryFields', () => {
   const federalStateCodeDisplays = [
@@ -62,17 +63,6 @@ describe('selectNotificationCategoryFields', () => {
     return undefined;
   };
 
-  const findFieldByKey = (fields: FormlyFieldConfig[], key: string): FormlyFieldConfig | undefined => {
-    for (const field of fields) {
-      if (field.key === key) return field;
-      if (field.fieldGroup) {
-        const found = findFieldByKey(field.fieldGroup, key);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  };
-
   describe('general structure', () => {
     it('should return an array of FormlyFieldConfig', () => {
       const fields = getFields();
@@ -81,13 +71,30 @@ describe('selectNotificationCategoryFields', () => {
       expect(fields.length).toBeGreaterThan(0);
     });
 
-    it('should contain pathogenDisplay field', () => {
+    it('should contain notifiablePathogen field', () => {
       const fields = getFields();
-      const field = findFieldById(fields, 'pathogenDisplay');
+      const field = findFieldById(fields, 'notifiablePathogen');
       expect(field).toBeDefined();
       expect(field!.type).toBe('autocomplete');
       expect(field!.props!.label).toBe('Meldepflichtiger Krankheitserreger');
       expect(field!.props!.required).toBe(true);
+    });
+
+    it('should use a filterable select for notifiablePathogen with the filterable pathogen flag', () => {
+      environment.pathogenConfig.featureFlags = { FEATURE_FLAG_CORE_SIDENAV: true, FEATURE_FLAG_FILTERABLE_PATHOGEN: true };
+      const pathogenOptions = [{ code: 'invp', display: 'Influenza' }];
+      const fields = selectNotificationCategoryFields(
+        federalStateCodeDisplays,
+        pathogenDisplays,
+        subPathogenDisplays,
+        NotificationType.NominalNotification7_1,
+        undefined,
+        pathogenOptions
+      );
+      const field = findFieldById(fields, 'notifiablePathogen');
+      expect(field!.type).toBe('filterable-select');
+      expect(field!.props).toEqual(expect.objectContaining({ options: pathogenOptions, optionValueKey: 'code', optionLabelKey: 'display', required: true }));
+      expect(field!.asyncValidators).toBeUndefined();
     });
 
     it('should contain pathogen field', () => {
@@ -139,21 +146,21 @@ describe('selectNotificationCategoryFields', () => {
   describe('federal state selection', () => {
     it('should show federal state for NominalNotification7_1', () => {
       const fields = getFields(NotificationType.NominalNotification7_1);
-      const field = findFieldById(fields, 'federalStateCodeDisplay');
+      const field = findFieldById(fields, 'federalState');
       const hideFn = field!.expressions!['hide'] as () => boolean;
       expect(hideFn()).toBe(false);
     });
 
     it('should hide federal state for NonNominalNotification7_3', () => {
       const fields = getFields(NotificationType.NonNominalNotification7_3);
-      const field = findFieldById(fields, 'federalStateCodeDisplay');
+      const field = findFieldById(fields, 'federalState');
       const hideFn = field!.expressions!['hide'] as () => boolean;
       expect(hideFn()).toBe(true);
     });
 
     it('should map federal state options correctly', () => {
       const fields = getFields();
-      const field = findFieldById(fields, 'federalStateCodeDisplay');
+      const field = findFieldById(fields, 'federalState');
       expect(field!.props!.options).toEqual([
         { value: 'DE-BY', label: 'Bayern' },
         { value: 'DE-BE', label: 'Berlin' },
@@ -179,24 +186,24 @@ describe('selectNotificationCategoryFields', () => {
     });
   });
 
-  describe('pathogenDisplay disabled expression', () => {
-    it('should disable pathogenDisplay for FollowUp notification', () => {
+  describe('notifiablePathogen disabled expression', () => {
+    it('should disable notifiablePathogen for FollowUp notification', () => {
       const fields = getFields(NotificationType.FollowUpNotification7_1);
-      const field = findFieldById(fields, 'pathogenDisplay');
+      const field = findFieldById(fields, 'notifiablePathogen');
       const disabledFn = field!.expressions!['props.disabled'] as () => boolean;
       expect(disabledFn()).toBe(true);
     });
 
-    it('should not disable pathogenDisplay for non-FollowUp notification', () => {
+    it('should not disable notifiablePathogen for non-FollowUp notification', () => {
       const fields = getFields(NotificationType.NominalNotification7_1);
-      const field = findFieldById(fields, 'pathogenDisplay');
+      const field = findFieldById(fields, 'notifiablePathogen');
       const disabledFn = field!.expressions!['props.disabled'] as () => boolean;
       expect(disabledFn()).toBe(false);
     });
   });
 
   describe('pathogen disabled expression', () => {
-    it('should disable pathogen when pathogenDisplay is not set', () => {
+    it('should disable pathogen when notifiablePathogen is not set', () => {
       const fields = getFields();
       const field = findFieldById(fields, 'pathogen');
       const mockField = { parent: { model: {} } } as unknown as FormlyFieldConfig;
@@ -204,10 +211,10 @@ describe('selectNotificationCategoryFields', () => {
       expect(disabledFn(mockField)).toBe(true);
     });
 
-    it('should enable pathogen when pathogenDisplay is set', () => {
+    it('should enable pathogen when notifiablePathogen is set', () => {
       const fields = getFields();
       const field = findFieldById(fields, 'pathogen');
-      const mockField = { parent: { model: { pathogenDisplay: 'Influenza' } } } as unknown as FormlyFieldConfig;
+      const mockField = { parent: { model: { notifiablePathogen: 'Influenza' } } } as unknown as FormlyFieldConfig;
       const disabledFn = field!.expressions!['props.disabled'] as (f: FormlyFieldConfig) => boolean;
       expect(disabledFn(mockField)).toBe(false);
     });

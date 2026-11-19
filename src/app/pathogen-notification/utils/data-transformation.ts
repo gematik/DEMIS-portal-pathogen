@@ -26,7 +26,13 @@ import {
   ResistanceGeneDTO,
   SpecimenDTO,
 } from '../../../api/notification';
-import { ExtendedSalutationEnum, findCodeDisplayByDisplayValue, getDesignationValueIfAvailable } from '../legacy/common-utils';
+import {
+  ExtendedSalutationEnum,
+  findCodeDisplayByCodeValue,
+  findCodeDisplayByDisplayValue,
+  getDesignationValueIfAvailable,
+  getSelectOptionValue,
+} from '../legacy/common-utils';
 import { merge } from 'lodash-es';
 import { NotificationType } from '../common/routing-helper';
 
@@ -110,7 +116,7 @@ function transformNominalPerson(pathogenForm: any, result: any) {
     );
 
     result.notifiedPerson = {
-      info: pathogenForm.notifiedPerson.info,
+      info: transformPersonInfo(pathogenForm.notifiedPerson.info),
       contacts: transformContactsToPathogenTest(pathogenForm.notifiedPerson.contacts || []),
       residenceAddress: transformAddress(pathogenForm.notifiedPerson.residenceAddress, pathogenForm.notifiedPerson.residenceAddressType),
       currentAddress,
@@ -122,7 +128,7 @@ function transformNominalPerson(pathogenForm: any, result: any) {
 function transformNotifiedPersonNotByName(pathogenForm: any, result: any) {
   if (pathogenForm.notifiedPerson) {
     result.notifiedPerson = {
-      info: pathogenForm.notifiedPerson.info,
+      info: transformPersonInfo(pathogenForm.notifiedPerson.info),
       residenceAddress: transformAddress(pathogenForm.notifiedPerson.residenceAddress, pathogenForm.notifiedPerson.residenceAddressType),
     };
   }
@@ -132,12 +138,12 @@ function transformNotifiedPersonNotByName(pathogenForm: any, result: any) {
 function transformAnonymousPerson(pathogenForm: any, result: any) {
   if (pathogenForm.notifiedPerson) {
     const residenceAddress = {
-      country: pathogenForm.notifiedPerson.residenceAddress.country || undefined,
+      country: getSelectOptionValue(pathogenForm.notifiedPerson.residenceAddress.country) || undefined,
       zip: pathogenForm.notifiedPerson.residenceAddress?.zip || undefined,
       addressType: AddressType.Primary,
     };
     result.notifiedPersonAnonymous = {
-      gender: pathogenForm.notifiedPerson.info?.gender || undefined,
+      gender: getSelectOptionValue(pathogenForm.notifiedPerson.info?.gender) || undefined,
       birthDate: pathogenForm.notifiedPerson.info?.birthDate || undefined,
       residenceAddress: residenceAddress,
     };
@@ -153,10 +159,10 @@ function fillSpecimenList(specimenDTOS: SpecimenDTOForm[], pathogenData: Pathoge
       const newSpecimen = {
         extractionDate: thisItem.extractionDate,
         receivedDate: thisItem.receivedDate,
-        material: findCodeDisplayByDisplayValue(pathogenData.materials, thisItem.material),
+        material: findDiagnosticCodeDisplay(pathogenData.materials, thisItem.material),
         methodPathogenList: thisItem.methodPathogenList.map(methodPathogen => ({
           ...methodPathogen,
-          method: findCodeDisplayByDisplayValue(pathogenData.methods, methodPathogen.method),
+          method: findDiagnosticCodeDisplay(pathogenData.methods, methodPathogen.method),
           ...(methodPathogen.analyt && {
             analyt: findCodeDisplayByDisplayValue(pathogenData.substances, methodPathogen.analyt.display),
           }),
@@ -206,36 +212,37 @@ function transformNotifiedPerson(notificationType: NotificationType, result: any
 
 function transformSubmittingFacility(pathogenForm: any, result: any) {
   if (pathogenForm.submittingFacility) {
-    result.submittingFacility = {
-      ...pathogenForm.submittingFacility,
-      contact: {
-        ...pathogenForm.submittingFacility.contact,
-        salutation:
-          !!pathogenForm.submittingFacility.contact?.salutation && pathogenForm.submittingFacility.contact?.salutation !== ExtendedSalutationEnum.None
-            ? pathogenForm.submittingFacility.contact.salutation
-            : undefined,
-      },
-      contacts: transformContactsToPathogenTest(pathogenForm.submittingFacility?.contacts || []),
-    };
+    result.submittingFacility = transformFacility(pathogenForm.submittingFacility);
   }
   return result;
 }
 
 function transformNotifierFacility(pathogenForm: any, result: any) {
   if (pathogenForm.notifierFacility) {
-    result.notifierFacility = {
-      ...pathogenForm.notifierFacility,
-      contact: {
-        ...pathogenForm.notifierFacility.contact,
-        salutation:
-          !!pathogenForm.notifierFacility.contact?.salutation && pathogenForm.notifierFacility.contact.salutation !== ExtendedSalutationEnum.None
-            ? pathogenForm.notifierFacility.contact.salutation
-            : undefined,
-      },
-      contacts: transformContactsToPathogenTest(pathogenForm.notifierFacility.contacts || []),
-    };
+    result.notifierFacility = transformFacility(pathogenForm.notifierFacility);
   }
   return result;
+}
+
+function transformFacility(facility: any) {
+  const salutation = getSelectOptionValue(facility.contact?.salutation);
+  return {
+    ...facility,
+    ...(facility.address && { address: transformCountry(facility.address) }),
+    contact: {
+      ...facility.contact,
+      salutation: !!salutation && salutation !== ExtendedSalutationEnum.None ? salutation : undefined,
+    },
+    contacts: transformContactsToPathogenTest(facility.contacts || []),
+  };
+}
+
+function transformPersonInfo(info: any) {
+  return info && 'gender' in info ? { ...info, gender: getSelectOptionValue(info.gender) } : info;
+}
+
+function transformCountry(address: any) {
+  return 'country' in address ? { ...address, country: getSelectOptionValue(address.country) } : address;
 }
 
 export function transformPathogenFormToPathogenTest(
@@ -284,7 +291,7 @@ function transformAddress(address: any, addressType: string): any {
   if (!address) return undefined;
 
   return {
-    ...address,
+    ...transformCountry(address),
     addressType,
   };
 }
@@ -300,7 +307,7 @@ function transformDiagnosticIfNotEmpty(diagnosticList: any[], dataList: CodeDisp
   return diagnosticList
     ? diagnosticList.map(item => ({
         ...item,
-        [key]: findCodeDisplayByDisplayValue(dataList, item[key]),
+        [key]: findDiagnosticCodeDisplay(dataList, item[key]),
       }))
     : undefined;
 }
@@ -314,14 +321,23 @@ interface SpecimenDTOForm {
 interface SpecimenForm {
   extractionDate?: string;
   receivedDate: string;
-  material: string;
+  material: DiagnosticValue;
   methodPathogenList: MethodPathogenFrom[];
   resistanceList?: ResistanceDTO[];
   resistanceGeneList?: ResistanceGeneDTO[];
 }
 
 export interface MethodPathogenFrom {
-  method: string;
+  method: DiagnosticValue;
   analyt?: CodeDisplay;
   result: MethodPathogenDTO.ResultEnum;
+}
+
+/** The legacy autocomplete stores the display value, the filterable select the code/display option. */
+// TODO can be narrowed to CodeDisplay with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+type DiagnosticValue = string | CodeDisplay;
+
+// TODO can be simplified to findCodeDisplayByCodeValue with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+function findDiagnosticCodeDisplay(codeDisplays: CodeDisplay[], value: DiagnosticValue): CodeDisplay | undefined {
+  return typeof value === 'string' ? findCodeDisplayByDisplayValue(codeDisplays, value) : findCodeDisplayByCodeValue(codeDisplays, value?.code);
 }

@@ -18,8 +18,10 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { TEXT_MAX_LENGTH } from '../../../common-utils';
 import { GENDER_OPTION_LIST } from '../../../formly-options-lists';
-import { FormlyConstants, formlyInputField, formlyRow } from '@gematik/demis-portal-core-library';
+import { filterableSelectField, FormlyConstants, formlyInputField, formlyRow, SelectOption } from '@gematik/demis-portal-core-library';
 import { PathogenFormInfos } from '../../../../utils/disclaimer-texts';
+import { formlyRequiredFieldsHint } from './commons';
+import { isFilterablePathogenEnabled } from '../../../../utils/pathogen-notification-mapper';
 
 const INFO_KEY = 'info';
 
@@ -29,6 +31,7 @@ export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
     template: PathogenFormInfos.insertAllKnownInfosToFulfillReportingObligation,
     key: 'notifiedPersonInfoWrapper',
   },
+  formlyRequiredFieldsHint(),
   {
     className: '',
     template: '<h2>Allgemein</h2>',
@@ -60,17 +63,30 @@ export const getNotifiedPersonInfo = (): FormlyFieldConfig[] => [
   ),
   formlyRow(
     [
-      {
-        id: 'gender',
-        key: 'gender',
-        type: 'select',
-        className: FormlyConstants.COLMD6,
-        props: {
-          label: 'Geschlecht',
-          options: GENDER_OPTION_LIST,
-          required: true,
-        },
-      },
+      // TODO remove legacy select with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+      isFilterablePathogenEnabled()
+        ? {
+            ...filterableSelectField<SelectOption>({
+              id: 'gender',
+              key: 'gender',
+              label: 'Geschlecht',
+              options: GENDER_OPTION_LIST,
+              required: true,
+              clearable: true,
+            }),
+            className: FormlyConstants.COLMD6,
+          }
+        : {
+            id: 'gender',
+            key: 'gender',
+            type: 'select',
+            className: FormlyConstants.COLMD6,
+            props: {
+              label: 'Geschlecht',
+              options: GENDER_OPTION_LIST,
+              required: true,
+            },
+          },
       {
         id: 'birthDate',
         key: 'birthDate',

@@ -21,6 +21,7 @@ import { CodeDisplay } from '../../../../../../api/notification';
 import { FormlyConstants, formlyInputField } from '@gematik/demis-portal-core-library';
 import {
   copyAddress,
+  formlyRequiredFieldsHint,
   notifierFacilitySourceIsInvalid,
   updateCurrentAddressAfterChangeWhenSubmittingFacilityIsEnabled,
   updateCurrentAddressInstitutionNameAfterChangeWhenSubmittingFacilityIsEnabled,
@@ -73,6 +74,7 @@ export const notifierFacilityFormConfigFields = (countryCodeDisplays: CodeDispla
       template: PathogenFormInfos.insertAllKnownInfosToFulfillReportingObligation + PathogenFormInfos.personalDataWillBeStoredInLocalStorage,
       key: 'notifierFacilityInfoWrapper',
     },
+    formlyRequiredFieldsHint(),
     {
       className: '',
       template: '<h2>Einrichtung</h2>',

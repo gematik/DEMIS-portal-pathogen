@@ -16,27 +16,29 @@
  */
 
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { ExtendedSalutationEnum } from '../../../common-utils';
-import { formlyInputField, formlyRow, FormlyConstants } from '@gematik/demis-portal-core-library';
+import { filterableSelectField, formlyInputField, formlyRow, FormlyConstants, SelectOption } from '@gematik/demis-portal-core-library';
+import { isFilterablePathogenEnabled } from '../../../../utils/pathogen-notification-mapper';
+import { SALUTATION_OPTION_LIST } from '../../../formly-options-lists';
 
 export const practitionerInfoFormConfigFields: () => FormlyFieldConfig[] = () => [
   formlyRow(
     [
-      {
-        id: 'salutation',
-        type: 'select',
-        key: 'salutation',
-        className: FormlyConstants.COLMD6,
-        props: {
-          label: 'Anrede',
-          options: [
-            { value: ExtendedSalutationEnum.Mrs, label: 'Frau' },
-            { value: ExtendedSalutationEnum.Mr, label: 'Herr' },
-            // 'None' is hardcoded and not in the enum because it's only needed for the frontend
-            { value: ExtendedSalutationEnum.None, label: 'Keine Anrede' },
-          ],
-        },
-      },
+      // TODO remove legacy select with removal of FEATURE_FLAG_FILTERABLE_PATHOGEN
+      isFilterablePathogenEnabled()
+        ? {
+            ...filterableSelectField<SelectOption>({ id: 'salutation', key: 'salutation', label: 'Anrede', options: SALUTATION_OPTION_LIST, clearable: true }),
+            className: FormlyConstants.COLMD6,
+          }
+        : {
+            id: 'salutation',
+            type: 'select',
+            key: 'salutation',
+            className: FormlyConstants.COLMD6,
+            props: {
+              label: 'Anrede',
+              options: SALUTATION_OPTION_LIST,
+            },
+          },
       formlyInputField({
         key: 'prefix',
         className: FormlyConstants.COLMD6,

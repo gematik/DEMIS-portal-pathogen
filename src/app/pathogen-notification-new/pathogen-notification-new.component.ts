@@ -16,7 +16,13 @@
  */
 
 import { Component, computed, inject, OnDestroy, OnInit } from '@angular/core';
-import { createStepContent, MaxHeightContentContainerComponent, provideStepNavigation, SideNavigationComponent } from '@gematik/demis-portal-core-library';
+import {
+  createStepContent,
+  MaxHeightContentContainerComponent,
+  PasteBoxComponent,
+  provideStepNavigation,
+  SideNavigationComponent,
+} from '@gematik/demis-portal-core-library';
 import { getStepData } from './step-data';
 import { FormlyModule } from '@ngx-formly/core';
 import { PathogenNotificationService } from './pathogen-notification.service';
@@ -28,16 +34,19 @@ import { PathogenDiagnosticComponent } from './pathogen-diagnostic/pathogen-diag
 import { getNotificationTypeByRouterUrl, NotificationType } from '../pathogen-notification/common/routing-helper';
 import { Router } from '@angular/router';
 import { isAnonymousNotificationEnabled } from '../pathogen-notification/utils/pathogen-notification-mapper';
+import { HexhexbuttonComponent } from '../pathogen-notification/legacy/components/hexhexbutton/hexhexbutton.component';
+import { PathogenNotificationPrefillService } from './pathogen-notification-prefill.service';
 
 @Component({
   selector: 'app-pathogen-notification-new',
-  imports: [MaxHeightContentContainerComponent, SideNavigationComponent, FormlyModule],
+  imports: [MaxHeightContentContainerComponent, SideNavigationComponent, FormlyModule, HexhexbuttonComponent, PasteBoxComponent],
   providers: [provideStepNavigation()],
   templateUrl: './pathogen-notification-new.component.html',
   styleUrls: ['./pathogen-notification-new.component.scss'],
 })
 export class PathogenNotificationNewComponent implements OnInit, OnDestroy {
   readonly pathogenNotificationService = inject(PathogenNotificationService);
+  private readonly prefillService = inject(PathogenNotificationPrefillService);
   readonly router = inject(Router);
   notificationType = NotificationType.NominalNotification7_1;
 
@@ -64,11 +73,10 @@ export class PathogenNotificationNewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.prefillService.cancelPendingPrefill();
     this.pathogenNotificationService.cancelPendingInitialization();
   }
 
-  // hex hex
-  //clipboard
   protected readonly isAnonymousNotificationEnabled = isAnonymousNotificationEnabled;
 
   readonly headingTitle = computed(() => {
@@ -104,4 +112,12 @@ export class PathogenNotificationNewComponent implements OnInit, OnDestroy {
         return '';
     }
   });
+
+  handleHexHexChange(): void {
+    this.prefillService.populateWithDummyData();
+  }
+
+  onClipboardDataPasted(data: Map<string, string>): void {
+    this.prefillService.populateFromClipboard(data);
+  }
 }

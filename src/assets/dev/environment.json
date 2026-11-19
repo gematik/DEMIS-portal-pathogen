@@ -3,7 +3,8 @@
     "FEATURE_FLAG_NON_NOMINAL_NOTIFICATION": true,
     "FEATURE_FLAG_ANONYMOUS_NOTIFICATION": true,
     "FEATURE_FLAG_FOLLOW_UP_7_3": true,
-    "FEATURE_FLAG_CORE_SIDENAV": false
+    "FEATURE_FLAG_CORE_SIDENAV": true,
+    "FEATURE_FLAG_FILTERABLE_PATHOGEN": true
   },
   "gatewayPaths": {
     "pathogen": "/notification/pathogen",
